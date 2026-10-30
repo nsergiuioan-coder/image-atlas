@@ -1,0 +1,44 @@
+[package]
+name = "image-atlas"
+version = "0.1.0"
+edition = "2024"
+authors = ["NIS"]
+license = "MIT"
+description = "Map website images, download organized collections, and prepare image batches"
+
+[dependencies]
+anyhow = "1"
+base64 = "0.22"
+crossbeam-channel = "0.5"
+eframe = { version = "0.33.3", default-features = false, features = ["accesskit", "default_fonts", "glow", "wayland", "x11"] }
+flate2 = "1"
+futures-util = "0.3"
+image = { version = "0.25.10", default-features = false, features = ["png", "jpeg", "webp", "gif", "bmp", "tiff", "ico", "pnm", "qoi", "tga", "avif"] }
+lopdf = { version = "0.38", default-features = false }
+percent-encoding = "2"
+quick-xml = "0.38"
+reqwest = { version = "0.13.5", default-features = false, features = ["native-tls", "blocking", "gzip", "brotli", "stream", "json", "system-proxy"] }
+resvg = "0.45.1"
+rfd = "0.17.2"
+scraper = "0.24"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+tempfile = "3"
+url = "2"
+vtracer = "0.6.5"
+walkdir = "2"
+zip = { version = "4", default-features = false, features = ["deflate"] }
+
+tokio = { version = "1", features = ["rt-multi-thread", "time", "fs", "io-util", "sync"] }
+semver = "1"
+
+xmltree = "0.11"
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 8
+strip = true
+panic = "abort"
+

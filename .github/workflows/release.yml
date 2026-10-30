@@ -1,0 +1,37 @@
+name: Windows release
+on:
+  push:
+    branches: [main]
+    paths: [Cargo.toml, Cargo.lock, src/**, packaging/**, scripts/**, .github/workflows/**]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: Swatinem/rust-cache@v2
+      - run: choco install nsis --no-progress -y
+      - shell: pwsh
+        run: ./scripts/build.ps1 -Nsis 'C:/Program Files (x86)/NSIS/makensis.exe'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ImageAtlas-Windows
+          path: dist/*.*
+      - shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = ((Get-Content Cargo.toml | Select-String '^version = ').Line -split '"')[1]
+          gh release view "v$version" *> $null
+          if ($LASTEXITCODE -ne 0) {
+            gh release create "v$version" dist/*.* --title "Image Atlas $version" --generate-notes --target $env:GITHUB_SHA
+            if ($LASTEXITCODE) { throw 'Release failed' }
+          }

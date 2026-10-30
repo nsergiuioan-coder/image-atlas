@@ -1,0 +1,620 @@
+use crate::model::{Asset, Cancel, Event, SiteMap};
+use anyhow::{Context, Result};
+use crossbeam_channel::Sender;
+use scraper::{ElementRef, Html, Selector};
+use serde_json::Value;
+use std::{
+    collections::{HashSet, VecDeque},
+    path::PathBuf,
+    process::{Command, Stdio},
+    time::Duration,
+};
+use url::Url;
+
+#[derive(Clone)]
+pub struct CrawlOptions {
+    pub website: String,
+    pub render: bool,
+    pub sitemap: bool,
+}
+
+#[derive(Default)]
+pub struct Page {
+    pub assets: Vec<Asset>,
+    pub links: Vec<(Url, Vec<String>)>,
+}
+
+pub fn web_url(base: &Url, value: &str) -> Option<Url> {
+    let mut u = base.join(value.trim()).ok()?;
+    if !matches!(u.scheme(), "http" | "https") || !u.username().is_empty() || u.password().is_some()
+    {
+        return None;
+    }
+    u.set_fragment(None);
+    let pairs: Vec<_> = u
+        .query_pairs()
+        .filter(|(k, _)| !k.starts_with("utm_") && k != "fbclid" && k != "gclid")
+        .map(|(k, v)| (k.into_owned(), v.into_owned()))
+        .collect();
+    u.set_query(None);
+    if !pairs.is_empty() {
+        u.query_pairs_mut().extend_pairs(pairs);
+    }
+    Some(u)
+}
+
+fn asset_url(base: &Url, value: &str) -> Option<String> {
+    if value.starts_with("data:image/") {
+        Some(value.to_owned())
+    } else {
+        web_url(base, value).map(|u| u.to_string())
+    }
+}
+
+fn image_url(u: &Url) -> bool {
+    let p = u.path().to_ascii_lowercase();
+    [
+        ".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg", ".avif", ".bmp", ".tif", ".tiff", ".ico",
+    ]
+    .iter()
+    .any(|e| p.ends_with(e))
+}
+
+fn route(base: &Url, v: &Value) -> Option<Url> {
+    let value = v
+        .get("RouterLink")
+        .and_then(|x| x.as_array())
+        .and_then(|a| a.first())
+        .and_then(Value::as_str)
+        .or_else(|| v.get("SeoUrl").and_then(Value::as_str))?;
+    web_url(base, value)
+}
+
+fn name(v: &Value) -> String {
+    v.get("Name")
+        .and_then(Value::as_str)
+        .unwrap_or("Images")
+        .to_owned()
+}
+
+fn item_images(base: &Url, v: &Value, folders: &[String], label: &str, page: &mut Page) {
+    let mut add = |text: &str| {
+        if let Some(u) = web_url(base, text)
+            && image_url(&u)
+            && !u.path().to_ascii_lowercase().contains("noimage")
+        {
+            page.assets.push(Asset {
+                url: u.to_string(),
+                page: base.to_string(),
+                label: label.into(),
+                folders: folders.to_vec(),
+                selected: true,
+            });
+        }
+    };
+    for key in [
+        "OriginalImage",
+        "FullImage",
+        "Image",
+        "Thumbnail",
+        "ImmagineMenu",
+        "ImageTop",
+        "HeaderImage",
+    ] {
+        if let Some(s) = v.get(key).and_then(Value::as_str) {
+            add(s);
+        }
+    }
+    for key in [
+        "PhotoGallery",
+        "SliderImages",
+        "Attachments",
+        "ProductAttachments",
+    ] {
+        if let Some(images) = v.get(key).and_then(Value::as_array) {
+            for image in images {
+                if let Some(s) = image.as_str() {
+                    add(s);
+                }
+                for field in [
+                    "PhotoUrl",
+                    "ImageUrl",
+                    "Image",
+                    "Url",
+                    "FileUrl",
+                    "AttachmentUrl",
+                    "Path",
+                    "OriginalUrl",
+                ] {
+                    if let Some(s) = image.get(field).and_then(Value::as_str) {
+                        add(s);
+                    }
+                }
+            }
+        }
+    }
+    for key in ["ShortDescription", "LongDescription"] {
+        if let Some(s) = v.get(key).and_then(Value::as_str) {
+            let doc = Html::parse_fragment(s);
+            if let Ok(selector) = Selector::parse("img[src], a[href]") {
+                for e in doc.select(&selector) {
+                    if let Some(src) = e.value().attr("src").or_else(|| e.value().attr("href")) {
+                        add(src);
+                    }
+                }
+            }
+        }
+    }
+}
+
+fn storefront(source: &str, base: &Url, inherited: &[String]) -> Option<Page> {
+    let marker = source.find("window.UNIVERSAL_CACHE")?;
+    let start = source[marker..].find('{')? + marker;
+    let outer: Value = serde_json::Deserializer::from_str(&source[start..])
+        .into_iter::<Value>()
+        .next()?
+        .ok()?;
+    let cache: Value = serde_json::from_str(outer.get("CacheService")?.as_str()?).ok()?;
+    let values = cache.as_object()?;
+    let mut page = Page::default();
+    if let Some((_, item)) = values.iter().find(|(k, _)| {
+        k.contains("/api/inventory/getcategory") || k.contains("/api/inventory/getproduct")
+    }) {
+        let is_category = item.get("SubCategories").is_some()
+            && item.get("Type").and_then(Value::as_str).is_none();
+        let mut folders = inherited.to_vec();
+        if let Some(crumbs) = item.get("BreadcrumbsInfo").and_then(Value::as_array) {
+            let mut names: Vec<_> = crumbs
+                .iter()
+                .skip(1)
+                .filter_map(|c| c.get("BreadcrumbName").and_then(Value::as_str))
+                .map(str::to_owned)
+                .collect();
+            if !is_category && !names.is_empty() {
+                names.pop();
+            }
+            if !names.is_empty() {
+                folders = names;
+            }
+        }
+        if folders.is_empty() {
+            folders.push(base.host_str().unwrap_or("Website").into());
+        }
+        item_images(
+            base,
+            item,
+            &folders,
+            if is_category {
+                "Category"
+            } else {
+                item.get("Name").and_then(Value::as_str).unwrap_or("Images")
+            },
+            &mut page,
+        );
+        for key in ["SubCategories", "SubProducts"] {
+            if let Some(children) = item.get(key).and_then(Value::as_array) {
+                for child in children {
+                    if child.get("Active") == Some(&Value::Bool(false)) {
+                        continue;
+                    }
+                    let mut path = folders.clone();
+                    if key == "SubCategories" {
+                        path.push(name(child));
+                    }
+                    item_images(base, child, &folders, &name(child), &mut page);
+                    if let Some(u) = route(base, child) {
+                        page.links.push((u, path));
+                    }
+                }
+            }
+        }
+    } else if let Some((_, menu)) = values.iter().find(|(k, _)| k.contains("/getsidemenudata/"))
+        && let Some(categories) = menu.get("Categories").and_then(Value::as_array)
+    {
+        for category in categories {
+            if let Some(u) = route(base, category) {
+                page.links.push((u, vec![name(category)]));
+            }
+        }
+    }
+    Some(page)
+}
+
+fn hidden(element: ElementRef<'_>) -> bool {
+    element.ancestors().filter_map(ElementRef::wrap).any(|e| {
+        let v = e.value();
+        matches!(v.name(), "header" | "footer" | "nav")
+            || v.attr("aria-hidden") == Some("true")
+            || v.attr("hidden").is_some()
+            || v.attr("class")
+                .unwrap_or("")
+                .split_whitespace()
+                .any(|c| c == "d-none" || c == "hidden")
+            || v.attr("id") == Some("main-sidebar")
+    })
+}
+
+fn structured_images(v: &Value, base: &Url, folders: &[String], title: &str, page: &mut Page) {
+    match v {
+        Value::Array(a) => {
+            for child in a {
+                structured_images(child, base, folders, title, page);
+            }
+        }
+        Value::Object(o) => {
+            for (key, value) in o {
+                if matches!(key.as_str(), "image" | "contentUrl" | "thumbnailUrl") {
+                    let strings: Vec<_> = if let Some(s) = value.as_str() {
+                        vec![s]
+                    } else {
+                        value
+                            .as_array()
+                            .map(|a| a.iter().filter_map(Value::as_str).collect())
+                            .unwrap_or_default()
+                    };
+                    for s in strings {
+                        if let Some(u) = web_url(base, s) {
+                            page.assets.push(Asset {
+                                url: u.to_string(),
+                                page: base.to_string(),
+                                label: title.into(),
+                                folders: folders.to_vec(),
+                                selected: true,
+                            });
+                        }
+                    }
+                }
+                structured_images(value, base, folders, title, page);
+            }
+        }
+        _ => {}
+    }
+}
+
+pub fn parse_page(source: &str, base: &Url, inherited: &[String]) -> Page {
+    if let Some(page) = storefront(source, base, inherited) {
+        return page;
+    }
+    let doc = Html::parse_document(source);
+    let mut page = Page::default();
+    let title_selector = Selector::parse("h1, title").unwrap();
+    let title = doc
+        .select(&title_selector)
+        .find(|e| e.value().name() == "h1")
+        .or_else(|| doc.select(&title_selector).next())
+        .map(|e| e.text().collect::<String>().trim().to_owned())
+        .unwrap_or_else(|| base.path().into());
+    let crumb_selector = Selector::parse("[aria-label*=readcrumb] a, .breadcrumb a, .breadcrumbs a, [itemprop=itemListElement] [itemprop=name]").unwrap();
+    let crumbs: Vec<_> = doc
+        .select(&crumb_selector)
+        .map(|e| e.text().collect::<String>().trim().to_owned())
+        .filter(|s| {
+            !s.is_empty()
+                && !["home", "homepage", "start"].contains(&s.to_ascii_lowercase().as_str())
+        })
+        .collect();
+    let folders = if !crumbs.is_empty() {
+        crumbs
+    } else if !inherited.is_empty() {
+        inherited.to_vec()
+    } else {
+        let mut path: Vec<_> = base
+            .path_segments()
+            .into_iter()
+            .flatten()
+            .filter(|s| !s.is_empty())
+            .map(|s| s.replace('-', " "))
+            .collect();
+        path.pop();
+        if path.is_empty() {
+            path.push(base.host_str().unwrap_or("Website").into());
+        }
+        path
+    };
+    for image in doc
+        .select(&Selector::parse("img").unwrap())
+        .filter(|e| !hidden(*e))
+    {
+        let srcset = image
+            .value()
+            .attr("srcset")
+            .or_else(|| image.value().attr("data-srcset"));
+        let best = srcset.and_then(|s| {
+            s.split(',')
+                .filter_map(|entry| {
+                    let mut parts = entry.split_whitespace();
+                    let url = parts.next()?;
+                    let size = parts
+                        .next()
+                        .unwrap_or("1x")
+                        .trim_end_matches(['w', 'x'])
+                        .parse::<f64>()
+                        .unwrap_or(1.0);
+                    Some((url, size))
+                })
+                .max_by(|a, b| a.1.total_cmp(&b.1))
+                .map(|(url, _)| url)
+        });
+        let src = image
+            .value()
+            .attr("data-original")
+            .or_else(|| image.value().attr("data-full"))
+            .or(best)
+            .or_else(|| image.value().attr("data-src"))
+            .or_else(|| image.value().attr("src"));
+        if let Some(u) = src.and_then(|s| asset_url(base, s)) {
+            let label = image
+                .value()
+                .attr("alt")
+                .filter(|s| !s.trim().is_empty())
+                .unwrap_or(&title);
+            page.assets.push(Asset {
+                url: u.to_string(),
+                page: base.to_string(),
+                label: label.into(),
+                folders: folders.clone(),
+                selected: true,
+            });
+        }
+    }
+
+    for svg in doc
+        .select(&Selector::parse("svg").unwrap())
+        .filter(|e| !hidden(*e))
+    {
+        use base64::Engine;
+        let source = svg.html();
+        let source = if source.contains("xmlns=") {
+            source
+        } else {
+            source.replacen("<svg", "<svg xmlns=\"http://www.w3.org/2000/svg\"", 1)
+        };
+        page.assets.push(Asset {
+            url: format!(
+                "data:image/svg+xml;base64,{}",
+                base64::engine::general_purpose::STANDARD.encode(source)
+            ),
+            page: base.to_string(),
+            label: title.clone(),
+            folders: folders.clone(),
+            selected: true,
+        });
+    }
+    for element in doc
+        .select(&Selector::parse("[style]").unwrap())
+        .filter(|e| !hidden(*e))
+    {
+        let style = element.value().attr("style").unwrap_or("");
+        for part in style.split("url(").skip(1) {
+            if let Some(value) = part.split(')').next()
+                && let Some(url) = asset_url(base, value.trim().trim_matches(['\'', '"']))
+            {
+                page.assets.push(Asset {
+                    url,
+                    page: base.to_string(),
+                    label: title.clone(),
+                    folders: folders.clone(),
+                    selected: true,
+                });
+            }
+        }
+    }
+    for meta in doc
+        .select(&Selector::parse("meta[property='og:image'], meta[name='twitter:image']").unwrap())
+    {
+        if let Some(u) = meta.value().attr("content").and_then(|s| web_url(base, s)) {
+            page.assets.push(Asset {
+                url: u.to_string(),
+                page: base.to_string(),
+                label: title.clone(),
+                folders: folders.clone(),
+                selected: true,
+            });
+        }
+    }
+    for script in doc.select(&Selector::parse("script[type='application/ld+json']").unwrap()) {
+        if let Ok(v) = serde_json::from_str::<Value>(&script.inner_html()) {
+            structured_images(&v, base, &folders, &title, &mut page);
+        }
+    }
+    for link in doc.select(&Selector::parse("a[href], loc").unwrap()) {
+        let text = link.text().collect::<String>();
+        let href = link.value().attr("href").unwrap_or(text.trim());
+        if let Some(u) = web_url(base, href) {
+            if image_url(&u) {
+                page.assets.push(Asset {
+                    url: u.to_string(),
+                    page: base.to_string(),
+                    label: title.clone(),
+                    folders: folders.clone(),
+                    selected: true,
+                });
+            } else if u.origin() == base.origin()
+                && ![
+                    "logout",
+                    "signout",
+                    "cart",
+                    "checkout",
+                    "login",
+                    "register",
+                    "backoffice",
+                    "wp-admin",
+                ]
+                .iter()
+                .any(|x| u.path().to_ascii_lowercase().contains(x))
+            {
+                let ext = std::path::Path::new(u.path())
+                    .extension()
+                    .and_then(|s| s.to_str())
+                    .unwrap_or("");
+                if ext.is_empty() || ["html", "htm", "php", "aspx", "xml"].contains(&ext) {
+                    page.links.push((u, Vec::new()));
+                }
+            }
+        }
+    }
+    page
+}
+
+pub fn browser_binary() -> Option<PathBuf> {
+    [
+        std::env::var_os("PROGRAMFILES(X86)"),
+        std::env::var_os("PROGRAMFILES"),
+        std::env::var_os("LOCALAPPDATA"),
+    ]
+    .into_iter()
+    .flatten()
+    .flat_map(|p| {
+        [
+            PathBuf::from(&p).join("Microsoft/Edge/Application/msedge.exe"),
+            PathBuf::from(p).join("Google/Chrome/Application/chrome.exe"),
+        ]
+    })
+    .find(|p| p.exists())
+}
+
+fn render(url: &Url) -> Result<String> {
+    let browser =
+        browser_binary().context("Install Edge or Chrome to enable JavaScript rendering")?;
+    let profile = tempfile::tempdir()?;
+    let mut cmd = Command::new(browser);
+    cmd.args([
+        "--headless",
+        "--disable-gpu",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--blink-settings=imagesEnabled=false",
+        "--dump-dom",
+        "--virtual-time-budget=5000",
+    ])
+    .arg(format!("--user-data-dir={}", profile.path().display()))
+    .arg(url.as_str())
+    .stdout(Stdio::piped())
+    .stderr(Stdio::null());
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        cmd.creation_flags(0x08000000);
+    }
+    let mut child = cmd.spawn()?;
+    let stdout = child.stdout.take().context("Browser output unavailable")?;
+    let reader = std::thread::spawn(move || {
+        use std::io::Read;
+        let mut bytes = Vec::new();
+        let mut stdout = stdout;
+        stdout.read_to_end(&mut bytes).map(|_| bytes)
+    });
+    let start = std::time::Instant::now();
+    loop {
+        if child.try_wait()?.is_some() {
+            break;
+        }
+        if start.elapsed() > Duration::from_secs(45) {
+            child.kill()?;
+            anyhow::bail!("Browser rendering timed out");
+        }
+        std::thread::sleep(Duration::from_millis(100));
+    }
+    let bytes = reader
+        .join()
+        .map_err(|_| anyhow::anyhow!("Browser output reader failed"))??;
+    Ok(String::from_utf8_lossy(&bytes).into_owned())
+}
+
+pub fn map_site(options: CrawlOptions, cancel: Cancel, events: Sender<Event>) -> Result<SiteMap> {
+    let base =
+        Url::parse(&options.website).context("Enter a complete http:// or https:// website URL")?;
+    anyhow::ensure!(
+        matches!(base.scheme(), "http" | "https"),
+        "Only HTTP and HTTPS websites are supported"
+    );
+    let client = reqwest::blocking::Client::builder()
+        .timeout(Duration::from_secs(40))
+        .user_agent("ImageAtlas/0.1 site-owner image mapper")
+        .build()?;
+    let mut queue = VecDeque::from([(base.clone(), Vec::new())]);
+    if options.sitemap
+        && let Ok(u) = base.join("/sitemap.xml")
+    {
+        queue.push_back((u, Vec::new()));
+    }
+    let mut seen = HashSet::new();
+    let mut unique = HashSet::new();
+    let mut map = SiteMap {
+        website: base.to_string(),
+        ..Default::default()
+    };
+    while let Some((url, folders)) = queue.pop_front() {
+        if cancel.stopped() {
+            map.notices
+                .push("Mapping stopped by user; the partial map is available for review".into());
+            break;
+        }
+        if !seen.insert(url.to_string()) {
+            continue;
+        }
+        let _ = events.send(Event::Log(format!(
+            "Mapping {} · {} pages · {} images",
+            url,
+            map.pages,
+            map.assets.len()
+        )));
+        let source = if options.render && !url.path().ends_with(".xml") {
+            render(&url)
+        } else {
+            client
+                .get(url.clone())
+                .send()
+                .and_then(|r| r.error_for_status())
+                .and_then(|r| r.text())
+                .map_err(Into::into)
+        };
+        match source {
+            Ok(source) => {
+                let page = parse_page(&source, &url, &folders);
+                map.pages += 1;
+                for asset in page.assets {
+                    let key = (
+                        asset.url.clone(),
+                        asset.folders.clone(),
+                        asset.label.clone(),
+                    );
+                    if unique.insert(key) {
+                        map.assets.push(asset);
+                    }
+                }
+                for (next, path) in page.links {
+                    if next.origin() == base.origin() && !seen.contains(next.as_str()) {
+                        queue.push_back((next, path));
+                    }
+                }
+            }
+            Err(e) => map.notices.push(format!("{}: {}", url, e)),
+        }
+    }
+    Ok(map)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn generic_mapping_uses_original_and_breadcrumb() {
+        let source = r#"<html><title>Shop</title><nav><img src="logo.png"></nav><div class="breadcrumb"><a>Home</a><a>Prints</a></div><h1>Poster</h1><img src="small.jpg" srcset="small.jpg 100w, full.jpg 1200w" alt="Poster"><a href="/next">Next</a></html>"#;
+        let p = parse_page(
+            source,
+            &Url::parse("https://example.test/shop/poster").unwrap(),
+            &[],
+        );
+        assert_eq!(p.assets.len(), 1);
+        assert!(p.assets[0].url.ends_with("full.jpg"));
+        assert_eq!(p.assets[0].folders, vec!["Prints"]);
+        assert_eq!(p.links.len(), 1);
+    }
+    #[test]
+    fn rejects_non_web_urls() {
+        let base = Url::parse("https://example.test").unwrap();
+        assert!(web_url(&base, "javascript:alert(1)").is_none());
+        assert!(web_url(&base, "file:///etc/passwd").is_none());
+    }
+}

@@ -1,0 +1,1400 @@
+use crate::{
+    convert::{self, ColorRule},
+    crawl, download,
+    model::{Cancel, Event, SiteMap, UpdateRelease},
+    update,
+};
+use crossbeam_channel::{Receiver, Sender, unbounded};
+use eframe::egui::{self, Color32, RichText};
+use std::{path::PathBuf, time::Duration};
+
+const INK: Color32 = Color32::from_rgb(228, 234, 240);
+const ACCENT: Color32 = Color32::from_rgb(31, 124, 110);
+const PAPER: Color32 = Color32::from_rgb(23, 28, 34);
+
+pub struct Atlas {
+    vector: crate::vector::Editor,
+    tab: usize,
+    url: String,
+    render: bool,
+    sitemap: bool,
+    map: SiteMap,
+    filter: String,
+    edit_folders: bool,
+    folder: PathBuf,
+    bandwidth: u32,
+    zip: bool,
+    tx: Sender<Event>,
+    rx: Receiver<Event>,
+    cancel: Cancel,
+    busy: bool,
+    status: String,
+    logs: Vec<String>,
+    progress: f32,
+    files: Vec<(PathBuf, String)>,
+    settings: convert::Settings,
+    output: PathBuf,
+    preview: Option<egui::TextureHandle>,
+    pixels: Option<image::RgbaImage>,
+    image_index: usize,
+    preview_key: String,
+    original: bool,
+    zoom: f32,
+    pan: egui::Vec2,
+    pick_rule: Option<usize>,
+    region_rule: Option<usize>,
+    preferences: update::Preferences,
+    release: Option<UpdateRelease>,
+    physical: f32,
+    unit: usize,
+}
+impl Atlas {
+    pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
+        cc.egui_ctx
+            .send_viewport_cmd(egui::ViewportCommand::SetTheme(egui::SystemTheme::Dark));
+        cc.egui_ctx.set_theme(egui::ThemePreference::Dark);
+        let mut fonts = egui::FontDefinitions::default();
+        if let Ok(bytes) = std::fs::read("C:/Windows/Fonts/segoeui.ttf") {
+            fonts.font_data.insert(
+                "segoe".into(),
+                std::sync::Arc::new(egui::FontData::from_owned(bytes)),
+            );
+            fonts
+                .families
+                .entry(egui::FontFamily::Proportional)
+                .or_default()
+                .insert(0, "segoe".into());
+        }
+        if let Ok(bytes) = std::fs::read("C:/Windows/Fonts/seguisb.ttf") {
+            fonts.font_data.insert(
+                "segoe-semibold".into(),
+                std::sync::Arc::new(egui::FontData::from_owned(bytes)),
+            );
+            fonts.families.insert(
+                egui::FontFamily::Name("semibold".into()),
+                vec!["segoe-semibold".into()],
+            );
+        }
+        if let Ok(bytes) = std::fs::read("C:/Windows/Fonts/segmdl2.ttf") {
+            fonts.font_data.insert(
+                "windows-icons".into(),
+                std::sync::Arc::new(egui::FontData::from_owned(bytes)),
+            );
+            fonts
+                .families
+                .entry(egui::FontFamily::Proportional)
+                .or_default()
+                .push("windows-icons".into());
+        }
+        cc.egui_ctx.set_fonts(fonts);
+        let mut style = (*cc.egui_ctx.style()).clone();
+        style.visuals = egui::Visuals::dark();
+        style.visuals.panel_fill = PAPER;
+        style.visuals.window_fill = Color32::from_rgb(31, 37, 45);
+        style.visuals.override_text_color = Some(INK);
+        style.visuals.selection.bg_fill = ACCENT;
+        style.visuals.selection.stroke = egui::Stroke::new(1.0_f32, Color32::WHITE);
+        style.visuals.widgets.inactive.weak_bg_fill = Color32::from_rgb(44, 53, 62);
+        style.visuals.widgets.hovered.weak_bg_fill = Color32::from_rgb(58, 72, 82);
+        style.spacing.item_spacing = egui::vec2(12.0, 10.0);
+        style.spacing.button_padding = egui::vec2(16.0, 10.0);
+        style
+            .text_styles
+            .insert(egui::TextStyle::Body, egui::FontId::proportional(15.0));
+        style
+            .text_styles
+            .insert(egui::TextStyle::Button, egui::FontId::proportional(15.0));
+        style
+            .text_styles
+            .insert(egui::TextStyle::Heading, egui::FontId::proportional(27.0));
+        style.spacing.interact_size = egui::vec2(40.0, 32.0);
+        for visuals in [
+            &mut style.visuals.widgets.inactive,
+            &mut style.visuals.widgets.hovered,
+            &mut style.visuals.widgets.active,
+        ] {
+            visuals.corner_radius = egui::CornerRadius::same(7);
+            visuals.bg_stroke = egui::Stroke::NONE;
+        }
+        cc.egui_ctx.set_style_of(egui::Theme::Light, style.clone());
+        cc.egui_ctx.set_style_of(egui::Theme::Dark, style);
+        let (tx, rx) = unbounded();
+        let preferences = update::Preferences::load();
+        if !preferences.disable_updates {
+            let repository = preferences.repository.clone();
+            let tx = tx.clone();
+            let skip = preferences.skip_version.clone();
+            std::thread::spawn(move || {
+                if let Ok(Some(r)) = update::check(&repository)
+                    && r.version != skip
+                {
+                    let _ = tx.send(Event::Update(r));
+                }
+            });
+        }
+        let home =
+            PathBuf::from(std::env::var_os("USERPROFILE").unwrap_or_default()).join("Downloads");
+        let mut atlas = Self {
+            vector: Default::default(),
+            tab: 0,
+            url: String::new(),
+            render: false,
+            sitemap: true,
+            map: SiteMap::default(),
+            filter: String::new(),
+            edit_folders: false,
+            folder: home.join("Image Atlas"),
+            bandwidth: 0,
+            zip: false,
+            tx,
+            rx,
+            cancel: Cancel::default(),
+            busy: false,
+            status: "Ready when you are".into(),
+            logs: Vec::new(),
+            progress: 0.0,
+            files: Vec::new(),
+            settings: Default::default(),
+            output: home.join("Image Atlas edited"),
+            preview: None,
+            pixels: None,
+            image_index: 0,
+            preview_key: String::new(),
+            original: false,
+            zoom: 1.0,
+            pan: egui::Vec2::ZERO,
+            pick_rule: None,
+            region_rule: None,
+            preferences,
+            release: None,
+            physical: 0.0,
+            unit: 0,
+        };
+        if let Some(job) = download::pending_job() {
+            atlas.map = job.map;
+            atlas.folder = job.options.folder;
+            atlas.bandwidth = job.options.bandwidth_mbps;
+            atlas.zip = job.options.make_zip;
+            atlas.tab = 1;
+            atlas.status =
+                "An unfinished download is ready to resume. Completed files will be reused.".into();
+        }
+        let paths = std::env::args_os()
+            .skip(1)
+            .map(PathBuf::from)
+            .filter(|p| p.exists())
+            .collect::<Vec<_>>();
+        if !paths.is_empty() {
+            atlas.import_files(paths);
+            atlas.tab = 2;
+        }
+        atlas
+    }
+    fn start(&mut self) {
+        self.cancel = Cancel::default();
+        self.busy = true;
+        self.progress = 0.0;
+    }
+    fn error(&mut self, error: impl ToString) {
+        self.status = error.to_string();
+        self.logs.push(self.status.clone());
+    }
+    fn primary(ui: &mut egui::Ui, text: impl Into<String>) -> egui::Response {
+        ui.add(
+            egui::Button::new(RichText::new(text.into()).color(Color32::WHITE).strong())
+                .fill(ACCENT)
+                .min_size(egui::vec2(150.0, 44.0))
+                .corner_radius(10),
+        )
+    }
+    fn card() -> egui::Frame {
+        egui::Frame::new()
+            .fill(Color32::from_rgb(31, 37, 45))
+            .corner_radius(16)
+            .inner_margin(24)
+            .stroke(egui::Stroke::new(1.0_f32, Color32::from_rgb(48, 57, 67)))
+    }
+    fn import_files(&mut self, paths: Vec<PathBuf>) {
+        for path in paths {
+            if path.is_dir() {
+                let paths = walkdir::WalkDir::new(path)
+                    .into_iter()
+                    .filter_map(Result::ok)
+                    .filter(|e| {
+                        e.file_type().is_file()
+                            && !e
+                                .path()
+                                .components()
+                                .any(|c| c.as_os_str() == ".atlas-cache")
+                    })
+                    .map(|e| e.into_path())
+                    .collect();
+                self.import_files(paths);
+            } else if !self.files.iter().any(|(p, _)| p == &path) {
+                match convert::dimensions(&path) {
+                    Ok((w, h)) => self.files.push((path, format!("{w} × {h} px"))),
+                    Err(e) => self.logs.push(format!("Skipped {}: {e}", path.display())),
+                }
+            }
+        }
+        self.preview_key.clear();
+    }
+    fn map_website(&mut self) {
+        self.start();
+        let options = crawl::CrawlOptions {
+            website: self.url.clone(),
+            render: self.render,
+            sitemap: self.sitemap,
+        };
+        let tx = self.tx.clone();
+        let cancel = self.cancel.clone();
+        std::thread::spawn(move || {
+            let event = match crawl::map_site(options, cancel, tx.clone()) {
+                Ok(map) => Event::Mapped(map),
+                Err(e) => Event::Failed(e.to_string()),
+            };
+            let _ = tx.send(event);
+        });
+    }
+    fn website(&mut self, ui: &mut egui::Ui) {
+        ui.add_space(45.0);
+        ui.label(RichText::new("Website image library").size(36.0).strong());
+        ui.add_space(6.0);
+        ui.label(
+            RichText::new("Find the originals. Review their folders. Save them together.")
+                .size(18.0)
+                .weak(),
+        );
+        ui.add_space(30.0);
+        Self::card().show(ui, |ui| {
+            ui.set_min_width((ui.available_width() - 48.0).max(300.0));
+            ui.strong("Website address");
+            ui.horizontal(|ui| {
+                ui.add_sized(
+                    [ui.available_width() - 180.0, 46.0],
+                    egui::TextEdit::singleline(&mut self.url)
+                        .hint_text("https://your-website.com")
+                        .margin(egui::vec2(14.0, 13.0)),
+                );
+                ui.add_enabled_ui(!self.busy && !self.url.trim().is_empty(), |ui| {
+                    if Self::primary(ui, "Find images").clicked() {
+                        if !self.url.contains("://") {
+                            self.url = format!("https://{}", self.url.trim());
+                        }
+                        self.map_website();
+                    }
+                });
+            });
+            ui.add_space(6.0);
+            ui.weak("You’ll review everything before downloading.");
+            egui::CollapsingHeader::new("Website options").show(ui, |ui| {
+                ui.checkbox(&mut self.sitemap, "Look through the sitemap");
+                ui.checkbox(
+                    &mut self.render,
+                    "Use browser rendering for a dynamic website",
+                );
+                ui.weak("Browser rendering is slower and requires Edge or Chrome.");
+            });
+        });
+        ui.add_space(28.0);
+        ui.columns(3, |cols| {
+            for (col, (title, text)) in cols.iter_mut().zip([
+                (
+                    "Original quality",
+                    "Files keep their real format, including SVG.",
+                ),
+                (
+                    "Your folder structure",
+                    "Review and edit categories before saving.",
+                ),
+                (
+                    "A considered pace",
+                    "Downloads adapt to your connection and the server.",
+                ),
+            ]) {
+                col.strong(title);
+                col.add_space(5.0);
+                col.label(RichText::new(text).weak());
+            }
+        });
+        ui.add_space(24.0);
+        if ui.link("Open a saved website map").clicked() {
+            self.open_map();
+        }
+    }
+    fn open_map(&mut self) {
+        if let Some(p) = rfd::FileDialog::new()
+            .add_filter("Website map", &["json"])
+            .pick_file()
+        {
+            match std::fs::read(p)
+                .map_err(anyhow::Error::from)
+                .and_then(|b| serde_json::from_slice(&b).map_err(Into::into))
+            {
+                Ok(map) => {
+                    self.map = map;
+                    self.tab = 4;
+                }
+                Err(e) => self.error(e),
+            }
+        }
+    }
+    fn review(&mut self, ui: &mut egui::Ui) {
+        ui.heading("Review your images");
+        ui.label("Choose the images to keep and where they belong.");
+        ui.add_space(18.0);
+        let count = self.map.assets.iter().filter(|a| a.selected).count();
+        ui.horizontal(|ui| {
+            ui.strong(format!("{count} selected"));
+            ui.weak(format!(
+                "from {} images · {} pages",
+                self.map.assets.len(),
+                self.map.pages
+            ));
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                if Self::primary(ui, "Continue to download").clicked() && count > 0 {
+                    self.tab = 1;
+                }
+            });
+        });
+        ui.add_space(10.0);
+        ui.horizontal(|ui| {
+            ui.add(
+                egui::TextEdit::singleline(&mut self.filter)
+                    .hint_text("Find an image or category")
+                    .desired_width(330.0)
+                    .margin(egui::vec2(12.0, 9.0)),
+            );
+            ui.checkbox(&mut self.edit_folders, "Edit folders");
+            ui.menu_button("Selection", |ui| {
+                if ui.button("Select all").clicked() {
+                    for a in &mut self.map.assets {
+                        a.selected = true;
+                    }
+                    ui.close();
+                }
+                if ui.button("Deselect all").clicked() {
+                    for a in &mut self.map.assets {
+                        a.selected = false;
+                    }
+                    ui.close();
+                }
+            });
+            ui.menu_button("Map", |ui| {
+                if ui.button("Save map").clicked() {
+                    if let Some(p) = rfd::FileDialog::new()
+                        .set_file_name("website-map.json")
+                        .save_file()
+                    {
+                        match serde_json::to_vec_pretty(&self.map)
+                            .map_err(anyhow::Error::from)
+                            .and_then(|b| std::fs::write(p, b).map_err(Into::into))
+                        {
+                            Ok(()) => self.status = "Map saved".into(),
+                            Err(e) => self.error(e),
+                        }
+                    }
+                    ui.close();
+                }
+                if ui.button("Open map").clicked() {
+                    self.open_map();
+                    ui.close();
+                }
+            });
+        });
+        ui.add_space(10.0);
+        let filter = self.filter.to_lowercase();
+        let visible: Vec<_> = self
+            .map
+            .assets
+            .iter()
+            .enumerate()
+            .filter(|(_, a)| {
+                format!("{} {} {}", a.label, a.folders.join("/"), a.url)
+                    .to_lowercase()
+                    .contains(&filter)
+            })
+            .map(|(i, _)| i)
+            .collect();
+        egui::ScrollArea::vertical()
+            .id_salt("map")
+            .max_height((ui.available_height() - 12.0).max(100.0))
+            .show_rows(ui, 76.0, visible.len(), |ui, range| {
+                for row in range {
+                    let index = visible[row];
+                    let a = &mut self.map.assets[index];
+                    ui.push_id(index, |ui| {
+                        egui::Frame::new()
+                            .fill(Color32::from_rgb(31, 37, 45))
+                            .corner_radius(10)
+                            .inner_margin(12)
+                            .show(ui, |ui| {
+                                ui.horizontal(|ui| {
+                                    ui.checkbox(&mut a.selected, "");
+                                    if self.edit_folders {
+                                        ui.add(
+                                            egui::TextEdit::singleline(&mut a.label)
+                                                .desired_width(240.0),
+                                        );
+                                        let mut path = a.folders.join(" / ");
+                                        if ui
+                                            .add(
+                                                egui::TextEdit::singleline(&mut path)
+                                                    .desired_width(360.0),
+                                            )
+                                            .changed()
+                                        {
+                                            a.folders = path
+                                                .split('/')
+                                                .map(str::trim)
+                                                .filter(|s| !s.is_empty())
+                                                .map(str::to_owned)
+                                                .collect();
+                                        }
+                                    } else {
+                                        ui.vertical(|ui| {
+                                            ui.strong(&a.label);
+                                            ui.label(
+                                                RichText::new(a.folders.join(" / ")).small().weak(),
+                                            );
+                                        });
+                                    }
+                                    ui.with_layout(
+                                        egui::Layout::right_to_left(egui::Align::Center),
+                                        |ui| {
+                                            if !a.url.starts_with("data:") {
+                                                ui.hyperlink_to("View source", &a.url);
+                                            } else {
+                                                ui.weak("Inline image");
+                                            }
+                                        },
+                                    );
+                                });
+                            });
+                    });
+                }
+            });
+        if self.map.assets.is_empty() {
+            ui.add_space(50.0);
+            ui.centered_and_justified(|ui| {
+                ui.label("No images found. Try browser rendering, or review the activity details.");
+            });
+        }
+    }
+    fn begin_download(&mut self) {
+        self.start();
+        let map = self.map.clone();
+        let folder = self.folder.clone();
+        let options = download::Options {
+            folder: folder.clone(),
+            bandwidth_mbps: self.bandwidth,
+            make_zip: self.zip,
+        };
+        let tx = self.tx.clone();
+        let cancel = self.cancel.clone();
+        std::thread::spawn(move || {
+            let result = tokio::runtime::Builder::new_multi_thread()
+                .worker_threads(2)
+                .enable_all()
+                .build()
+                .map_err(anyhow::Error::from)
+                .and_then(|rt| {
+                    rt.block_on(download::download_map(map, options, cancel, tx.clone()))
+                });
+            let _ = tx.send(match result {
+                Ok(failures) => Event::Finished { folder, failures },
+                Err(e) => Event::Failed(e.to_string()),
+            });
+        });
+    }
+    fn downloads(&mut self, ui: &mut egui::Ui) {
+        ui.add_space(25.0);
+        ui.heading("Save your collection");
+        ui.label("Original files, organized exactly as you reviewed them.");
+        ui.add_space(24.0);
+        Self::card().show(ui, |ui| {
+            ui.set_min_width((ui.available_width() - 48.0).max(300.0));
+            ui.strong("Save location");
+            ui.horizontal(|ui| {
+                ui.label(self.folder.display().to_string());
+                if ui.button("Change").clicked()
+                    && let Some(p) = rfd::FileDialog::new().pick_folder()
+                {
+                    self.folder = p;
+                }
+            });
+            ui.add_space(8.0);
+            ui.checkbox(&mut self.zip, "Create a ZIP archive too");
+            egui::CollapsingHeader::new("Connection preferences").show(ui, |ui| {
+                ui.label("Automatic works for most connections. Add a speed hint if you know it.");
+                ui.horizontal(|ui| {
+                    ui.label("Connection speed");
+                    ui.add(egui::DragValue::new(&mut self.bandwidth).suffix(" Mbps"));
+                    ui.weak("0 = automatic");
+                });
+            });
+            ui.add_space(18.0);
+            let count = self.map.assets.iter().filter(|a| a.selected).count();
+            ui.horizontal(|ui| {
+                ui.add_enabled_ui(!self.busy && count > 0, |ui| {
+                    if Self::primary(ui, format!("Download {count} images")).clicked() {
+                        self.begin_download();
+                    }
+                });
+                if ui.button("Open folder").clicked() {
+                    let _ = std::process::Command::new("explorer.exe")
+                        .arg(&self.folder)
+                        .spawn();
+                }
+                if !self.busy && ui.link("Edit selection").clicked() {
+                    self.tab = 4;
+                }
+            });
+        });
+        if self.busy {
+            ui.add_space(25.0);
+            ui.add(
+                egui::ProgressBar::new(self.progress)
+                    .desired_height(12.0)
+                    .fill(ACCENT),
+            );
+            ui.add_space(8.0);
+            ui.label(&self.status);
+        }
+        ui.add_space(20.0);
+        ui.weak("You can stop and resume later. Completed originals are reused automatically.");
+    }
+    fn refresh_preview(&mut self, ctx: &egui::Context) {
+        if self.files.is_empty() {
+            self.preview = None;
+            self.pixels = None;
+            return;
+        }
+        self.image_index = self.image_index.min(self.files.len() - 1);
+        let key = format!(
+            "{}:{}:{:?}:{}:{}",
+            self.image_index,
+            self.original,
+            self.settings.rules,
+            self.settings.width,
+            self.settings.height
+        );
+        if self.preview_key == key {
+            return;
+        }
+        let path = self.files[self.image_index].0.clone();
+        match convert::load(&path) {
+            Ok(image) => {
+                let image = if self.original {
+                    image
+                } else {
+                    convert::prepare(image, &self.settings)
+                };
+                let rgba = image.thumbnail(1800, 1400).to_rgba8();
+                let color = egui::ColorImage::from_rgba_unmultiplied(
+                    [rgba.width() as usize, rgba.height() as usize],
+                    rgba.as_raw(),
+                );
+                self.preview =
+                    Some(ctx.load_texture("batch-preview", color, egui::TextureOptions::LINEAR));
+                self.pixels = Some(rgba);
+                self.preview_key = key;
+            }
+            Err(e) => {
+                self.error(e);
+                self.preview_key = key;
+                self.preview = None;
+            }
+        }
+    }
+    fn preview_canvas(&mut self, ui: &mut egui::Ui, ctx: &egui::Context) {
+        ui.horizontal(|ui| {
+            if ui
+                .selectable_label(
+                    self.original,
+                    RichText::new("Original").color(if self.original {
+                        Color32::WHITE
+                    } else {
+                        INK
+                    }),
+                )
+                .clicked()
+            {
+                self.original = true;
+            }
+            if ui
+                .selectable_label(
+                    !self.original,
+                    RichText::new("Edited").color(if !self.original {
+                        Color32::WHITE
+                    } else {
+                        INK
+                    }),
+                )
+                .clicked()
+            {
+                self.original = false;
+            }
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                if ui.button("Fit image").clicked() {
+                    self.zoom = 1.0;
+                    self.pan = egui::Vec2::ZERO;
+                }
+                ui.weak(format!("{}%", (self.zoom * 100.0).round()));
+            });
+        });
+        self.refresh_preview(ctx);
+        let size = egui::vec2(
+            ui.available_width(),
+            (ui.available_height() - 100.0).max(280.0),
+        );
+        let (rect, response) = ui.allocate_exact_size(size, egui::Sense::click_and_drag());
+        let painter = ui.painter_at(rect);
+        painter.rect_filled(rect, 14, Color32::from_rgb(14, 18, 23));
+        if let Some(texture) = &self.preview {
+            if response.dragged() && self.pick_rule.is_none() && self.region_rule.is_none() {
+                self.pan += response.drag_delta();
+            }
+            if response.hovered() {
+                let scroll = ctx.input(|i| i.smooth_scroll_delta.y);
+                if scroll != 0.0 {
+                    self.zoom = (self.zoom * (scroll * 0.002).exp()).clamp(0.1, 12.0);
+                    ctx.input_mut(|i| i.smooth_scroll_delta = egui::Vec2::ZERO);
+                }
+            }
+            let factor = (rect.width() / texture.size_vec2().x)
+                .min(rect.height() / texture.size_vec2().y)
+                * 0.92
+                * self.zoom;
+            let image_rect = egui::Rect::from_center_size(
+                rect.center() + self.pan,
+                texture.size_vec2() * factor,
+            );
+            painter.image(
+                texture.id(),
+                image_rect,
+                egui::Rect::from_min_max(egui::Pos2::ZERO, egui::pos2(1.0, 1.0)),
+                Color32::WHITE,
+            );
+            if response.drag_stopped()
+                && let Some(index) = self.region_rule
+                && let Some(end) = response.interact_pointer_pos()
+            {
+                let start = end - response.drag_delta();
+                let drag = ctx
+                    .data(|d| d.get_temp::<egui::Pos2>(egui::Id::new("region-start")))
+                    .unwrap_or(start);
+                let a = (drag - image_rect.min) / image_rect.size();
+                let b = (end - image_rect.min) / image_rect.size();
+                if let Some(rule) = self.settings.rules.get_mut(index) {
+                    rule.region = Some((
+                        a.x.min(b.x).clamp(0.0, 1.0),
+                        a.y.min(b.y).clamp(0.0, 1.0),
+                        a.x.max(b.x).clamp(0.0, 1.0),
+                        a.y.max(b.y).clamp(0.0, 1.0),
+                    ));
+                }
+                self.region_rule = None;
+            }
+            if self.region_rule.is_some()
+                && response.drag_started()
+                && let Some(position) = response.interact_pointer_pos()
+            {
+                ctx.data_mut(|d| d.insert_temp(egui::Id::new("region-start"), position));
+            }
+            if let Some(index) = self.region_rule
+                && response.dragged()
+                && let (Some(start), Some(end)) = (
+                    ctx.data(|d| d.get_temp::<egui::Pos2>(egui::Id::new("region-start"))),
+                    response.interact_pointer_pos(),
+                )
+            {
+                painter.rect_stroke(
+                    egui::Rect::from_two_pos(start, end),
+                    0,
+                    egui::Stroke::new(1.5_f32, ACCENT),
+                    egui::StrokeKind::Inside,
+                );
+                let _ = index;
+            }
+            for rule in &self.settings.rules {
+                if let Some((x0, y0, x1, y1)) = rule.region {
+                    let region = egui::Rect::from_min_max(
+                        image_rect.min + image_rect.size() * egui::vec2(x0, y0),
+                        image_rect.min + image_rect.size() * egui::vec2(x1, y1),
+                    );
+                    painter.rect_stroke(
+                        region,
+                        0,
+                        egui::Stroke::new(1.0_f32, ACCENT),
+                        egui::StrokeKind::Inside,
+                    );
+                }
+            }
+            if self.pick_rule.is_some() {
+                response
+                    .clone()
+                    .on_hover_cursor(egui::CursorIcon::Crosshair);
+            }
+            if response.clicked()
+                && let (Some(position), Some(index), Some(pixels)) = (
+                    response.interact_pointer_pos(),
+                    self.pick_rule,
+                    self.pixels.as_ref(),
+                )
+                && image_rect.contains(position)
+            {
+                let uv = (position - image_rect.min) / image_rect.size();
+                let x = (uv.x * pixels.width() as f32)
+                    .floor()
+                    .clamp(0.0, (pixels.width() - 1) as f32) as u32;
+                let y = (uv.y * pixels.height() as f32)
+                    .floor()
+                    .clamp(0.0, (pixels.height() - 1) as f32) as u32;
+                if let Some(rule) = self.settings.rules.get_mut(index) {
+                    let p = pixels.get_pixel(x, y);
+                    rule.enabled = true;
+                    rule.from = [p[0], p[1], p[2]];
+                    if rule.seed.is_some() {
+                        rule.seed = Some((uv.x, uv.y));
+                    }
+                }
+                self.pick_rule = None;
+                self.original = false;
+            }
+        } else {
+            painter.text(
+                rect.center(),
+                egui::Align2::CENTER_CENTER,
+                "Drop your images here",
+                egui::FontId::proportional(22.0),
+                Color32::from_gray(110),
+            );
+        }
+        ui.add_space(8.0);
+        if !self.files.is_empty() {
+            let previous = self.image_index;
+            ui.horizontal(|ui| {
+                if ui
+                    .add_enabled(self.image_index > 0, egui::Button::new("Previous"))
+                    .clicked()
+                {
+                    self.image_index -= 1;
+                }
+                let max = self.files.len() - 1;
+                ui.add(egui::Slider::new(&mut self.image_index, 0..=max).show_value(false));
+                if ui
+                    .add_enabled(self.image_index < max, egui::Button::new("Next"))
+                    .clicked()
+                {
+                    self.image_index += 1;
+                }
+                ui.weak(format!("{} / {}", self.image_index + 1, self.files.len()));
+            });
+            if previous != self.image_index {
+                self.zoom = 1.0;
+                self.pan = egui::Vec2::ZERO;
+                ctx.request_repaint();
+            }
+            let (path, size) = &self.files[self.image_index];
+            ui.label(
+                RichText::new(format!(
+                    "{}  ·  {size}",
+                    path.file_name().unwrap_or_default().to_string_lossy()
+                ))
+                .small()
+                .weak(),
+            );
+        }
+        ui.label(
+            RichText::new(if self.pick_rule.is_some() {
+                "Click the color to replace in the image."
+            } else {
+                "Scroll to zoom · Drag to pan · Originals are preserved"
+            })
+            .small()
+            .weak(),
+        );
+    }
+    fn export_batch(&mut self) {
+        self.start();
+        let paths = self.files.clone();
+        let settings = self.settings.clone();
+        let folder = self.output.clone();
+        let tx = self.tx.clone();
+        let cancel = self.cancel.clone();
+        std::thread::spawn(move || {
+            let mut failures = Vec::new();
+            let total = paths.len();
+            let started = std::time::Instant::now();
+            for (index, (path, _)) in paths.iter().enumerate() {
+                if cancel.stopped() {
+                    break;
+                }
+                if let Err(e) = convert::export(path, &folder, &settings) {
+                    failures.push(format!("{}: {e}", path.display()));
+                    let _ = tx.send(Event::Log(failures.last().unwrap().clone()));
+                }
+                let done = index + 1;
+                let _ = tx.send(Event::Progress {
+                    done,
+                    total,
+                    bytes: 0,
+                    active: 1,
+                    speed: 0.0,
+                    eta_seconds: Some(
+                        started.elapsed().as_secs_f64() / done as f64 * (total - done) as f64,
+                    ),
+                });
+            }
+            let _ = std::fs::create_dir_all(&folder);
+            let _ = std::fs::write(folder.join("conversion-errors.txt"), failures.join("\n"));
+            let _ = tx.send(Event::Finished {
+                folder,
+                failures: failures.len(),
+            });
+        });
+    }
+    fn inspector(&mut self, ui: &mut egui::Ui) {
+        ui.strong("Save as");
+        egui::ComboBox::from_id_salt("format")
+            .width(235.0)
+            .selected_text(&self.settings.format)
+            .show_ui(ui, |ui| {
+                for format in [
+                    "png",
+                    "jpg",
+                    "webp",
+                    "tiff",
+                    "bmp",
+                    "gif",
+                    "ico",
+                    "qoi",
+                    "tga",
+                    "avif",
+                    "pdf",
+                    "svg embedded",
+                    "svg trace",
+                ] {
+                    ui.selectable_value(&mut self.settings.format, format.into(), format);
+                }
+            });
+        if self.settings.format == "svg embedded" {
+            ui.weak("A valid SVG containing pixels.");
+        }
+        if self.settings.format == "svg trace" {
+            ui.weak("Vector tracing works best on flat artwork.");
+        }
+        ui.add_space(10.0);
+        egui::CollapsingHeader::new("Image size")
+            .default_open(false)
+            .show(ui, |ui| {
+                ui.horizontal(|ui| {
+                    ui.label("Width");
+                    ui.add(egui::DragValue::new(&mut self.settings.width).suffix(" px"));
+                });
+                ui.horizontal(|ui| {
+                    ui.label("Height");
+                    ui.add(egui::DragValue::new(&mut self.settings.height).suffix(" px"));
+                });
+                ui.weak("0 keeps the original. Set one to keep proportions.");
+                ui.horizontal(|ui| {
+                    ui.add(egui::DragValue::new(&mut self.physical).range(0.0..=100000.0));
+                    egui::ComboBox::from_id_salt("units")
+                        .selected_text(["mm", "cm", "in"][self.unit])
+                        .show_ui(ui, |ui| {
+                            for (i, s) in ["mm", "cm", "in"].iter().enumerate() {
+                                ui.selectable_value(&mut self.unit, i, *s);
+                            }
+                        });
+                });
+                ui.add(
+                    egui::DragValue::new(&mut self.settings.dpi)
+                        .range(1.0..=2400.0)
+                        .suffix(" DPI"),
+                );
+                if ui.button("Use physical width").clicked() && self.physical > 0.0 {
+                    self.settings.width = (self.physical / [25.4, 2.54, 1.0][self.unit]
+                        * self.settings.dpi)
+                        .round()
+                        .max(1.0) as u32;
+                    self.settings.height = 0;
+                }
+            });
+        ui.separator();
+        ui.strong("Color changes");
+        ui.weak("Add one rule for each area or color.");
+        let mut remove = None;
+        for (i, rule) in self.settings.rules.iter_mut().enumerate() {
+            ui.push_id(i, |ui| {
+                egui::Frame::new()
+                    .fill(PAPER)
+                    .corner_radius(10)
+                    .inner_margin(10)
+                    .show(ui, |ui| {
+                        ui.horizontal(|ui| {
+                            ui.checkbox(&mut rule.enabled, format!("Change {}", i + 1));
+                            if ui.small_button("Remove").clicked() {
+                                remove = Some(i);
+                            }
+                        });
+                        ui.horizontal(|ui| {
+                            ui.label("From");
+                            ui.color_edit_button_srgb(&mut rule.from);
+                            ui.label("To");
+                            ui.color_edit_button_srgb(&mut rule.to);
+                        });
+                        if ui
+                            .button(if self.pick_rule == Some(i) {
+                                "Click a color in the preview…"
+                            } else {
+                                "Pick from image"
+                            })
+                            .clicked()
+                        {
+                            self.pick_rule = Some(i);
+                            self.original = true;
+                        }
+                        if ui.button("Restrict to a rectangle").clicked() {
+                            self.region_rule = Some(i);
+                            self.pick_rule = None;
+                        }
+                        if rule.region.is_some()
+                            && ui.small_button("Clear area restriction").clicked()
+                        {
+                            rule.region = None;
+                        }
+                        let mut scope = if rule.seed.is_some() {
+                            2
+                        } else if rule.edges_only {
+                            0
+                        } else {
+                            1
+                        };
+                        egui::ComboBox::from_id_salt("scope")
+                            .width(205.0)
+                            .selected_text(
+                                [
+                                    "Background at edges",
+                                    "Matching colors everywhere",
+                                    "Connected area I click",
+                                ][scope],
+                            )
+                            .show_ui(ui, |ui| {
+                                for (n, label) in [
+                                    "Background at edges",
+                                    "Matching colors everywhere",
+                                    "Connected area I click",
+                                ]
+                                .iter()
+                                .enumerate()
+                                {
+                                    ui.selectable_value(&mut scope, n, *label);
+                                }
+                            });
+                        rule.edges_only = scope == 0;
+                        if scope == 2 {
+                            if rule.seed.is_none() {
+                                rule.seed = Some((0.5, 0.5));
+                            }
+                        } else {
+                            rule.seed = None;
+                        }
+                        ui.add(
+                            egui::Slider::new(&mut rule.tolerance, 0.0..=441.7).text("Tolerance"),
+                        );
+                        egui::CollapsingHeader::new("Soften color match").show(ui, |ui| {
+                            ui.add(
+                                egui::Slider::new(&mut rule.feather, 0.0..=80.0).text("Feather"),
+                            );
+                        });
+                    });
+            });
+        }
+        if let Some(i) = remove {
+            self.settings.rules.remove(i);
+            self.pick_rule = None;
+        }
+        if ui.button("Add color change").clicked() {
+            self.settings.rules.push(ColorRule {
+                enabled: false,
+                edges_only: false,
+                seed: Some((0.5, 0.5)),
+                tolerance: 8.0,
+                ..Default::default()
+            });
+        }
+        ui.separator();
+        ui.strong("Destination");
+        ui.label(
+            RichText::new(
+                self.output
+                    .file_name()
+                    .unwrap_or_default()
+                    .to_string_lossy(),
+            )
+            .small()
+            .weak(),
+        )
+        .on_hover_text(self.output.display().to_string());
+        if ui.button("Choose folder").clicked()
+            && let Some(p) = rfd::FileDialog::new().pick_folder()
+        {
+            self.output = p;
+        }
+        ui.add_space(8.0);
+        ui.add_enabled_ui(!self.busy && !self.files.is_empty(), |ui| {
+            if Self::primary(
+                ui,
+                format!(
+                    "Export {} {}",
+                    self.files.len(),
+                    if self.files.len() == 1 {
+                        "image"
+                    } else {
+                        "images"
+                    }
+                ),
+            )
+            .clicked()
+            {
+                self.export_batch();
+            }
+        });
+    }
+    fn batch(&mut self, ui: &mut egui::Ui, ctx: &egui::Context) {
+        ui.horizontal(|ui| {
+            ui.heading("  Batch editor");
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                if ui.button("Add images").clicked()
+                    && let Some(paths) = rfd::FileDialog::new().pick_files()
+                {
+                    self.import_files(paths);
+                }
+                if ui.button("Add folder").clicked()
+                    && let Some(p) = rfd::FileDialog::new().pick_folder()
+                {
+                    self.import_files(vec![p]);
+                }
+                ui.menu_button("Batch", |ui| {
+                    ui.label(format!("{} images", self.files.len()));
+                    if ui.button("Clear batch").clicked() {
+                        self.files.clear();
+                        self.preview = None;
+                        self.preview_key.clear();
+                        ui.close();
+                    }
+                });
+            });
+        });
+        ui.label("Preview your changes, then apply them to the whole batch.");
+        ui.add_space(18.0);
+        let height = ui.available_height();
+        ui.with_layout(egui::Layout::right_to_left(egui::Align::Min), |ui| {
+            ui.allocate_ui_with_layout(
+                egui::vec2(278.0, height),
+                egui::Layout::top_down(egui::Align::LEFT),
+                |ui| {
+                    Self::card().inner_margin(18).show(ui, |ui| {
+                        ui.set_width(242.0);
+                        egui::ScrollArea::vertical()
+                            .id_salt("inspector")
+                            .max_height(height - 40.0)
+                            .show(ui, |ui| self.inspector(ui));
+                    });
+                },
+            );
+            ui.allocate_ui_with_layout(
+                egui::vec2(ui.available_width(), height),
+                egui::Layout::top_down(egui::Align::LEFT),
+                |ui| self.preview_canvas(ui, ctx),
+            );
+        });
+    }
+    fn settings_ui(&mut self, ui: &mut egui::Ui) {
+        ui.heading("Preferences");
+        ui.add_space(20.0);
+        Self::card().show(ui, |ui| {
+            ui.strong("App updates");
+            ui.checkbox(
+                &mut self.preferences.disable_updates,
+                "Turn off automatic update checks",
+            );
+            egui::CollapsingHeader::new("Release source").show(ui, |ui| {
+                ui.text_edit_singleline(&mut self.preferences.repository);
+            });
+            ui.horizontal(|ui| {
+                if Self::primary(ui, "Save preferences").clicked() {
+                    match self.preferences.save() {
+                        Ok(()) => self.status = "Preferences saved".into(),
+                        Err(e) => self.error(e),
+                    }
+                }
+                if ui.button("Check for updates").clicked() {
+                    let repo = self.preferences.repository.clone();
+                    let tx = self.tx.clone();
+                    std::thread::spawn(move || {
+                        let event = match update::check(&repo) {
+                            Ok(Some(r)) => Event::Update(r),
+                            Ok(None) => Event::Log(
+                                "You're up to date. No newer release is available.".into(),
+                            ),
+                            Err(e) => Event::Log(e.to_string()),
+                        };
+                        let _ = tx.send(event);
+                    });
+                }
+            });
+        });
+        ui.add_space(24.0);
+        ui.weak(format!(
+            "Image Atlas {} · NIS · MIT",
+            env!("CARGO_PKG_VERSION")
+        ));
+    }
+}
+impl eframe::App for Atlas {
+    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        while let Ok(event) = self.rx.try_recv() {
+            match event {
+                Event::Log(s) => {
+                    self.status = s.clone();
+                    self.logs.push(s);
+                    if self.logs.len() > 500 {
+                        self.logs.remove(0);
+                    }
+                }
+                Event::Mapped(map) => {
+                    self.busy = false;
+                    self.status = format!(
+                        "Found {} images across {} pages",
+                        map.assets.len(),
+                        map.pages
+                    );
+                    self.logs.extend(map.notices.clone());
+                    self.map = map;
+                    self.tab = 4;
+                }
+                Event::Progress {
+                    done,
+                    total,
+                    bytes,
+                    active,
+                    speed,
+                    eta_seconds,
+                } => {
+                    self.progress = done as f32 / total.max(1) as f32;
+                    let eta = eta_seconds
+                        .map(|s| format!("About {}m {:02}s left", s as u64 / 60, s as u64 % 60))
+                        .unwrap_or("Estimating time remaining…".into());
+                    self.status = format!("{done} of {total} · {:.1} MB/s · {eta}", speed / 1e6);
+                    self.logs
+                        .push(format!("{done}/{total}, {bytes} bytes, {active} active"));
+                    if self.logs.len() > 500 {
+                        self.logs.remove(0);
+                    }
+                }
+                Event::Finished { folder, failures } => {
+                    self.busy = false;
+                    self.status = format!(
+                        "{} · {failures} errors · {}",
+                        if self.cancel.stopped() {
+                            "Stopped. Completed files are safe"
+                        } else {
+                            "All finished"
+                        },
+                        folder.display()
+                    );
+                }
+                Event::Failed(s) => {
+                    self.busy = false;
+                    self.error(s);
+                }
+                Event::Update(r) => self.release = Some(r),
+            }
+        }
+        let dropped = ctx.input(|i| {
+            i.raw
+                .dropped_files
+                .iter()
+                .filter_map(|f| f.path.clone())
+                .collect::<Vec<_>>()
+        });
+        if !dropped.is_empty() {
+            self.import_files(dropped);
+            self.tab = 2;
+        }
+        egui::TopBottomPanel::top("app-bar")
+            .frame(
+                egui::Frame::new()
+                    .fill(Color32::from_rgb(29, 34, 40))
+                    .inner_margin(egui::Margin::symmetric(28, 18)),
+            )
+            .show(ctx, |ui| {
+                ui.visuals_mut().override_text_color = Some(Color32::from_rgb(238, 242, 245));
+                ui.visuals_mut().widgets.inactive.weak_bg_fill = Color32::from_rgb(44, 50, 58);
+                ui.visuals_mut().widgets.inactive.fg_stroke.color =
+                    Color32::from_rgb(225, 230, 235);
+                ui.visuals_mut().widgets.hovered.weak_bg_fill = Color32::from_rgb(57, 65, 73);
+                ui.horizontal(|ui| {
+                    ui.label(
+                        RichText::new("Image Atlas")
+                            .size(24.0)
+                            .strong()
+                            .color(Color32::WHITE),
+                    );
+                    ui.add_space(35.0);
+                    if ui
+                        .selectable_label(matches!(self.tab, 0 | 1 | 4), "  Website images")
+                        .clicked()
+                    {
+                        self.tab = if self.map.assets.is_empty() { 0 } else { 4 };
+                    }
+                    if ui
+                        .selectable_label(self.tab == 5, "  Vector editor")
+                        .clicked()
+                    {
+                        self.tab = 5;
+                    }
+                    if ui
+                        .selectable_label(self.tab == 2, "  Batch editor")
+                        .clicked()
+                    {
+                        self.tab = 2;
+                    }
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                        if ui.button("  Preferences").clicked() {
+                            self.tab = 3;
+                        }
+                    });
+                });
+            });
+        egui::TopBottomPanel::bottom("status")
+            .frame(
+                egui::Frame::new()
+                    .fill(Color32::from_rgb(31, 37, 45))
+                    .inner_margin(egui::Margin::symmetric(28, 10)),
+            )
+            .show(ctx, |ui| {
+                ui.horizontal(|ui| {
+                    if self.busy {
+                        ui.spinner();
+                        if ui.small_button("Stop").clicked() {
+                            self.cancel.stop();
+                            self.status = "Stopping…".into();
+                        }
+                    }
+                    ui.add(egui::Label::new(RichText::new(&self.status).small()).truncate());
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                        ui.menu_button("Details", |ui| {
+                            egui::ScrollArea::vertical()
+                                .max_height(220.0)
+                                .max_width(700.0)
+                                .stick_to_bottom(true)
+                                .show(ui, |ui| {
+                                    for line in &self.logs {
+                                        ui.label(RichText::new(line).small());
+                                    }
+                                });
+                        });
+                    });
+                });
+                if self.busy {
+                    ui.add(
+                        egui::ProgressBar::new(self.progress)
+                            .desired_height(4.0)
+                            .fill(ACCENT),
+                    );
+                }
+            });
+        egui::CentralPanel::default()
+            .frame(
+                egui::Frame::new()
+                    .fill(PAPER)
+                    .inner_margin(egui::Margin::symmetric(30, 22)),
+            )
+            .show(ctx, |ui| {
+                if matches!(self.tab, 0 | 1 | 4) {
+                    ui.horizontal(|ui| {
+                        for (tab, label) in [(0, "Website"), (4, "Review images"), (1, "Download")]
+                        {
+                            let enabled = tab == 0 || !self.map.assets.is_empty();
+                            if ui
+                                .add_enabled(
+                                    enabled,
+                                    egui::Button::new(RichText::new(label).color(
+                                        if self.tab == tab {
+                                            ACCENT
+                                        } else {
+                                            Color32::from_gray(120)
+                                        },
+                                    ))
+                                    .frame(false),
+                                )
+                                .clicked()
+                            {
+                                self.tab = tab;
+                            }
+                            if tab != 1 {
+                                ui.label(RichText::new("/").weak());
+                            }
+                        }
+                    });
+                    ui.add_space(12.0);
+                }
+                ui.add_enabled_ui(!self.busy, |ui| match self.tab {
+                    0 => {
+                        egui::ScrollArea::vertical().show(ui, |ui| self.website(ui));
+                    }
+                    1 => {
+                        egui::ScrollArea::vertical().show(ui, |ui| self.downloads(ui));
+                    }
+                    2 => self.batch(ui, ctx),
+                    5 => self.vector.ui(ui, ctx),
+                    4 => self.review(ui),
+                    _ => self.settings_ui(ui),
+                });
+            });
+        if let Some(release) = self.release.clone() {
+            egui::Window::new("A fresh version is ready")
+                .collapsible(false)
+                .resizable(false)
+                .show(ctx, |ui| {
+                    ui.heading(format!("Image Atlas {}", release.version));
+                    ui.label(&release.notes);
+                    ui.horizontal(|ui| {
+                        if Self::primary(ui, "Update now").clicked() {
+                            let tx = self.tx.clone();
+                            let r = release.clone();
+                            std::thread::spawn(move || {
+                                let event = match update::install(&r) {
+                                    Ok(()) => Event::Log(
+                                        "Installer opened. Close Image Atlas to finish updating."
+                                            .into(),
+                                    ),
+                                    Err(e) => Event::Failed(e.to_string()),
+                                };
+                                let _ = tx.send(event);
+                            });
+                            self.release = None;
+                        }
+                        if ui.button("Later").clicked() {
+                            self.release = None;
+                        }
+                        if ui.button("Skip this version").clicked() {
+                            self.preferences.skip_version = release.version.clone();
+                            if let Err(e) = self.preferences.save() {
+                                self.error(e);
+                            }
+                            self.release = None;
+                        }
+                    });
+                });
+        }
+        ctx.request_repaint_after(if self.busy {
+            Duration::from_millis(100)
+        } else {
+            Duration::from_secs(2)
+        });
+    }
+}

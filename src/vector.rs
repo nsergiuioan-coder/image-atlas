@@ -1,0 +1,603 @@
+use anyhow::{Context, Result};
+use eframe::egui::{self, Color32, RichText};
+use std::{
+    collections::HashMap,
+    path::{Path, PathBuf},
+};
+use xmltree::{Element, XMLNode};
+
+#[derive(Clone)]
+struct Object {
+    id: String,
+    name: String,
+    bounds: egui::Rect,
+    inverse: resvg::tiny_skia::Transform,
+}
+#[derive(Default)]
+pub struct Editor {
+    root: Option<Element>,
+    path: Option<PathBuf>,
+    objects: Vec<Object>,
+    selected: Option<String>,
+    texture: Option<egui::TextureHandle>,
+    undo: Vec<Element>,
+    redo: Vec<Element>,
+    dirty: bool,
+    zoom: f32,
+    pan: egui::Vec2,
+    fill: [u8; 3],
+    stroke: [u8; 3],
+    stroke_width: f32,
+    scale: f32,
+    message: String,
+}
+fn element_mut<'a>(root: &'a mut Element, id: &str) -> Option<&'a mut Element> {
+    if root.attributes.get("id").is_some_and(|s| s == id) {
+        return Some(root);
+    }
+    root.children
+        .iter_mut()
+        .filter_map(XMLNode::as_mut_element)
+        .find_map(|e| element_mut(e, id))
+}
+fn assign_ids(root: &mut Element, counter: &mut usize) {
+    if [
+        "g", "rect", "circle", "ellipse", "path", "polygon", "polyline", "line", "text", "image",
+        "use",
+    ]
+    .contains(&root.name.as_str())
+        && !root.attributes.contains_key("id")
+    {
+        *counter += 1;
+        root.attributes
+            .insert("id".into(), format!("image-atlas-{}", counter));
+    }
+    for child in root.children.iter_mut().filter_map(XMLNode::as_mut_element) {
+        assign_ids(child, counter);
+    }
+}
+fn remove(root: &mut Element, id: &str) -> bool {
+    if let Some(index) = root.children.iter().position(|n| {
+        n.as_element()
+            .and_then(|e| e.attributes.get("id"))
+            .is_some_and(|s| s == id)
+    }) {
+        root.children.remove(index);
+        return true;
+    }
+    root.children
+        .iter_mut()
+        .filter_map(XMLNode::as_mut_element)
+        .any(|e| remove(e, id))
+}
+fn reorder(root: &mut Element, id: &str, front: bool) -> bool {
+    if let Some(index) = root.children.iter().position(|n| {
+        n.as_element()
+            .and_then(|e| e.attributes.get("id"))
+            .is_some_and(|s| s == id)
+    }) {
+        let node = root.children.remove(index);
+        if front {
+            root.children.push(node);
+        } else {
+            root.children.insert(0, node);
+        }
+        return true;
+    }
+    root.children
+        .iter_mut()
+        .filter_map(XMLNode::as_mut_element)
+        .any(|e| reorder(e, id, front))
+}
+impl Editor {
+    pub fn open(&mut self, path: &Path) -> Result<()> {
+        let mut root = if crate::download::detected_extension(&std::fs::read(path)?, "").as_deref()
+            == Some("svg")
+        {
+            Element::parse(std::fs::File::open(path)?)?
+        } else {
+            use base64::Engine;
+            let image = crate::convert::load(path)?;
+            let mut data = std::io::Cursor::new(Vec::new());
+            image.write_to(&mut data, image::ImageFormat::Png)?;
+            Element::parse(format!("<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"{}\" height=\"{}\"><image width=\"{}\" height=\"{}\" xlink:href=\"data:image/png;base64,{}\"/></svg>",image.width(),image.height(),image.width(),image.height(),base64::engine::general_purpose::STANDARD.encode(data.into_inner())).as_bytes())?
+        };
+        anyhow::ensure!(root.name == "svg", "This file is not an SVG document");
+        assign_ids(&mut root, &mut 0);
+        self.root = Some(root);
+        self.path = Some(path.into());
+        self.selected = None;
+        self.undo.clear();
+        self.redo.clear();
+        self.zoom = 1.0;
+        self.pan = egui::Vec2::ZERO;
+        self.dirty = true;
+        self.message = "Select an object on the canvas or in Layers.".into();
+        Ok(())
+    }
+    fn snapshot(&mut self) {
+        if let Some(root) = &self.root {
+            self.undo.push(root.clone());
+            self.redo.clear();
+        }
+    }
+    fn bytes(&self) -> Result<Vec<u8>> {
+        let mut bytes = Vec::new();
+        self.root
+            .as_ref()
+            .context("Open an image first")?
+            .write(&mut bytes)?;
+        Ok(bytes)
+    }
+    fn transform(&mut self, value: String) {
+        if let (Some(root), Some(id)) = (&mut self.root, &self.selected)
+            && let Some(e) = element_mut(root, id)
+        {
+            let old = e.attributes.get("transform").cloned().unwrap_or_default();
+            e.attributes
+                .insert("transform".into(), format!("{old} {value}"));
+            self.dirty = true;
+        }
+    }
+    fn scale_selected(&mut self, factor: f32) {
+        if let Some(object) = self
+            .objects
+            .iter()
+            .find(|o| Some(&o.id) == self.selected.as_ref())
+        {
+            let center = object.bounds.center();
+            let mut point = resvg::tiny_skia::Point::from_xy(center.x, center.y);
+            object.inverse.map_point(&mut point);
+            self.snapshot();
+            self.transform(format!(
+                "translate({} {}) scale({factor}) translate({} {})",
+                point.x, point.y, -point.x, -point.y
+            ));
+        }
+    }
+    fn paint_color(&mut self, property: &str, value: String) {
+        if let (Some(root), Some(id)) = (&mut self.root, &self.selected)
+            && let Some(e) = element_mut(root, id)
+        {
+            e.attributes.insert(property.into(), value.clone());
+            let old = e.attributes.get("style").cloned().unwrap_or_default();
+            let filtered = old
+                .split(';')
+                .filter(|s| s.split(':').next().is_none_or(|k| k.trim() != property))
+                .filter(|s| !s.trim().is_empty())
+                .collect::<Vec<_>>()
+                .join(";");
+            e.attributes
+                .insert("style".into(), format!("{filtered};{property}:{value}"));
+            self.dirty = true;
+        }
+    }
+    fn rebuild(&mut self, ctx: &egui::Context) -> Result<()> {
+        let bytes = self.bytes()?;
+        let options = resvg::usvg::Options {
+            resources_dir: self
+                .path
+                .as_ref()
+                .and_then(|p| p.parent())
+                .map(Path::to_path_buf),
+            fontdb: crate::convert::system_fonts(),
+            ..Default::default()
+        };
+        let tree = resvg::usvg::Tree::from_data(&bytes, &options)?;
+        let mut names = HashMap::new();
+        fn names_of(e: &Element, names: &mut HashMap<String, String>) {
+            if let Some(id) = e.attributes.get("id") {
+                names.insert(id.clone(), format!("{} · {}", e.name, id));
+            }
+            for c in e.children.iter().filter_map(XMLNode::as_element) {
+                names_of(c, names);
+            }
+        }
+        names_of(self.root.as_ref().unwrap(), &mut names);
+        fn collect(
+            group: &resvg::usvg::Group,
+            objects: &mut Vec<Object>,
+            names: &HashMap<String, String>,
+        ) {
+            for node in group.children() {
+                if !node.id().is_empty()
+                    && let Some(name) = names.get(node.id())
+                {
+                    let b = node.abs_bounding_box();
+                    objects.push(Object {
+                        id: node.id().into(),
+                        name: name.clone(),
+                        bounds: egui::Rect::from_min_size(
+                            egui::pos2(b.x(), b.y()),
+                            egui::vec2(b.width(), b.height()),
+                        ),
+                        inverse: node.abs_transform().invert().unwrap_or_default(),
+                    });
+                }
+                if let resvg::usvg::Node::Group(g) = node {
+                    collect(g, objects, names);
+                }
+            }
+        }
+        self.objects.clear();
+        collect(tree.root(), &mut self.objects, &names);
+        let size = tree.size();
+        self.scale = (1400.0 / size.width()).min(1100.0 / size.height()).min(1.0);
+        let mut pixmap = resvg::tiny_skia::Pixmap::new(
+            (size.width() * self.scale).ceil().max(1.0) as u32,
+            (size.height() * self.scale).ceil().max(1.0) as u32,
+        )
+        .context("Canvas too large")?;
+        resvg::render(
+            &tree,
+            resvg::tiny_skia::Transform::from_scale(self.scale, self.scale),
+            &mut pixmap.as_mut(),
+        );
+        let rgba = image::load_from_memory(&pixmap.encode_png()?)?.to_rgba8();
+        let color = egui::ColorImage::from_rgba_unmultiplied(
+            [rgba.width() as usize, rgba.height() as usize],
+            rgba.as_raw(),
+        );
+        self.texture = Some(ctx.load_texture("svg-canvas", color, Default::default()));
+        self.dirty = false;
+        Ok(())
+    }
+    fn add_shape(&mut self, kind: &str) {
+        if self.root.is_none() {
+            self.root = Some(
+                Element::parse(
+                    b"<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"800\" height=\"600\"/>"
+                        .as_slice(),
+                )
+                .unwrap(),
+            );
+        }
+        self.snapshot();
+        let mut element = Element::new(kind);
+        let id = format!(
+            "atlas-new-{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_nanos()
+        );
+        element.attributes.insert("id".into(), id.clone());
+        element.attributes.insert("fill".into(), "#20776b".into());
+        match kind {
+            "rect" => {
+                for (k, v) in [
+                    ("x", "100"),
+                    ("y", "100"),
+                    ("width", "200"),
+                    ("height", "120"),
+                ] {
+                    element.attributes.insert(k.into(), v.into());
+                }
+            }
+            "ellipse" => {
+                for (k, v) in [("cx", "200"), ("cy", "160"), ("rx", "100"), ("ry", "60")] {
+                    element.attributes.insert(k.into(), v.into());
+                }
+            }
+            _ => {
+                element.attributes.insert("x".into(), "100".into());
+                element.attributes.insert("y".into(), "150".into());
+                element.attributes.insert("font-size".into(), "40".into());
+                element.children.push(XMLNode::Text("Your text".into()));
+            }
+        }
+        self.root
+            .as_mut()
+            .unwrap()
+            .children
+            .push(XMLNode::Element(element));
+        self.selected = Some(id);
+        self.dirty = true;
+        self.zoom = self.zoom.max(1.0);
+    }
+    pub fn ui(&mut self, ui: &mut egui::Ui, ctx: &egui::Context) {
+        ui.horizontal(|ui| {
+            ui.heading("Vector editor");
+            if ui.button("Open image").clicked()
+                && let Some(path) = rfd::FileDialog::new().pick_file()
+                && let Err(e) = self.open(&path)
+            {
+                self.message = e.to_string();
+            }
+            if ui
+                .add_enabled(self.root.is_some(), egui::Button::new("Save SVG"))
+                .clicked()
+                && let Some(path) = rfd::FileDialog::new()
+                    .set_file_name("edited.svg")
+                    .save_file()
+            {
+                match self
+                    .bytes()
+                    .and_then(|b| std::fs::write(&path, b).map_err(Into::into))
+                {
+                    Ok(()) => self.message = format!("Saved {}", path.display()),
+                    Err(e) => self.message = e.to_string(),
+                }
+            }
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                if ui
+                    .add_enabled(!self.redo.is_empty(), egui::Button::new("Redo"))
+                    .clicked()
+                    && let Some(previous) = self.redo.pop()
+                {
+                    if let Some(root) = self.root.replace(previous) {
+                        self.undo.push(root);
+                    }
+                    self.dirty = true;
+                }
+                if ui
+                    .add_enabled(!self.undo.is_empty(), egui::Button::new("Undo"))
+                    .clicked()
+                    && let Some(previous) = self.undo.pop()
+                {
+                    if let Some(root) = self.root.replace(previous) {
+                        self.redo.push(root);
+                    }
+                    self.dirty = true;
+                }
+            });
+        });
+        ui.horizontal(|ui| {
+            for (kind, label) in [
+                ("rect", "Rectangle"),
+                ("ellipse", "Ellipse"),
+                ("text", "Text"),
+            ] {
+                if ui.button(label).clicked() {
+                    self.add_shape(kind);
+                }
+            }
+            if ui.button("Fit").clicked() {
+                self.zoom = 1.0;
+                self.pan = egui::Vec2::ZERO;
+            }
+            ui.weak("Select and drag objects. Hold Space to pan. Scroll to zoom.");
+        });
+        if self.dirty
+            && let Err(e) = self.rebuild(ctx)
+        {
+            self.message = e.to_string();
+            self.dirty = false;
+        }
+        ui.add_space(10.0);
+        let height = (ui.available_height() - 30.0).max(300.0);
+        ui.horizontal_top(|ui| {
+            ui.allocate_ui_with_layout(
+                egui::vec2(230.0, height),
+                egui::Layout::top_down(egui::Align::LEFT),
+                |ui| {
+                    ui.strong("Layers");
+                    egui::ScrollArea::vertical()
+                        .max_height(height * 0.36)
+                        .show(ui, |ui| {
+                            for object in self.objects.iter().rev() {
+                                if ui
+                                    .selectable_label(
+                                        self.selected.as_ref() == Some(&object.id),
+                                        &object.name,
+                                    )
+                                    .clicked()
+                                {
+                                    self.selected = Some(object.id.clone());
+                                }
+                            }
+                        });
+                    ui.separator();
+                    ui.add_enabled_ui(self.selected.is_some(), |ui| {
+                        ui.strong("Object color");
+                        ui.horizontal(|ui| {
+                            ui.label("Fill");
+                            let before = self.fill;
+                            if ui.color_edit_button_srgb(&mut self.fill).changed() {
+                                let new = self.fill;
+                                self.fill = before;
+                                self.snapshot();
+                                self.fill = new;
+                                self.paint_color(
+                                    "fill",
+                                    format!("#{:02x}{:02x}{:02x}", new[0], new[1], new[2]),
+                                );
+                            }
+                        });
+                        ui.horizontal(|ui| {
+                            ui.label("Stroke");
+                            let before = self.stroke;
+                            if ui.color_edit_button_srgb(&mut self.stroke).changed() {
+                                let new = self.stroke;
+                                self.stroke = before;
+                                self.snapshot();
+                                self.stroke = new;
+                                self.paint_color(
+                                    "stroke",
+                                    format!("#{:02x}{:02x}{:02x}", new[0], new[1], new[2]),
+                                );
+                            }
+                        });
+                        if ui
+                            .add(
+                                egui::DragValue::new(&mut self.stroke_width)
+                                    .range(0.0..=100.0)
+                                    .suffix(" stroke"),
+                            )
+                            .changed()
+                        {
+                            self.snapshot();
+                            self.paint_color("stroke-width", self.stroke_width.to_string());
+                        }
+                        ui.horizontal(|ui| {
+                            if ui.button("Smaller").clicked() {
+                                self.scale_selected(0.9);
+                            }
+                            if ui.button("Larger").clicked() {
+                                self.scale_selected(1.1);
+                            }
+                        });
+                        ui.horizontal(|ui| {
+                            if ui.button("Front").clicked() {
+                                self.snapshot();
+                                if let (Some(root), Some(id)) = (&mut self.root, &self.selected) {
+                                    reorder(root, id, true);
+                                }
+                                self.dirty = true;
+                            }
+                            if ui.button("Back").clicked() {
+                                self.snapshot();
+                                if let (Some(root), Some(id)) = (&mut self.root, &self.selected) {
+                                    reorder(root, id, false);
+                                }
+                                self.dirty = true;
+                            }
+                        });
+                        if let (Some(root), Some(id)) = (&mut self.root, &self.selected)
+                            && let Some(element) = element_mut(root, id)
+                            && element.name == "text"
+                        {
+                            let mut text = element.get_text().unwrap_or_default().into_owned();
+                            if ui.text_edit_singleline(&mut text).changed() {
+                                self.undo.push(root.clone());
+                                if let Some(element) = element_mut(root, id) {
+                                    element.children = vec![XMLNode::Text(text)];
+                                    self.dirty = true;
+                                }
+                            }
+                        }
+                        if ui.button("Delete object").clicked() {
+                            self.snapshot();
+                            if let (Some(root), Some(id)) = (&mut self.root, &self.selected) {
+                                remove(root, id);
+                            }
+                            self.selected = None;
+                            self.dirty = true;
+                        }
+                    });
+                },
+            );
+            let (rect, response) = ui.allocate_exact_size(
+                egui::vec2(ui.available_width(), height),
+                egui::Sense::click_and_drag(),
+            );
+            let painter = ui.painter_at(rect);
+            painter.rect_filled(rect, 12, Color32::from_rgb(14, 18, 23));
+            if let Some(texture) = &self.texture {
+                let texture = texture.clone();
+                let factor = (rect.width() / texture.size_vec2().x)
+                    .min(rect.height() / texture.size_vec2().y)
+                    * 0.88
+                    * self.zoom.max(0.1);
+                let image_rect = egui::Rect::from_center_size(
+                    rect.center() + self.pan,
+                    texture.size_vec2() * factor,
+                );
+                painter.rect_filled(image_rect, 0, Color32::WHITE);
+                painter.image(
+                    texture.id(),
+                    image_rect,
+                    egui::Rect::from_min_max(egui::Pos2::ZERO, egui::pos2(1.0, 1.0)),
+                    Color32::WHITE,
+                );
+                if response.hovered() {
+                    let scroll = ctx.input(|i| i.smooth_scroll_delta.y);
+                    if scroll != 0.0 {
+                        self.zoom = (self.zoom.max(0.1) * (scroll * 0.002).exp()).clamp(0.1, 12.0);
+                        ctx.input_mut(|i| i.smooth_scroll_delta = egui::Vec2::ZERO);
+                    }
+                }
+                let global_scale = factor * self.scale;
+                if (response.clicked() || response.drag_started())
+                    && let Some(position) = response.interact_pointer_pos()
+                {
+                    let point = egui::Pos2::ZERO + (position - image_rect.min) / global_scale;
+                    self.selected = self
+                        .objects
+                        .iter()
+                        .rev()
+                        .find(|o| o.bounds.contains(point))
+                        .map(|o| o.id.clone());
+                    if response.drag_started() {
+                        self.snapshot();
+                    }
+                }
+                if response.dragged() {
+                    if ctx.input(|i| i.key_down(egui::Key::Space)) {
+                        self.pan += response.drag_delta();
+                    } else if let Some(object) = self
+                        .objects
+                        .iter()
+                        .find(|o| Some(&o.id) == self.selected.as_ref())
+                    {
+                        let delta = response.drag_delta() / global_scale;
+                        let mut points = [
+                            resvg::tiny_skia::Point::from_xy(0.0, 0.0),
+                            resvg::tiny_skia::Point::from_xy(delta.x, delta.y),
+                        ];
+                        object.inverse.map_points(&mut points);
+                        self.transform(format!(
+                            "translate({} {})",
+                            points[1].x - points[0].x,
+                            points[1].y - points[0].y
+                        ));
+                    }
+                }
+                if let Some(object) = self
+                    .objects
+                    .iter()
+                    .find(|o| Some(&o.id) == self.selected.as_ref())
+                {
+                    let bounds = egui::Rect::from_min_size(
+                        image_rect.min + object.bounds.min.to_vec2() * global_scale,
+                        object.bounds.size() * global_scale,
+                    );
+                    painter.rect_stroke(
+                        bounds,
+                        0,
+                        egui::Stroke::new(1.5_f32, Color32::from_rgb(15, 120, 105)),
+                        egui::StrokeKind::Outside,
+                    );
+                }
+            } else {
+                painter.text(
+                    rect.center(),
+                    egui::Align2::CENTER_CENTER,
+                    "Open an SVG, or add a shape to start",
+                    egui::FontId::proportional(20.0),
+                    Color32::from_gray(100),
+                );
+            }
+        });
+        ui.label(RichText::new(&self.message).small().weak());
+    }
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn svg_edits_preserve_vectors_and_undo() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("shape.svg");
+        std::fs::write(&path,b"<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100\" height=\"100\"><rect id=\"box\" width=\"20\" height=\"30\" fill=\"red\"/></svg>").unwrap();
+        let mut editor = Editor::default();
+        editor.open(&path).unwrap();
+        editor.selected = Some("box".into());
+        editor.snapshot();
+        editor.paint_color("fill", "#ffffff".into());
+        editor.transform("translate(10 20)".into());
+        let bytes = editor.bytes().unwrap();
+        let tree = resvg::usvg::Tree::from_data(&bytes, &Default::default()).unwrap();
+        assert!(!tree.root().children().is_empty());
+        let text = String::from_utf8(bytes).unwrap();
+        assert!(text.contains("#ffffff"));
+        assert!(text.contains("translate(10 20)"));
+        assert!(!text.contains("data:image"));
+        editor.root = editor.undo.pop();
+        assert!(
+            !String::from_utf8(editor.bytes().unwrap())
+                .unwrap()
+                .contains("translate")
+        );
+    }
+}
