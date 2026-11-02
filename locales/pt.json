@@ -245,5 +245,11 @@
   "A fresh version is ready": "Uma nova versão está pronta",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "PNG para transparência e arte compacta; JPEG quando muito menor. SVG permanece vetorial.",
   "JPEG flattens transparency onto white.": "JPEG nivela a transparência no branco.",
-  "A considered pace": "Downloads adaptativos"
+  "A considered pace": "Downloads adaptativos",
+  "Updating Image Atlas": "Atualizando o Image Atlas",
+  "Your workspace will reopen after the update.": "Seu espaço de trabalho será reaberto após a atualização.",
+  "Wait for the current task to finish before restarting.": "Aguarde a conclusão da tarefa atual antes de reiniciar.",
+  "Restart and update": "Reiniciar e atualizar",
+  "Update the existing copy in this folder.": "Atualize a cópia existente nesta pasta.",
+  "Save your work and close Atlas before updating.": "Salve seu trabalho e feche o Atlas antes de atualizar."
 }

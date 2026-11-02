@@ -245,5 +245,11 @@
   "A fresh version is ready": "O versiune proaspătă este gata",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "PNG pentru transparență și lucrări de artă compacte; JPEG când este mult mai mic. SVG rămâne vector.",
   "JPEG flattens transparency onto white.": "JPEG aplatizează transparența pe alb.",
-  "A considered pace": "Descărcări adaptive"
+  "A considered pace": "Descărcări adaptive",
+  "Updating Image Atlas": "Se actualizează Image Atlas",
+  "Your workspace will reopen after the update.": "Spațiul de lucru se va redeschide după actualizare.",
+  "Wait for the current task to finish before restarting.": "Așteaptă finalizarea sarcinii curente înainte de repornire.",
+  "Restart and update": "Repornește și actualizează",
+  "Update the existing copy in this folder.": "Actualizează copia existentă în acest folder.",
+  "Save your work and close Atlas before updating.": "Salvează lucrul și închide Atlas înainte de actualizare."
 }

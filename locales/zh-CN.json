@@ -245,5 +245,11 @@
   "JPEG flattens transparency onto white.": "JPEG 会将透明区域合并到白色背景上。",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "透明图像和简洁图形使用 PNG；文件明显更小时使用 JPEG。SVG 保持矢量格式。",
   "JPEG quality": "JPEG 质量",
-  "A considered pace": "自适应下载"
+  "A considered pace": "自适应下载",
+  "Updating Image Atlas": "正在更新 Image Atlas",
+  "Your workspace will reopen after the update.": "更新后将重新打开工作区。",
+  "Wait for the current task to finish before restarting.": "请等待当前任务完成后再重启。",
+  "Restart and update": "重启并更新",
+  "Update the existing copy in this folder.": "更新此文件夹中的现有副本。",
+  "Save your work and close Atlas before updating.": "更新前请保存工作并关闭 Atlas。"
 }

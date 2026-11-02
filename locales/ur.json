@@ -245,5 +245,11 @@
   "JPEG flattens transparency onto white.": "JPEG شفاف حصوں کو سفید پس منظر میں بدل دیتا ہے۔",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "شفاف تصاویر اور سادہ گرافکس کے لیے PNG؛ حجم نمایاں طور پر کم ہو تو JPEG۔ SVG ویکٹر ہی رہتا ہے۔",
   "JPEG quality": "JPEG معیار",
-  "A considered pace": "خودکار موافقت کے ساتھ ڈاؤن لوڈ"
+  "A considered pace": "خودکار موافقت کے ساتھ ڈاؤن لوڈ",
+  "Updating Image Atlas": "Image Atlas اپ ڈیٹ ہو رہا ہے",
+  "Your workspace will reopen after the update.": "اپ ڈیٹ کے بعد آپ کی کام کی جگہ دوبارہ کھل جائے گی۔",
+  "Wait for the current task to finish before restarting.": "دوبارہ شروع کرنے سے پہلے موجودہ کام مکمل ہونے کا انتظار کریں۔",
+  "Restart and update": "دوبارہ شروع کر کے اپ ڈیٹ کریں",
+  "Update the existing copy in this folder.": "اس فولڈر میں موجود کاپی اپ ڈیٹ کریں۔",
+  "Save your work and close Atlas before updating.": "اپ ڈیٹ سے پہلے اپنا کام محفوظ کریں اور Atlas بند کریں۔"
 }

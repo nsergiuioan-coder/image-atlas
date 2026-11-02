@@ -87,7 +87,11 @@ Build outputs and SHA-256 checksums are written to `dist`.
 
 ## Updates
 
-Published GitHub releases supply app updates. Users can install an update, postpone it, skip a version, or turn off automatic checks. Installer downloads are verified against the release checksums.
+Published GitHub releases supply app updates. Atlas checks at startup, periodically, and when you return to the window. You can update, postpone, skip a version, or disable automatic checks. Updates download inside Atlas, verify the release checksum, save your workspace, and replace the existing copy when you choose **Restart and update**. A startup check restores the previous version if the new copy cannot open.
+
+For versions older than 0.1.5, download **ImageAtlas-Update.exe** from the release. It updates the existing installation without opening the installer. Save your work and close the old Atlas when prompted. Portable users can select the folder containing their existing ImageAtlas.exe.
+
+Exports show images per second and a remaining-time estimate based on recent successful exports and the sizes of the remaining images. An estimate appears after enough measurements; it changes as processing speed changes. Network speed is only shown for downloads.
 
 For maintainers, the Windows workflow builds and tests relevant pushes to `main`. Bumping the package version creates a new release when that version has not already been published.
 

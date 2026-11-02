@@ -52,6 +52,7 @@ pub fn supervise() {
         loop {
             let started = Instant::now();
             let status = Command::new(&executable)
+                .env("IMAGE_ATLAS_SUPERVISOR_PID", std::process::id().to_string())
                 .arg("--ui-session")
                 .args(&arguments)
                 .status()?;

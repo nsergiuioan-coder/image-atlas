@@ -245,5 +245,11 @@
   "A fresh version is ready": "Een nieuwe versie is klaar",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "PNG voor transparantie en compacte illustraties; JPEG wanneer veel kleiner. SVG blijft vector.",
   "JPEG flattens transparency onto white.": "JPEG vlakt de transparantie af op wit.",
-  "A considered pace": "Adaptieve downloads"
+  "A considered pace": "Adaptieve downloads",
+  "Updating Image Atlas": "Image Atlas bijwerken",
+  "Your workspace will reopen after the update.": "Je werkruimte wordt na de update opnieuw geopend.",
+  "Wait for the current task to finish before restarting.": "Wacht tot de huidige taak klaar is voordat je opnieuw start.",
+  "Restart and update": "Opnieuw starten en bijwerken",
+  "Update the existing copy in this folder.": "Werk de bestaande kopie in deze map bij.",
+  "Save your work and close Atlas before updating.": "Sla je werk op en sluit Atlas voordat je bijwerkt."
 }

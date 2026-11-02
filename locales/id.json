@@ -245,5 +245,11 @@
   "A fresh version is ready": "Versi baru sudah siap",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "PNG untuk transparansi dan karya seni yang ringkas; JPEG bila jauh lebih kecil. SVG tetap vektor.",
   "JPEG flattens transparency onto white.": "JPEG meratakan transparansi menjadi putih.",
-  "A considered pace": "Unduhan adaptif"
+  "A considered pace": "Unduhan adaptif",
+  "Updating Image Atlas": "Memperbarui Image Atlas",
+  "Your workspace will reopen after the update.": "Ruang kerja Anda akan terbuka kembali setelah pembaruan.",
+  "Wait for the current task to finish before restarting.": "Tunggu tugas saat ini selesai sebelum memulai ulang.",
+  "Restart and update": "Mulai ulang dan perbarui",
+  "Update the existing copy in this folder.": "Perbarui salinan yang ada di folder ini.",
+  "Save your work and close Atlas before updating.": "Simpan pekerjaan Anda dan tutup Atlas sebelum memperbarui."
 }

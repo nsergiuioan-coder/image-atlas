@@ -245,5 +245,11 @@
   "A fresh version is ready": "Elkészült a friss verzió",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "PNG az átláthatóságért és a kompakt grafikákért; JPEG, ha sokkal kisebb. Az SVG vektor marad.",
   "JPEG flattens transparency onto white.": "A JPEG fehérre lapítja az átlátszóságot.",
-  "A considered pace": "Alkalmazkodó letöltések"
+  "A considered pace": "Alkalmazkodó letöltések",
+  "Updating Image Atlas": "Az Image Atlas frissítése",
+  "Your workspace will reopen after the update.": "A munkaterület a frissítés után újra megnyílik.",
+  "Wait for the current task to finish before restarting.": "Az újraindítás előtt várja meg az aktuális feladat befejezését.",
+  "Restart and update": "Újraindítás és frissítés",
+  "Update the existing copy in this folder.": "A mappában lévő példány frissítése.",
+  "Save your work and close Atlas before updating.": "A frissítés előtt mentse munkáját és zárja be az Atlast."
 }

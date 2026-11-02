@@ -245,5 +245,11 @@
   "A fresh version is ready": "తాజా వెర్షన్ సిద్ధంగా ఉంది",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "పారదర్శకత మరియు కాంపాక్ట్ ఆర్ట్‌వర్క్ కోసం PNG; JPEG చాలా చిన్నగా ఉన్నప్పుడు. SVG వెక్టర్‌గా ఉంటుంది.",
   "JPEG flattens transparency onto white.": "JPEG తెలుపు రంగులో పారదర్శకతను చదును చేస్తుంది.",
-  "A considered pace": "అనుకూల డౌన్‌లోడ్‌లు"
+  "A considered pace": "అనుకూల డౌన్‌లోడ్‌లు",
+  "Updating Image Atlas": "Image Atlas నవీకరించబడుతోంది",
+  "Your workspace will reopen after the update.": "నవీకరణ తర్వాత మీ కార్యస్థలం మళ్లీ తెరుచుకుంటుంది.",
+  "Wait for the current task to finish before restarting.": "పునఃప్రారంభించే ముందు ప్రస్తుత పని పూర్తయ్యే వరకు వేచి ఉండండి.",
+  "Restart and update": "పునఃప్రారంభించి నవీకరించు",
+  "Update the existing copy in this folder.": "ఈ ఫోల్డర్‌లో ఉన్న కాపీని నవీకరించండి.",
+  "Save your work and close Atlas before updating.": "నవీకరించే ముందు మీ పనిని సేవ్ చేసి Atlas మూసివేయండి."
 }

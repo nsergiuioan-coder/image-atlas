@@ -24,6 +24,7 @@ pub struct Editor {
     web_dialog: bool,
     web_options: crate::web::Options,
     web_status: String,
+    web_progress: Option<(usize, usize, f64, Option<f64>, std::time::Instant)>,
     web_preview: Option<egui::TextureHandle>,
     web_folder: Option<PathBuf>,
     web_job: Option<crossbeam_channel::Receiver<crate::model::Event>>,
@@ -106,7 +107,107 @@ fn reorder(root: &mut Element, id: &str, front: bool) -> bool {
         .filter_map(XMLNode::as_mut_element)
         .any(|e| reorder(e, id, front))
 }
+#[derive(serde::Serialize, serde::Deserialize)]
+pub struct Snapshot {
+    documents: Vec<PathBuf>,
+    index: usize,
+    path: Option<PathBuf>,
+    active: Option<SavedDocument>,
+    remembered: Vec<(PathBuf, SavedDocument)>,
+    modified: bool,
+    selected: Option<String>,
+    zoom: f32,
+    pan: [f32; 2],
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
+struct SavedDocument {
+    root: String,
+    undo: Vec<String>,
+    redo: Vec<String>,
+}
+
+impl SavedDocument {
+    fn capture(root: &Element, undo: &[Element], redo: &[Element]) -> Result<Self> {
+        let xml = |root: &Element| -> Result<String> {
+            let mut bytes = Vec::new();
+            root.write(&mut bytes)?;
+            Ok(String::from_utf8(bytes)?)
+        };
+        Ok(Self {
+            root: xml(root)?,
+            undo: undo.iter().map(xml).collect::<Result<_>>()?,
+            redo: redo.iter().map(xml).collect::<Result<_>>()?,
+        })
+    }
+    fn restore(self) -> Result<DocumentState> {
+        let xml = |value: String| -> Result<Element> { Ok(Element::parse(value.as_bytes())?) };
+        Ok(DocumentState {
+            root: xml(self.root)?,
+            undo: self.undo.into_iter().map(xml).collect::<Result<_>>()?,
+            redo: self.redo.into_iter().map(xml).collect::<Result<_>>()?,
+        })
+    }
+}
+
 impl Editor {
+    pub fn can_restart(&self) -> bool {
+        self.web_job.is_none()
+    }
+    pub fn workspace_snapshot(&self) -> Result<Snapshot> {
+        Ok(Snapshot {
+            documents: self.documents.clone(),
+            index: self.document_index,
+            path: self.path.clone(),
+            active: self
+                .root
+                .as_ref()
+                .filter(|_| self.modified || self.path.is_none())
+                .map(|root| SavedDocument::capture(root, &self.undo, &self.redo))
+                .transpose()?,
+            remembered: self
+                .saved_documents
+                .iter()
+                .map(|(path, state)| {
+                    Ok((
+                        path.clone(),
+                        SavedDocument::capture(&state.root, &state.undo, &state.redo)?,
+                    ))
+                })
+                .collect::<Result<_>>()?,
+            modified: self.modified,
+            selected: self.selected.clone(),
+            zoom: self.zoom,
+            pan: [self.pan.x, self.pan.y],
+        })
+    }
+    pub fn restore_snapshot(&mut self, saved: Snapshot) -> Result<()> {
+        let mut editor = Self::default();
+        if let Some(active) = saved.active {
+            let state = active.restore()?;
+            editor.root = Some(state.root);
+            editor.undo = state.undo;
+            editor.redo = state.redo;
+        } else if let Some(path) = &saved.path {
+            editor.load(path)?;
+        }
+        editor.saved_documents = saved
+            .remembered
+            .into_iter()
+            .map(|(path, state)| Ok((path, state.restore()?)))
+            .collect::<Result<_>>()?;
+        editor.documents = saved.documents;
+        editor.document_index = saved.index;
+        editor.path = saved.path;
+        editor.modified = saved.modified;
+        editor.selected = saved.selected;
+        editor.zoom = saved.zoom;
+        editor.pan = egui::vec2(saved.pan[0], saved.pan[1]);
+        editor.dirty = true;
+        *self = editor;
+        Ok(())
+    }
+
     fn load(&mut self, path: &Path) -> Result<()> {
         let mut root = if crate::download::detected_extension(&std::fs::read(path)?, "").as_deref()
             == Some("svg")
@@ -444,6 +545,7 @@ impl Editor {
         let cancel = self.web_cancel.clone();
         let options = self.web_options.clone();
         let (tx, rx) = crossbeam_channel::unbounded();
+        self.web_progress = None;
         self.web_job = Some(rx);
         self.web_status = crate::i18n::text("Optimizing image files…").into();
         std::thread::spawn(move || {
@@ -467,11 +569,22 @@ impl Editor {
         });
     }
     fn web_export_ui(&mut self, ctx: &egui::Context) {
+        if self.web_job.is_some()
+            && let Some((done, total, rate, eta, received)) = self.web_progress
+        {
+            self.web_status = crate::progress::label(done, total, rate, eta, received.elapsed());
+        }
         if let Some(rx) = self.web_job.clone() {
             while let Ok(event) = rx.try_recv() {
                 match event {
-                    crate::model::Event::Progress { done, total, .. } => {
-                        self.web_status = crate::tr!("Optimizing {done} of {total} images…")
+                    crate::model::Event::ExportProgress {
+                        done,
+                        total,
+                        rate,
+                        eta_seconds,
+                    } => {
+                        self.web_progress =
+                            Some((done, total, rate, eta_seconds, std::time::Instant::now()));
                     }
                     crate::model::Event::Optimized {
                         folder,
@@ -941,6 +1054,26 @@ impl Editor {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn update_snapshot_preserves_unsaved_objects_and_undo_history() {
+        let mut editor = Editor::default();
+        editor.add_shape("rect");
+        editor.add_shape("ellipse");
+        let bytes = editor.bytes().unwrap();
+        let undo = editor.undo.len();
+        let snapshot = editor.workspace_snapshot().unwrap();
+        let encoded = serde_json::to_vec(&snapshot).unwrap();
+        let mut restored = Editor::default();
+        restored
+            .restore_snapshot(serde_json::from_slice(&encoded).unwrap())
+            .unwrap();
+        assert_eq!(
+            Element::parse(restored.bytes().unwrap().as_slice()).unwrap(),
+            Element::parse(bytes.as_slice()).unwrap()
+        );
+        assert_eq!(restored.undo.len(), undo);
+        assert!(restored.modified);
+    }
     #[test]
     fn svg_edits_preserve_vectors_and_undo() {
         let dir = tempfile::tempdir().unwrap();

@@ -245,5 +245,11 @@
   "A fresh version is ready": "புதிய பதிப்பு தயாராக உள்ளது",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "வெளிப்படைத்தன்மை மற்றும் சிறிய கலைப்படைப்புக்கான PNG; JPEG மிகவும் சிறியதாக இருக்கும் போது. SVG வெக்டராக இருக்கும்.",
   "JPEG flattens transparency onto white.": "JPEG வெளிப்படைத்தன்மையை வெள்ளை நிறத்தில் சமன் செய்கிறது.",
-  "A considered pace": "தகவமைப்பு பதிவிறக்கம்"
+  "A considered pace": "தகவமைப்பு பதிவிறக்கம்",
+  "Updating Image Atlas": "Image Atlas புதுப்பிக்கப்படுகிறது",
+  "Your workspace will reopen after the update.": "புதுப்பித்த பிறகு உங்கள் பணியிடம் மீண்டும் திறக்கும்.",
+  "Wait for the current task to finish before restarting.": "மீண்டும் தொடங்கும் முன் தற்போதைய பணி முடியும் வரை காத்திருக்கவும்.",
+  "Restart and update": "மீண்டும் தொடங்கிப் புதுப்பி",
+  "Update the existing copy in this folder.": "இந்தக் கோப்புறையில் உள்ள நகலைப் புதுப்பிக்கவும்.",
+  "Save your work and close Atlas before updating.": "புதுப்பிக்கும் முன் உங்கள் வேலையைச் சேமித்து Atlas ஐ மூடவும்."
 }

@@ -245,5 +245,11 @@
   "A fresh version is ready": "新しいバージョンが完成しました",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "透明性とコンパクトなアートワークの PNG。はるかに小さい場合は JPEG。 SVG はベクターのままです。",
   "JPEG flattens transparency onto white.": "JPEG は透明度を白に平坦化します。",
-  "A considered pace": "自動調整ダウンロード"
+  "A considered pace": "自動調整ダウンロード",
+  "Updating Image Atlas": "Image Atlas を更新中",
+  "Your workspace will reopen after the update.": "更新後に作業スペースが再び開きます。",
+  "Wait for the current task to finish before restarting.": "現在の処理が完了してから再起動してください。",
+  "Restart and update": "再起動して更新",
+  "Update the existing copy in this folder.": "このフォルダーにある既存のコピーを更新します。",
+  "Save your work and close Atlas before updating.": "更新する前に作業を保存して Atlas を閉じてください。"
 }

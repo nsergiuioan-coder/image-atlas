@@ -245,5 +245,11 @@
   "A fresh version is ready": "نسخة جديدة جاهزة",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "PNG للشفافية والأعمال الفنية المدمجة؛ JPEG عندما يكون أصغر من ذلك بكثير. يظل SVG متجهًا.",
   "JPEG flattens transparency onto white.": "يقوم JPEG بتسوية الشفافية إلى اللون الأبيض.",
-  "A considered pace": "تنزيلات تكيفية"
+  "A considered pace": "تنزيلات تكيفية",
+  "Updating Image Atlas": "جارٍ تحديث Image Atlas",
+  "Your workspace will reopen after the update.": "ستُفتح مساحة عملك مجددًا بعد التحديث.",
+  "Wait for the current task to finish before restarting.": "انتظر انتهاء المهمة الحالية قبل إعادة التشغيل.",
+  "Restart and update": "إعادة التشغيل والتحديث",
+  "Update the existing copy in this folder.": "حدّث النسخة الموجودة في هذا المجلد.",
+  "Save your work and close Atlas before updating.": "احفظ عملك وأغلق Atlas قبل التحديث."
 }

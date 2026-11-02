@@ -245,5 +245,11 @@
   "JPEG flattens transparency onto white.": "JPEG замінює прозорість білим тлом.",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "PNG для прозорості та простої графіки; JPEG, якщо файл значно менший. SVG залишається векторним.",
   "JPEG quality": "Якість JPEG",
-  "A considered pace": "Адаптивне завантаження"
+  "A considered pace": "Адаптивне завантаження",
+  "Updating Image Atlas": "Оновлення Image Atlas",
+  "Your workspace will reopen after the update.": "Після оновлення робочий простір відкриється знову.",
+  "Wait for the current task to finish before restarting.": "Перед перезапуском дочекайтеся завершення поточного завдання.",
+  "Restart and update": "Перезапустити й оновити",
+  "Update the existing copy in this folder.": "Оновити наявну копію в цій папці.",
+  "Save your work and close Atlas before updating.": "Перед оновленням збережіть роботу й закрийте Atlas."
 }

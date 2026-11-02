@@ -6,7 +6,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum Format {
     #[default]
     Automatic,
@@ -26,7 +26,7 @@ impl Format {
         }
     }
 }
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct Options {
     pub format: Format,
     pub max_edge: u32,
@@ -500,15 +500,23 @@ pub fn export_collection(
     let mut rows = Vec::new();
     let mut errors = Vec::new();
     let common = common_root(&sources.iter().map(|s| s.path.clone()).collect::<Vec<_>>());
-    let started = std::time::Instant::now();
+    let mut estimate = crate::progress::Exports::new(
+        sources
+            .iter()
+            .map(|source| crate::progress::Work::file(&source.path))
+            .collect(),
+    );
     let total = sources.len();
     for (index, source) in sources.iter().enumerate() {
         if cancel.stopped() {
             break;
         }
         let destination = destination(&source.path, common.as_deref(), &folder);
+        let started = std::time::Instant::now();
+        let mut success = false;
         match export(source, &destination, &options) {
             Ok(saved) => {
+                success = true;
                 report.files += 1;
                 report.before += saved.before;
                 report.after += saved.after;
@@ -530,15 +538,12 @@ pub fn export_collection(
             }
         }
         let done = index + 1;
-        let _ = events.send(crate::model::Event::Progress {
+        let (rate, eta_seconds) = estimate.finish(started.elapsed(), success);
+        let _ = events.send(crate::model::Event::ExportProgress {
             done,
             total,
-            bytes: report.after,
-            active: 1,
-            speed: 0.0,
-            eta_seconds: Some(
-                started.elapsed().as_secs_f64() / done as f64 * (total - done) as f64,
-            ),
+            rate,
+            eta_seconds,
         });
     }
     let mut file = fs::File::create(folder.join("optimization-report.csv"))?;
@@ -742,7 +747,7 @@ mod tests {
             patterned().save(path).unwrap();
         }
         let output = dir.path().join("optimized");
-        let (tx, _) = crossbeam_channel::unbounded();
+        let (tx, rx) = crossbeam_channel::unbounded();
         let report = export_collection(
             vec![source(&first), source(&second)],
             output.clone(),
@@ -751,6 +756,20 @@ mod tests {
             tx,
         )
         .unwrap();
+        let events: Vec<_> = rx.try_iter().collect();
+        assert_eq!(events.len(), 2);
+        assert!(matches!(events[0], crate::model::Event::ExportProgress {
+            done: 1, total: 2, rate, eta_seconds: None
+        } if rate.is_finite() && rate > 0.0));
+        assert!(matches!(
+            events[1],
+            crate::model::Event::ExportProgress {
+                done: 2,
+                total: 2,
+                eta_seconds: Some(0.0),
+                ..
+            }
+        ));
         assert_eq!(report.files, 2);
         assert_eq!(report.failures, 0);
         assert!(output.join("Signs/art.png").is_file());

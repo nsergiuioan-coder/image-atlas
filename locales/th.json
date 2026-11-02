@@ -245,5 +245,11 @@
   "JPEG flattens transparency onto white.": "JPEG จะรวมส่วนโปร่งใสเข้ากับพื้นหลังสีขาว",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "ใช้ PNG สำหรับภาพโปร่งใสและกราฟิกเรียบง่าย ใช้ JPEG เมื่อไฟล์เล็กกว่ามาก ส่วน SVG ยังคงเป็นเวกเตอร์",
   "JPEG quality": "คุณภาพ JPEG",
-  "A considered pace": "ดาวน์โหลดแบบปรับตัว"
+  "A considered pace": "ดาวน์โหลดแบบปรับตัว",
+  "Updating Image Atlas": "กำลังอัปเดต Image Atlas",
+  "Your workspace will reopen after the update.": "พื้นที่ทำงานของคุณจะเปิดอีกครั้งหลังอัปเดต",
+  "Wait for the current task to finish before restarting.": "รอให้งานปัจจุบันเสร็จก่อนเริ่มใหม่",
+  "Restart and update": "เริ่มใหม่และอัปเดต",
+  "Update the existing copy in this folder.": "อัปเดตสำเนาที่มีอยู่ในโฟลเดอร์นี้",
+  "Save your work and close Atlas before updating.": "บันทึกงานและปิด Atlas ก่อนอัปเดต"
 }

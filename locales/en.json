@@ -245,5 +245,11 @@
   "A fresh version is ready": "A fresh version is ready",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.",
   "JPEG flattens transparency onto white.": "JPEG flattens transparency onto white.",
-  "A considered pace": "Adaptive downloads"
+  "A considered pace": "Adaptive downloads",
+  "Updating Image Atlas": "Updating Image Atlas",
+  "Your workspace will reopen after the update.": "Your workspace will reopen after the update.",
+  "Wait for the current task to finish before restarting.": "Wait for the current task to finish before restarting.",
+  "Restart and update": "Restart and update",
+  "Update the existing copy in this folder.": "Update the existing copy in this folder.",
+  "Save your work and close Atlas before updating.": "Save your work and close Atlas before updating."
 }

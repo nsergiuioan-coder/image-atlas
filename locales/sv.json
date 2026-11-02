@@ -245,5 +245,11 @@
   "A valid SVG containing pixels.": "En giltig SVG-fil med en inbäddad pixelbild.",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "PNG för transparens och enkel grafik; JPEG när filen blir betydligt mindre. SVG förblir vektorgrafik.",
   "JPEG flattens transparency onto white.": "JPEG ersätter genomskinliga områden med vit bakgrund.",
-  "A considered pace": "Anpassade hämtningar"
+  "A considered pace": "Anpassade hämtningar",
+  "Updating Image Atlas": "Uppdaterar Image Atlas",
+  "Your workspace will reopen after the update.": "Din arbetsyta öppnas igen efter uppdateringen.",
+  "Wait for the current task to finish before restarting.": "Vänta tills den aktuella uppgiften är klar innan du startar om.",
+  "Restart and update": "Starta om och uppdatera",
+  "Update the existing copy in this folder.": "Uppdatera den befintliga kopian i den här mappen.",
+  "Save your work and close Atlas before updating.": "Spara ditt arbete och stäng Atlas innan du uppdaterar."
 }

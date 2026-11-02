@@ -245,5 +245,11 @@
   "A fresh version is ready": "En fersk versjon er klar",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "PNG for åpenhet og kompakt kunstverk; JPEG når mye mindre. SVG forblir vektor.",
   "JPEG flattens transparency onto white.": "JPEG flater gjennomsiktighet til hvitt.",
-  "A considered pace": "Tilpassede nedlastinger"
+  "A considered pace": "Tilpassede nedlastinger",
+  "Updating Image Atlas": "Oppdaterer Image Atlas",
+  "Your workspace will reopen after the update.": "Arbeidsområdet ditt åpnes igjen etter oppdateringen.",
+  "Wait for the current task to finish before restarting.": "Vent til den gjeldende oppgaven er ferdig før du starter på nytt.",
+  "Restart and update": "Start på nytt og oppdater",
+  "Update the existing copy in this folder.": "Oppdater den eksisterende kopien i denne mappen.",
+  "Save your work and close Atlas before updating.": "Lagre arbeidet ditt og lukk Atlas før oppdateringen."
 }

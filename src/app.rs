@@ -105,8 +105,35 @@ impl MappingNotice {
     }
 }
 
+enum UpdateState {
+    Idle,
+    Downloading { bytes: u64, total: Option<u64> },
+    Ready(update::Prepared),
+    Failed(String),
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
+struct UpdateWorkspace {
+    tab: usize,
+    url: String,
+    render: bool,
+    sitemap: bool,
+    map: SiteMap,
+    folder: PathBuf,
+    bandwidth: u32,
+    zip: bool,
+    files: Vec<(PathBuf, String)>,
+    settings: convert::Settings,
+    output: PathBuf,
+    image_index: usize,
+    physical: f32,
+    unit: usize,
+    editor: crate::vector::Snapshot,
+}
+
 pub struct Atlas {
     mapping_status: Option<MappingStatus>,
+    export_status: Option<(usize, usize, f64, Option<f64>, Instant)>,
     mapping_notice: Option<MappingNotice>,
     vector: crate::vector::Editor,
     tab: usize,
@@ -141,6 +168,13 @@ pub struct Atlas {
     region_rule: Option<usize>,
     preferences: update::Preferences,
     release: Option<UpdateRelease>,
+    update_state: UpdateState,
+    update_cancel: Cancel,
+    update_checking: bool,
+    last_update_check: Instant,
+    update_check_status: String,
+    was_focused: bool,
+    workspace_restored: bool,
     physical: f32,
     unit: usize,
 }
@@ -184,24 +218,11 @@ impl Atlas {
         cc.egui_ctx.set_style_of(egui::Theme::Light, style.clone());
         cc.egui_ctx.set_style_of(egui::Theme::Dark, style);
         let (tx, rx) = unbounded();
-        if !preferences.disable_updates {
-            let repository = preferences.repository.clone();
-            let tx = tx.clone();
-            let skip = preferences.skip_version.clone();
-            let repaint = cc.egui_ctx.clone();
-            std::thread::spawn(move || {
-                if let Ok(Some(r)) = update::check(&repository)
-                    && r.version != skip
-                {
-                    let _ = tx.send(Event::Update(r));
-                    repaint.request_repaint();
-                }
-            });
-        }
         let home =
             PathBuf::from(std::env::var_os("USERPROFILE").unwrap_or_default()).join("Downloads");
         let mut atlas = Self {
             mapping_status: None,
+            export_status: None,
             mapping_notice: None,
             vector: Default::default(),
             tab: 0,
@@ -236,10 +257,25 @@ impl Atlas {
             region_rule: None,
             preferences,
             release: None,
+            update_state: UpdateState::Idle,
+            update_cancel: Cancel::default(),
+            update_checking: false,
+            last_update_check: Instant::now(),
+            update_check_status: String::new(),
+            was_focused: true,
+            workspace_restored: false,
             physical: 0.0,
             unit: 0,
         };
-        if let Some((options, map)) = crawl::pending_mapping() {
+        if !atlas.preferences.disable_updates {
+            atlas.check_updates(&cc.egui_ctx, false);
+        }
+        let resume = crate::recovery::folder().join("update-workspace.json");
+        if resume.exists() {
+            if let Err(error) = atlas.restore_update_workspace(&resume) {
+                atlas.error(error);
+            }
+        } else if let Some((options, map)) = crawl::pending_mapping() {
             atlas.url = options.website;
             atlas.render = options.render;
             atlas.sitemap = options.sitemap;
@@ -267,8 +303,174 @@ impl Atlas {
         }
         atlas
     }
+    fn save_update_workspace(&self) -> anyhow::Result<()> {
+        let workspace = UpdateWorkspace {
+            tab: self.tab,
+            url: self.url.clone(),
+            render: self.render,
+            sitemap: self.sitemap,
+            map: self.map.clone(),
+            folder: self.folder.clone(),
+            bandwidth: self.bandwidth,
+            zip: self.zip,
+            files: self.files.clone(),
+            settings: self.settings.clone(),
+            output: self.output.clone(),
+            image_index: self.image_index,
+            physical: self.physical,
+            unit: self.unit,
+            editor: self.vector.workspace_snapshot()?,
+        };
+        let folder = crate::recovery::folder();
+        std::fs::create_dir_all(&folder)?;
+        let mut file = tempfile::NamedTempFile::new_in(&folder)?;
+        serde_json::to_writer(file.as_file_mut(), &workspace)?;
+        file.as_file().sync_all()?;
+        file.persist(folder.join("update-workspace.json"))
+            .map_err(|e| e.error)?;
+        Ok(())
+    }
+    fn restore_update_workspace(&mut self, path: &std::path::Path) -> anyhow::Result<()> {
+        let saved: UpdateWorkspace = serde_json::from_reader(std::fs::File::open(path)?)?;
+        self.vector.restore_snapshot(saved.editor)?;
+        self.tab = saved.tab;
+        self.url = saved.url;
+        self.render = saved.render;
+        self.sitemap = saved.sitemap;
+        self.map = saved.map;
+        self.folder = saved.folder;
+        self.bandwidth = saved.bandwidth;
+        self.zip = saved.zip;
+        self.files = saved.files;
+        self.settings = saved.settings;
+        self.output = saved.output;
+        self.image_index = saved.image_index;
+        self.physical = saved.physical;
+        self.unit = saved.unit;
+        self.workspace_restored = true;
+        Ok(())
+    }
+    fn check_updates(&mut self, ctx: &egui::Context, manual: bool) {
+        if self.update_checking {
+            return;
+        }
+        self.update_checking = true;
+        self.last_update_check = Instant::now();
+        let repository = self.preferences.repository.clone();
+        let skip = self.preferences.skip_version.clone();
+        let tx = self.tx.clone();
+        let repaint = ctx.clone();
+        std::thread::spawn(move || {
+            let error = match update::check(&repository) {
+                Ok(Some(release)) => {
+                    if manual || release.version != skip {
+                        let _ = tx.send(Event::Update(release));
+                    }
+                    None
+                }
+                Ok(None) => None,
+                Err(error) => Some(error.to_string()),
+            };
+            let _ = tx.send(Event::UpdateCheckFinished(error, manual));
+            repaint.request_repaint();
+        });
+    }
+    fn poll_updates(&mut self, ctx: &egui::Context) {
+        let focused = ctx.input(|input| input.viewport().focused.unwrap_or(false));
+        let focus_changed = focused && !self.was_focused;
+        self.was_focused = focused;
+        if !self.preferences.disable_updates
+            && !self.update_checking
+            && matches!(self.update_state, UpdateState::Idle)
+            && self.release.is_none()
+        {
+            if update::check_due(self.last_update_check.elapsed(), focus_changed) {
+                self.check_updates(ctx, false);
+            } else {
+                ctx.request_repaint_after(
+                    Duration::from_secs(900).saturating_sub(self.last_update_check.elapsed()),
+                );
+            }
+        }
+    }
+    fn update_progress_ui(&mut self, ctx: &egui::Context) {
+        if matches!(self.update_state, UpdateState::Idle) {
+            return;
+        }
+        let mut close = false;
+        let mut restart = None;
+        egui::Window::new(crate::i18n::text("Updating Image Atlas"))
+            .collapsible(false)
+            .resizable(false)
+            .default_width(440.0)
+            .show(ctx, |ui| match &self.update_state {
+                UpdateState::Downloading { bytes, total } => {
+                    ui.strong(crate::i18n::text("Download"));
+                    let progress = total
+                        .filter(|total| *total > 0)
+                        .map(|total| *bytes as f32 / total as f32);
+                    if let Some(progress) = progress {
+                        ui.add(egui::ProgressBar::new(progress).show_percentage());
+                    } else {
+                        ui.spinner();
+                    }
+                    ui.label(format!("{:.1} MB", *bytes as f64 / 1e6));
+                    if ui.button(crate::i18n::text("Stop")).clicked() {
+                        self.update_cancel.stop();
+                    }
+                }
+                UpdateState::Ready(prepared) => {
+                    ui.heading(crate::tr!("Image Atlas {}", prepared.version));
+                    ui.label(crate::i18n::text(
+                        "Your workspace will reopen after the update.",
+                    ));
+                    let ready = !self.busy && self.vector.can_restart();
+                    if !ready {
+                        ui.weak(crate::i18n::text(
+                            "Wait for the current task to finish before restarting.",
+                        ));
+                    }
+                    if ui
+                        .add_enabled(
+                            ready,
+                            egui::Button::new(crate::i18n::text("Restart and update")),
+                        )
+                        .clicked()
+                    {
+                        restart = Some(prepared.clone());
+                    }
+                    if ui.button(crate::i18n::text("Later")).clicked() {
+                        close = true;
+                    }
+                }
+                UpdateState::Failed(error) => {
+                    ui.strong(crate::i18n::text("Details"));
+                    ui.label(error);
+                    if ui.button(crate::i18n::text("OK")).clicked() {
+                        close = true;
+                    }
+                }
+                UpdateState::Idle => {}
+            });
+        if close {
+            self.update_state = UpdateState::Idle;
+        }
+        if let Some(prepared) = restart {
+            match self
+                .save_update_workspace()
+                .and_then(|_| update::start(&prepared))
+            {
+                Ok(()) => ctx.send_viewport_cmd(egui::ViewportCommand::Close),
+                Err(error) => self.update_state = UpdateState::Failed(error.to_string()),
+            }
+        }
+        if matches!(self.update_state, UpdateState::Downloading { .. }) {
+            ctx.request_repaint_after(Duration::from_millis(100));
+        }
+    }
     fn start(&mut self) {
         self.mapping_status = None;
+        self.export_status = None;
         self.mapping_notice = None;
         self.cancel = Cancel::default();
         self.busy = true;
@@ -987,7 +1189,12 @@ impl Atlas {
             let mut optimized_files = 0;
             let mut before = 0;
             let mut after = 0;
-            let started = std::time::Instant::now();
+            let mut estimate = crate::progress::Exports::new(
+                paths
+                    .iter()
+                    .map(|(path, _)| crate::progress::Work::file(path))
+                    .collect(),
+            );
             for (index, (path, _)) in paths.iter().enumerate() {
                 if cancel.stopped() {
                     break;
@@ -997,8 +1204,11 @@ impl Atlas {
                 } else {
                     folder.clone()
                 };
+                let started = Instant::now();
+                let mut success = false;
                 match convert::export(path, &destination, &settings) {
                     Ok(output) => {
+                        success = true;
                         optimized_files += 1;
                         before += path.metadata().map(|m| m.len()).unwrap_or(0);
                         after += output.metadata().map(|m| m.len()).unwrap_or(0);
@@ -1009,15 +1219,12 @@ impl Atlas {
                     }
                 }
                 let done = index + 1;
-                let _ = tx.send(Event::Progress {
+                let (rate, eta_seconds) = estimate.finish(started.elapsed(), success);
+                let _ = tx.send(Event::ExportProgress {
                     done,
                     total,
-                    bytes: 0,
-                    active: 1,
-                    speed: 0.0,
-                    eta_seconds: Some(
-                        started.elapsed().as_secs_f64() / done as f64 * (total - done) as f64,
-                    ),
+                    rate,
+                    eta_seconds,
                 });
             }
             let _ = std::fs::create_dir_all(&folder);
@@ -1439,27 +1646,23 @@ impl Atlas {
                         Err(e) => self.error(e),
                     }
                 }
-                if ui.button(crate::i18n::text("Check for updates")).clicked() {
-                    let repo = self.preferences.repository.clone();
-                    let tx = self.tx.clone();
-                    let repaint = ui.ctx().clone();
-                    std::thread::spawn(move || {
-                        let event = match update::check(&repo) {
-                            Ok(Some(r)) => Event::Update(r),
-                            Ok(None) => Event::Log(
-                                crate::i18n::text(
-                                    "You're up to date. No newer release is available.",
-                                )
-                                .into(),
-                            ),
-                            Err(e) => Event::Log(e.to_string()),
-                        };
-                        let _ = tx.send(event);
-                        repaint.request_repaint();
-                    });
+                if ui
+                    .add_enabled(
+                        !self.update_checking,
+                        egui::Button::new(crate::i18n::text("Check for updates")),
+                    )
+                    .clicked()
+                {
+                    self.check_updates(ui.ctx(), true);
+                }
+                if self.update_checking {
+                    ui.spinner();
                 }
             });
         });
+        if !self.update_check_status.is_empty() {
+            ui.label(&self.update_check_status);
+        }
         ui.add_space(24.0);
         ui.weak(crate::tr!(
             "Image Atlas {} · NIS · MIT",
@@ -1516,6 +1719,15 @@ impl eframe::App for Atlas {
                     self.logs.extend(map.notices.clone());
                     self.map = map;
                     self.tab = 4;
+                }
+                Event::ExportProgress {
+                    done,
+                    total,
+                    rate,
+                    eta_seconds,
+                } => {
+                    self.progress = done as f32 / total.max(1) as f32;
+                    self.export_status = Some((done, total, rate, eta_seconds, Instant::now()));
                 }
                 Event::Progress {
                     done,
@@ -1587,8 +1799,42 @@ impl eframe::App for Atlas {
                     self.error(s);
                 }
                 Event::Update(r) => self.release = Some(r),
+                Event::UpdateCheckFinished(error, manual) => {
+                    self.update_checking = false;
+                    self.update_check_status = error.clone().unwrap_or_else(|| {
+                        if self.release.is_some() {
+                            crate::i18n::text("A fresh version is ready").into()
+                        } else {
+                            crate::i18n::text("You're up to date. No newer release is available.")
+                                .into()
+                        }
+                    });
+                    if let Some(error) = error {
+                        self.logs.push(error.clone());
+                        if manual {
+                            self.status = error;
+                        }
+                    }
+                }
+                Event::UpdateProgress { bytes, total } => {
+                    self.update_state = UpdateState::Downloading { bytes, total }
+                }
+                Event::UpdateReady(prepared) => self.update_state = UpdateState::Ready(prepared),
+                Event::UpdateFailed(error) => {
+                    self.update_state = if self.update_cancel.stopped() {
+                        UpdateState::Idle
+                    } else {
+                        UpdateState::Failed(error)
+                    }
+                }
             }
         }
+        if self.busy
+            && let Some((done, total, rate, eta, received)) = self.export_status
+        {
+            self.status = crate::progress::label(done, total, rate, eta, received.elapsed());
+        }
+        self.poll_updates(ctx);
         if let Some(mapping) = &self.mapping_status {
             self.status = mapping.label();
         }
@@ -1776,13 +2022,16 @@ impl eframe::App for Atlas {
                             let tx = self.tx.clone();
                             let r = release.clone();
                             let repaint = ui.ctx().clone();
+                            self.update_cancel = Cancel::default();
+                            let cancel = self.update_cancel.clone();
+                            self.update_state = UpdateState::Downloading {
+                                bytes: 0,
+                                total: None,
+                            };
                             std::thread::spawn(move || {
-                                let event = match update::install(&r) {
-                                    Ok(()) => Event::Log(
-                                        crate::i18n::text("Installer opened. Close Image Atlas to finish updating.")
-                                            .into(),
-                                    ),
-                                    Err(e) => Event::Failed(e.to_string()),
+                                let event = match update::prepare(&r, cancel, tx.clone()) {
+                                    Ok(prepared) => Event::UpdateReady(prepared),
+                                    Err(error) => Event::UpdateFailed(error.to_string()),
                                 };
                                 let _ = tx.send(event);
                                 repaint.request_repaint();
@@ -1802,7 +2051,13 @@ impl eframe::App for Atlas {
                     });
                 });
         }
+        self.update_progress_ui(ctx);
         self.show_mapping_notice(ctx);
+        update::report_healthy();
+        if self.workspace_restored {
+            let _ = std::fs::remove_file(crate::recovery::folder().join("update-workspace.json"));
+            self.workspace_restored = false;
+        }
         if self.busy {
             ctx.request_repaint_after(Duration::from_millis(if self.mapping_status.is_some() {
                 250

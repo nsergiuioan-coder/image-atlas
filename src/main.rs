@@ -1,5 +1,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 mod app;
+mod bootstrap;
 mod convert;
 mod crawl;
 mod download;
@@ -7,16 +8,42 @@ mod i18n;
 mod model;
 #[cfg(test)]
 mod profiling;
+mod progress;
 mod recovery;
 mod update;
 mod vector;
 mod web;
 
 fn main() -> eframe::Result<()> {
-    if !std::env::args_os().any(|arg| arg == "--ui-session") {
+    let args: Vec<_> = std::env::args_os().collect();
+    if let Some(index) = args.iter().position(|value| value == "--apply-update") {
+        if let Some(path) = args.get(index + 1)
+            && let Err(error) = update::apply(std::path::Path::new(path))
+        {
+            record_error(&error.to_string());
+            rfd::MessageDialog::new()
+                .set_title("Image Atlas update")
+                .set_description(error.to_string())
+                .set_level(rfd::MessageLevel::Error)
+                .show();
+        }
+        return Ok(());
+    }
+    let standalone_update = std::env::current_exe()
+        .ok()
+        .and_then(|path| {
+            path.file_stem()
+                .map(|name| name.to_string_lossy().to_ascii_lowercase())
+        })
+        .is_some_and(|name| name.starts_with("imageatlas-update"));
+    if !standalone_update && !std::env::args_os().any(|arg| arg == "--ui-session") {
         recovery::supervise();
         return Ok(());
     }
+    std::thread::spawn(|| {
+        std::thread::sleep(std::time::Duration::from_secs(10));
+        update::cleanup_completed();
+    });
     let default_hook = std::panic::take_hook();
     std::panic::set_hook(Box::new(move |info| {
         record_error(&info.to_string());
@@ -57,15 +84,34 @@ fn main() -> eframe::Result<()> {
         },
         viewport: eframe::egui::ViewportBuilder::default()
             .with_icon(icon)
-            .with_app_id("com.nis.imageatlas")
-            .with_inner_size([1180.0, 800.0])
-            .with_min_inner_size([900.0, 650.0]),
+            .with_app_id(if standalone_update {
+                "com.nis.imageatlas.update"
+            } else {
+                "com.nis.imageatlas"
+            })
+            .with_inner_size(if standalone_update {
+                [560.0, 380.0]
+            } else {
+                [1180.0, 800.0]
+            })
+            .with_min_inner_size(if standalone_update {
+                [480.0, 340.0]
+            } else {
+                [900.0, 650.0]
+            }),
         ..Default::default()
     };
     eframe::run_native(
         "Image Atlas",
         options,
-        Box::new(|cc| Ok(Box::new(app::Atlas::new(cc)))),
+        Box::new(move |cc| {
+            let app: Box<dyn eframe::App> = if standalone_update {
+                Box::new(bootstrap::Updater::new(cc))
+            } else {
+                Box::new(app::Atlas::new(cc))
+            };
+            Ok(app)
+        }),
     )
     .inspect_err(|error| record_error(&error.to_string()))
 }

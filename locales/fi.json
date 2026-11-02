@@ -245,5 +245,11 @@
   "A fresh version is ready": "Tuore versio on valmis",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "PNG läpinäkyvyyttä ja kompaktia kuvitusta varten; JPEG, kun paljon pienempi. SVG pysyy vektorina.",
   "JPEG flattens transparency onto white.": "JPEG tasoittaa läpinäkyvyyden valkoiseksi.",
-  "A considered pace": "Mukautuvat lataukset"
+  "A considered pace": "Mukautuvat lataukset",
+  "Updating Image Atlas": "Päivitetään Image Atlas",
+  "Your workspace will reopen after the update.": "Työtilasi avautuu uudelleen päivityksen jälkeen.",
+  "Wait for the current task to finish before restarting.": "Odota nykyisen tehtävän valmistumista ennen uudelleenkäynnistystä.",
+  "Restart and update": "Käynnistä uudelleen ja päivitä",
+  "Update the existing copy in this folder.": "Päivitä tämän kansion olemassa oleva kopio.",
+  "Save your work and close Atlas before updating.": "Tallenna työsi ja sulje Atlas ennen päivitystä."
 }

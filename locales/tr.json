@@ -245,5 +245,11 @@
   "JPEG flattens transparency onto white.": "JPEG, saydam alanları beyaz arka planla birleştirir.",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "Saydamlık ve sade çizimler için PNG; dosya çok daha küçükse JPEG. SVG vektör olarak kalır.",
   "JPEG quality": "JPEG kalitesi",
-  "A considered pace": "Uyarlanabilir indirmeler"
+  "A considered pace": "Uyarlanabilir indirmeler",
+  "Updating Image Atlas": "Image Atlas güncelleniyor",
+  "Your workspace will reopen after the update.": "Güncellemeden sonra çalışma alanınız yeniden açılacak.",
+  "Wait for the current task to finish before restarting.": "Yeniden başlatmadan önce geçerli görevin tamamlanmasını bekleyin.",
+  "Restart and update": "Yeniden başlat ve güncelle",
+  "Update the existing copy in this folder.": "Bu klasördeki mevcut kopyayı güncelleyin.",
+  "Save your work and close Atlas before updating.": "Güncellemeden önce çalışmanızı kaydedip Atlas’ı kapatın."
 }

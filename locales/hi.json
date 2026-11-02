@@ -245,5 +245,11 @@
   "A fresh version is ready": "एक ताज़ा संस्करण तैयार है",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "पारदर्शिता और कॉम्पैक्ट कलाकृति के लिए पीएनजी; JPEG जब बहुत छोटा हो. एसवीजी वेक्टर रहता है.",
   "JPEG flattens transparency onto white.": "JPEG पारदर्शिता को सफेद रंग में समतल कर देता है।",
-  "A considered pace": "अनुकूल डाउनलोड"
+  "A considered pace": "अनुकूल डाउनलोड",
+  "Updating Image Atlas": "Image Atlas अपडेट हो रहा है",
+  "Your workspace will reopen after the update.": "अपडेट के बाद आपका कार्यक्षेत्र फिर से खुलेगा।",
+  "Wait for the current task to finish before restarting.": "फिर से शुरू करने से पहले मौजूदा काम पूरा होने की प्रतीक्षा करें।",
+  "Restart and update": "फिर से शुरू करें और अपडेट करें",
+  "Update the existing copy in this folder.": "इस फ़ोल्डर में मौजूद कॉपी अपडेट करें।",
+  "Save your work and close Atlas before updating.": "अपडेट से पहले अपना काम सहेजें और Atlas बंद करें।"
 }

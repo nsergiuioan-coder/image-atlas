@@ -245,5 +245,11 @@
   "A fresh version is ready": "Świeża wersja jest gotowa",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "PNG dla przejrzystości i zwartej grafiki; JPEG, gdy jest znacznie mniejszy. SVG pozostaje wektorem.",
   "JPEG flattens transparency onto white.": "JPEG spłaszcza przezroczystość na biel.",
-  "A considered pace": "Pobieranie adaptacyjne"
+  "A considered pace": "Pobieranie adaptacyjne",
+  "Updating Image Atlas": "Aktualizowanie Image Atlas",
+  "Your workspace will reopen after the update.": "Obszar roboczy otworzy się ponownie po aktualizacji.",
+  "Wait for the current task to finish before restarting.": "Przed ponownym uruchomieniem poczekaj na zakończenie bieżącego zadania.",
+  "Restart and update": "Uruchom ponownie i zaktualizuj",
+  "Update the existing copy in this folder.": "Zaktualizuj istniejącą kopię w tym folderze.",
+  "Save your work and close Atlas before updating.": "Przed aktualizacją zapisz pracę i zamknij Atlas."
 }

@@ -245,5 +245,11 @@
   "A fresh version is ready": "גרסה טרייה מוכנה",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "PNG לשקיפות ויצירות אמנות קומפקטיות; JPEG כאשר הוא קטן בהרבה. SVG נשאר וקטור.",
   "JPEG flattens transparency onto white.": "JPEG משטח שקיפות ללבן.",
-  "A considered pace": "הורדות מסתגלות"
+  "A considered pace": "הורדות מסתגלות",
+  "Updating Image Atlas": "מעדכן את Image Atlas",
+  "Your workspace will reopen after the update.": "סביבת העבודה שלך תיפתח מחדש לאחר העדכון.",
+  "Wait for the current task to finish before restarting.": "יש להמתין לסיום המשימה הנוכחית לפני ההפעלה מחדש.",
+  "Restart and update": "הפעלה מחדש ועדכון",
+  "Update the existing copy in this folder.": "עדכון העותק הקיים בתיקייה זו.",
+  "Save your work and close Atlas before updating.": "יש לשמור את העבודה ולסגור את Atlas לפני העדכון."
 }

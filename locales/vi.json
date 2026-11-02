@@ -245,5 +245,11 @@
   "JPEG flattens transparency onto white.": "JPEG thay vùng trong suốt bằng nền trắng.",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "Dùng PNG cho ảnh trong suốt và đồ họa đơn giản; dùng JPEG khi dung lượng nhỏ hơn đáng kể. SVG vẫn là vectơ.",
   "JPEG quality": "Chất lượng JPEG",
-  "A considered pace": "Tải xuống thích ứng"
+  "A considered pace": "Tải xuống thích ứng",
+  "Updating Image Atlas": "Đang cập nhật Image Atlas",
+  "Your workspace will reopen after the update.": "Không gian làm việc sẽ mở lại sau khi cập nhật.",
+  "Wait for the current task to finish before restarting.": "Đợi tác vụ hiện tại hoàn tất trước khi khởi động lại.",
+  "Restart and update": "Khởi động lại và cập nhật",
+  "Update the existing copy in this folder.": "Cập nhật bản hiện có trong thư mục này.",
+  "Save your work and close Atlas before updating.": "Lưu công việc và đóng Atlas trước khi cập nhật."
 }

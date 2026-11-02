@@ -7,7 +7,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-#[derive(Clone)]
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
 pub struct Settings {
     pub format: String,
     pub width: u32,
@@ -29,7 +29,7 @@ impl Default for Settings {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct ColorRule {
     pub enabled: bool,
     pub from: [u8; 3],

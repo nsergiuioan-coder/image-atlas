@@ -245,5 +245,11 @@
   "A fresh version is ready": "Μια φρέσκια έκδοση είναι έτοιμη",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "PNG για διαφάνεια και συμπαγή έργα τέχνης. JPEG όταν είναι πολύ μικρότερο. Το SVG παραμένει διάνυσμα.",
   "JPEG flattens transparency onto white.": "Το JPEG ισοπεδώνει τη διαφάνεια σε λευκό.",
-  "A considered pace": "Προσαρμοζόμενες λήψεις"
+  "A considered pace": "Προσαρμοζόμενες λήψεις",
+  "Updating Image Atlas": "Ενημέρωση του Image Atlas",
+  "Your workspace will reopen after the update.": "Ο χώρος εργασίας σας θα ανοίξει ξανά μετά την ενημέρωση.",
+  "Wait for the current task to finish before restarting.": "Περιμένετε να ολοκληρωθεί η τρέχουσα εργασία πριν από την επανεκκίνηση.",
+  "Restart and update": "Επανεκκίνηση και ενημέρωση",
+  "Update the existing copy in this folder.": "Ενημερώστε το υπάρχον αντίγραφο σε αυτόν τον φάκελο.",
+  "Save your work and close Atlas before updating.": "Αποθηκεύστε την εργασία σας και κλείστε το Atlas πριν από την ενημέρωση."
 }

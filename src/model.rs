@@ -36,6 +36,12 @@ pub enum Event {
         eta_seconds: Option<f64>,
         current_url: String,
     },
+    ExportProgress {
+        done: usize,
+        total: usize,
+        rate: f64,
+        eta_seconds: Option<f64>,
+    },
     DownloadFinished {
         folder: PathBuf,
         files: Vec<PathBuf>,
@@ -62,13 +68,20 @@ pub enum Event {
     },
     Failed(String),
     Update(UpdateRelease),
+    UpdateCheckFinished(Option<String>, bool),
+    UpdateProgress {
+        bytes: u64,
+        total: Option<u64>,
+    },
+    UpdateReady(crate::update::Prepared),
+    UpdateFailed(String),
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct UpdateRelease {
     pub version: String,
     pub notes: String,
-    pub installer: String,
+    pub archive: String,
     pub checksum: String,
 }
 
