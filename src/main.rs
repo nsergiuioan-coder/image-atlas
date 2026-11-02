@@ -5,6 +5,7 @@ mod convert;
 mod crawl;
 mod download;
 mod i18n;
+mod imports;
 mod model;
 #[cfg(test)]
 mod profiling;
@@ -57,6 +58,9 @@ fn main() -> eframe::Result<()> {
         height: icon.height(),
         rgba: icon.into_raw(),
     };
+    #[cfg(windows)]
+    let native_icon = winit::window::Icon::from_rgba(icon.rgba.clone(), icon.width, icon.height)
+        .expect("Bundled window icon is valid");
     let mut setup = eframe::egui_wgpu::WgpuSetupCreateNew {
         instance_descriptor: eframe::wgpu::InstanceDescriptor {
             backends: if cfg!(windows) {
@@ -105,6 +109,12 @@ fn main() -> eframe::Result<()> {
         "Image Atlas",
         options,
         Box::new(move |cc| {
+            #[cfg(windows)]
+            if let Some(window) = cc.winit_window() {
+                use winit::platform::windows::WindowExtWindows;
+                window.set_window_icon(Some(native_icon.clone()));
+                window.set_taskbar_icon(Some(native_icon));
+            }
             let app: Box<dyn eframe::App> = if standalone_update {
                 Box::new(bootstrap::Updater::new(cc))
             } else {

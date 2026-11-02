@@ -1,6 +1,6 @@
 [package]
 name = "image-atlas"
-version = "0.1.5"
+version = "0.1.6"
 edition = "2024"
 authors = ["NIS"]
 license = "MIT"
@@ -36,7 +36,11 @@ semver = "1"
 
 xmltree = "0.11"
 
+[build-dependencies]
+embed-resource = "3.0.12"
+
 [target.'cfg(windows)'.dependencies]
+winit = { version = "0.30.13", default-features = false }
 windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_System_Threading", "Win32_System_Registry", "Win32_System_Diagnostics_ToolHelp"] }
 wgpu = { version = "30.0", default-features = false, features = ["dx12"] }
 

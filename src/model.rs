@@ -27,6 +27,8 @@ pub struct SiteMap {
 
 #[derive(Clone, Debug)]
 pub enum Event {
+    Imported(Vec<(PathBuf, String)>),
+    ImportFinished,
     Log(String),
     Mapped(SiteMap),
     MappingProgress {

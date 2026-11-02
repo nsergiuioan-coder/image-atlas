@@ -15,12 +15,17 @@ try {
     if ($LASTEXITCODE) { throw 'Clippy failed' }
     cargo build --locked --release
     if ($LASTEXITCODE) { throw 'Build failed' }
+    python scripts/verify_windows_icon.py target/release/image-atlas.exe assets/app.ico
+    if ($LASTEXITCODE) { throw 'Executable icon verification failed' }
     python scripts/attributions.py
     if ($LASTEXITCODE) { throw 'Attribution generation failed' }
     $version = ((Get-Content Cargo.toml | Select-String '^version = ').Line -split '"')[1]
+    if ((Get-Item target/release/image-atlas.exe).VersionInfo.ProductVersion -ne $version) { throw 'Executable version verification failed' }
     New-Item -ItemType Directory -Force dist | Out-Null
     & $Nsis "/DVERSION=$version" packaging/windows.nsi
     if ($LASTEXITCODE) { throw 'Installer build failed' }
+    python scripts/verify_windows_icon.py "dist/ImageAtlas-$version-setup.exe" assets/app.ico
+    if ($LASTEXITCODE) { throw 'Installer icon verification failed' }
     $portable = Join-Path $projectRoot "dist/portable-$version"
     New-Item -ItemType Directory -Force $portable | Out-Null
     Copy-Item target/release/image-atlas.exe "$portable/ImageAtlas.exe"
@@ -28,5 +33,7 @@ try {
     Copy-Item THIRD-PARTY-LICENSES,docs $portable -Recurse -Force
     Compress-Archive -Path "$portable/*" -DestinationPath "dist/ImageAtlas-$version-portable.zip" -Force
     Copy-Item target/release/image-atlas.exe "dist/ImageAtlas-Update.exe"
+    python scripts/verify_windows_icon.py dist/ImageAtlas-Update.exe assets/app.ico
+    if ($LASTEXITCODE) { throw 'Updater icon verification failed' }
     Get-Item "dist/ImageAtlas-$version-setup.exe", "dist/ImageAtlas-$version-portable.zip", "dist/ImageAtlas-Update.exe" | ForEach-Object { '{0}  {1}' -f (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower(), $_.Name } | Set-Content dist/SHA256SUMS.txt
 } finally { Pop-Location }

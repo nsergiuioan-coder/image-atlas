@@ -154,6 +154,9 @@ pub struct Atlas {
     logs: Vec<String>,
     progress: f32,
     files: Vec<(PathBuf, String)>,
+    importing: bool,
+    import_pending: Vec<PathBuf>,
+    import_cancel: Cancel,
     settings: convert::Settings,
     output: PathBuf,
     preview: Option<egui::TextureHandle>,
@@ -243,6 +246,9 @@ impl Atlas {
             logs: Vec::new(),
             progress: 0.0,
             files: Vec::new(),
+            importing: false,
+            import_pending: Vec::new(),
+            import_cancel: Cancel::default(),
             settings: Default::default(),
             output: home.join("Image Atlas edited"),
             preview: None,
@@ -424,7 +430,7 @@ impl Atlas {
                     ui.label(crate::i18n::text(
                         "Your workspace will reopen after the update.",
                     ));
-                    let ready = !self.busy && self.vector.can_restart();
+                    let ready = !self.busy && !self.importing && self.vector.can_restart();
                     if !ready {
                         ui.weak(crate::i18n::text(
                             "Wait for the current task to finish before restarting.",
@@ -503,31 +509,26 @@ impl Atlas {
             .stroke(egui::Stroke::new(1.0_f32, Color32::from_rgb(48, 57, 67)))
     }
     fn import_files(&mut self, paths: Vec<PathBuf>) {
-        for path in paths {
-            if path.is_dir() {
-                let paths = walkdir::WalkDir::new(path)
-                    .into_iter()
-                    .filter_map(Result::ok)
-                    .filter(|e| {
-                        e.file_type().is_file()
-                            && !e
-                                .path()
-                                .components()
-                                .any(|c| c.as_os_str() == ".atlas-cache")
-                    })
-                    .map(|e| e.into_path())
-                    .collect();
-                self.import_files(paths);
-            } else if !self.files.iter().any(|(p, _)| p == &path) {
-                match convert::dimensions(&path) {
-                    Ok((w, h)) => self.files.push((path, format!("{w} × {h} px"))),
-                    Err(e) => self
-                        .logs
-                        .push(crate::tr!("Skipped {}: {e}", path.display())),
-                }
-            }
+        if self.importing {
+            self.import_pending.extend(paths);
+            return;
         }
+        self.importing = true;
+        self.import_cancel = Cancel::default();
+        let cancel = self.import_cancel.clone();
+        let seen = self.files.iter().map(|(path, _)| path.clone()).collect();
+        let tx = self.tx.clone();
+        std::thread::spawn(move || crate::imports::scan(paths, seen, cancel, tx));
+    }
+    fn clear_batch(&mut self) {
+        self.import_cancel.stop();
+        self.import_pending.clear();
+        self.files.clear();
+        self.image_index = 0;
+        self.preview = None;
+        self.pixels = None;
         self.preview_key.clear();
+        self.web_preview = None;
     }
     fn map_website(&mut self) {
         self.start();
@@ -1501,45 +1502,61 @@ impl Atlas {
             self.output = p;
         }
         ui.add_space(8.0);
-        ui.add_enabled_ui(!self.busy && !self.files.is_empty(), |ui| {
-            if Self::primary(
-                ui,
-                crate::tr!(
-                    "Export {} {}",
-                    self.files.len(),
-                    if self.files.len() == 1 {
-                        "image"
-                    } else {
-                        "images"
-                    }
-                ),
-            )
-            .clicked()
-            {
-                self.export_batch();
-            }
-        });
+        ui.add_enabled_ui(
+            !self.busy && !self.importing && !self.files.is_empty(),
+            |ui| {
+                if Self::primary(
+                    ui,
+                    crate::tr!(
+                        "Export {} {}",
+                        self.files.len(),
+                        if self.files.len() == 1 {
+                            "image"
+                        } else {
+                            "images"
+                        }
+                    ),
+                )
+                .clicked()
+                {
+                    self.export_batch();
+                }
+            },
+        );
     }
     fn batch(&mut self, ui: &mut egui::Ui, ctx: &egui::Context) {
         ui.horizontal(|ui| {
             ui.heading(crate::i18n::text("  Batch editor"));
+            if self.importing {
+                ui.spinner();
+                ui.label(crate::tr!("{} images", self.files.len()));
+                if ui.button(crate::i18n::text("Stop")).clicked() {
+                    self.import_cancel.stop();
+                    self.import_pending.clear();
+                }
+            }
             ui.with_layout(crate::i18n::trailing_layout(egui::Align::Center), |ui| {
                 if ui.button(crate::i18n::text("Add images")).clicked()
                     && let Some(paths) = rfd::FileDialog::new().pick_files()
                 {
                     self.import_files(paths);
                 }
-                if ui.button(crate::i18n::text("Add folder")).clicked()
+                if ui.button(crate::i18n::text("Open folder")).clicked()
                     && let Some(p) = rfd::FileDialog::new().pick_folder()
                 {
+                    self.clear_batch();
                     self.import_files(vec![p]);
                 }
                 ui.menu_button(crate::i18n::text("Batch"), |ui| {
                     ui.label(crate::tr!("{} images", self.files.len()));
+                    if ui.button(crate::i18n::text("Add folder")).clicked()
+                        && let Some(folder) = rfd::FileDialog::new().pick_folder()
+                    {
+                        self.import_files(vec![folder]);
+                        ui.close();
+                    }
                     if ui.button(crate::i18n::text("Clear batch")).clicked() {
-                        self.files.clear();
-                        self.preview = None;
-                        self.preview_key.clear();
+                        self.clear_batch();
                         ui.close();
                     }
                 });
@@ -1675,6 +1692,21 @@ impl eframe::App for Atlas {
         let ctx = &root.ctx().clone();
         while let Ok(event) = self.rx.try_recv() {
             match event {
+                Event::Imported(files) => {
+                    if !self.import_cancel.stopped() {
+                        self.files.extend(files);
+                    }
+                }
+                Event::ImportFinished => {
+                    self.importing = false;
+                    if !self.busy {
+                        self.status = crate::tr!("{} images", self.files.len());
+                    }
+                    if !self.import_pending.is_empty() {
+                        let pending = std::mem::take(&mut self.import_pending);
+                        self.import_files(pending);
+                    }
+                }
                 Event::Log(s) => {
                     self.status = s.clone();
                     self.logs.push(s);
@@ -2058,7 +2090,7 @@ impl eframe::App for Atlas {
             let _ = std::fs::remove_file(crate::recovery::folder().join("update-workspace.json"));
             self.workspace_restored = false;
         }
-        if self.busy {
+        if self.busy || self.importing {
             ctx.request_repaint_after(Duration::from_millis(if self.mapping_status.is_some() {
                 250
             } else {
