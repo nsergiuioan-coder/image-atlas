@@ -53,6 +53,13 @@ pub enum Event {
         folder: PathBuf,
         failures: usize,
     },
+    Optimized {
+        folder: PathBuf,
+        files: usize,
+        failures: usize,
+        before: u64,
+        after: u64,
+    },
     Failed(String),
     Update(UpdateRelease),
 }

@@ -14,6 +14,7 @@ pub struct Settings {
     pub height: u32,
     pub dpi: f32,
     pub rules: Vec<ColorRule>,
+    pub web: Option<crate::web::Options>,
 }
 impl Default for Settings {
     fn default() -> Self {
@@ -23,6 +24,7 @@ impl Default for Settings {
             height: 0,
             dpi: 300.0,
             rules: Vec::new(),
+            web: None,
         }
     }
 }
@@ -101,9 +103,14 @@ pub fn load(path: &Path) -> Result<DynamicImage> {
             RgbaImage::from_raw(size.width(), size.height(), raw).context("Invalid SVG pixels")?,
         ));
     }
-    Ok(image::ImageReader::open(path)?
+    use image::ImageDecoder;
+    let mut decoder = image::ImageReader::open(path)?
         .with_guessed_format()?
-        .decode()?)
+        .into_decoder()?;
+    let orientation = decoder.orientation()?;
+    let mut image = DynamicImage::from_decoder(decoder)?;
+    image.apply_orientation(orientation);
+    Ok(image)
 }
 
 pub fn dimensions(path: &Path) -> Result<(u32, u32)> {
@@ -224,7 +231,7 @@ pub fn prepare(mut image: DynamicImage, settings: &Settings) -> DynamicImage {
     image
 }
 
-fn flatten_white(image: &DynamicImage) -> image::RgbImage {
+pub(crate) fn flatten_white(image: &DynamicImage) -> image::RgbImage {
     let rgba = image.to_rgba8();
     image::RgbImage::from_fn(rgba.width(), rgba.height(), |x, y| {
         let p = rgba.get_pixel(x, y);
@@ -273,8 +280,31 @@ fn pdf(image: &DynamicImage, path: &Path, dpi: f32) -> Result<()> {
     Ok(())
 }
 
+pub fn encode_web(source: &Path, settings: &Settings) -> Result<crate::web::Encoded> {
+    let options = settings
+        .web
+        .as_ref()
+        .context("Enable web optimized export first")?;
+    let untouched =
+        settings.width == 0 && settings.height == 0 && !settings.rules.iter().any(|r| r.enabled);
+    if untouched {
+        crate::web::encode(
+            &crate::web::Source {
+                path: source.into(),
+                edited_svg: None,
+            },
+            options,
+        )
+    } else {
+        crate::web::encode_raster(prepare(load(source)?, settings), source, options, false)
+    }
+}
+
 pub fn export(source: &Path, folder: &Path, settings: &Settings) -> Result<PathBuf> {
     fs::create_dir_all(folder)?;
+    if settings.web.is_some() {
+        return Ok(crate::web::save(encode_web(source, settings)?, source, folder)?.path);
+    }
     let image = prepare(load(source)?, settings);
     let extension = if settings.format.starts_with("svg") {
         "svg"

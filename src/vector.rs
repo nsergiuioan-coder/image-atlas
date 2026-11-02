@@ -21,6 +21,13 @@ struct DocumentState {
 
 #[derive(Default)]
 pub struct Editor {
+    web_dialog: bool,
+    web_options: crate::web::Options,
+    web_status: String,
+    web_preview: Option<egui::TextureHandle>,
+    web_folder: Option<PathBuf>,
+    web_job: Option<crossbeam_channel::Receiver<crate::model::Event>>,
+    web_cancel: crate::model::Cancel,
     documents: Vec<PathBuf>,
     document_index: usize,
     saved_documents: HashMap<PathBuf, DocumentState>,
@@ -138,6 +145,7 @@ impl Editor {
             }
             self.documents.push(key.clone());
             self.path = Some(key);
+            self.web_preview = None;
             self.modified = true;
         }
         let first = paths.first().cloned();
@@ -190,6 +198,7 @@ impl Editor {
             self.undo.clear();
             self.redo.clear();
         }
+        self.web_preview = None;
         self.path = Some(path);
         self.document_index = index;
         self.selected = None;
@@ -202,6 +211,7 @@ impl Editor {
         loaded
     }
     fn snapshot(&mut self) {
+        self.web_preview = None;
         self.modified = true;
         if let Some(root) = &self.root {
             self.undo.push(root.clone());
@@ -223,6 +233,7 @@ impl Editor {
             let old = e.attributes.get("transform").cloned().unwrap_or_default();
             e.attributes
                 .insert("transform".into(), format!("{old} {value}"));
+            self.web_preview = None;
             self.modified = true;
             self.dirty = true;
         }
@@ -257,6 +268,7 @@ impl Editor {
                 .join(";");
             e.attributes
                 .insert("style".into(), format!("{filtered};{property}:{value}"));
+            self.web_preview = None;
             self.modified = true;
             self.dirty = true;
         }
@@ -384,6 +396,192 @@ impl Editor {
         self.dirty = true;
         self.zoom = self.zoom.max(1.0);
     }
+    fn web_source(&self) -> Result<crate::web::Source> {
+        Ok(crate::web::Source {
+            path: self
+                .path
+                .clone()
+                .unwrap_or_else(|| PathBuf::from("Untitled.svg")),
+            edited_svg: if self.modified || self.path.is_none() {
+                Some(self.bytes()?)
+            } else {
+                None
+            },
+        })
+    }
+    fn web_sources(&self) -> Result<Vec<crate::web::Source>> {
+        self.documents
+            .iter()
+            .map(|path| {
+                if Some(path) == self.path.as_ref() {
+                    return self.web_source();
+                }
+                let edited_svg = if let Some(saved) = self.saved_documents.get(path) {
+                    let mut data = Vec::new();
+                    saved.root.write(&mut data)?;
+                    Some(data)
+                } else {
+                    None
+                };
+                Ok(crate::web::Source {
+                    path: path.clone(),
+                    edited_svg,
+                })
+            })
+            .collect()
+    }
+    fn start_web_export(&mut self, sources: Vec<crate::web::Source>) {
+        let Some(folder) = rfd::FileDialog::new()
+            .set_title("Choose a folder for optimized images")
+            .pick_folder()
+        else {
+            return;
+        };
+        self.web_folder = Some(folder.clone());
+        self.web_cancel = crate::model::Cancel::default();
+        let cancel = self.web_cancel.clone();
+        let options = self.web_options.clone();
+        let (tx, rx) = crossbeam_channel::unbounded();
+        self.web_job = Some(rx);
+        self.web_status = "Optimizing image files…".into();
+        std::thread::spawn(move || {
+            let event = match crate::web::export_collection(
+                sources,
+                folder.clone(),
+                options,
+                cancel,
+                tx.clone(),
+            ) {
+                Ok(report) => crate::model::Event::Optimized {
+                    folder,
+                    files: report.files,
+                    failures: report.failures,
+                    before: report.before,
+                    after: report.after,
+                },
+                Err(e) => crate::model::Event::Failed(e.to_string()),
+            };
+            let _ = tx.send(event);
+        });
+    }
+    fn web_export_ui(&mut self, ctx: &egui::Context) {
+        if let Some(rx) = self.web_job.clone() {
+            while let Ok(event) = rx.try_recv() {
+                match event {
+                    crate::model::Event::Progress { done, total, .. } => {
+                        self.web_status = format!("Optimizing {done} of {total} images…")
+                    }
+                    crate::model::Event::Optimized {
+                        folder,
+                        files,
+                        failures,
+                        before,
+                        after,
+                    } => {
+                        self.web_status = format!(
+                            "Saved {files} files · {failures} errors · {}",
+                            crate::web::summary(before, after)
+                        );
+                        self.web_folder = Some(folder);
+                        self.web_job = None;
+                    }
+                    crate::model::Event::Failed(error) => {
+                        self.web_status = error;
+                        self.web_job = None;
+                    }
+                    crate::model::Event::Log(message) => self.web_status = message,
+                    _ => {}
+                }
+            }
+        }
+        if self.web_job.is_some() {
+            ctx.request_repaint_after(std::time::Duration::from_millis(100));
+        }
+        if !self.web_dialog {
+            return;
+        }
+        let mut open = true;
+        egui::Window::new("Export for website")
+            .open(&mut open)
+            .resizable(false)
+            .default_width(390.0)
+            .show(ctx, |ui| {
+                ui.label("Smaller, regular image files. Your originals stay untouched.");
+                ui.add_space(8.0);
+                let old_options = self.web_options.clone();
+                self.web_options.ui(ui);
+                if old_options != self.web_options {
+                    self.web_preview = None;
+                    if self.web_job.is_none() {
+                        self.web_status.clear();
+                    }
+                }
+                ui.add_space(12.0);
+                if ui.button("Preview optimized file").clicked() {
+                    let result = self.web_source().and_then(|source| {
+                        let encoded = crate::web::encode(&source, &self.web_options)?;
+                        let preview = crate::web::preview(&encoded, &source.path)?
+                            .thumbnail(700, 420)
+                            .to_rgba8();
+                        Ok((encoded, preview))
+                    });
+                    match result {
+                        Ok((encoded, pixels)) => {
+                            let color = egui::ColorImage::from_rgba_unmultiplied(
+                                [pixels.width() as usize, pixels.height() as usize],
+                                pixels.as_raw(),
+                            );
+                            self.web_preview = Some(ctx.load_texture(
+                                "web-export-preview",
+                                color,
+                                Default::default(),
+                            ));
+                            self.web_status = crate::web::summary(
+                                encoded.input_bytes,
+                                encoded.bytes.len() as u64,
+                            );
+                        }
+                        Err(e) => self.web_status = e.to_string(),
+                    }
+                }
+                if let Some(texture) = &self.web_preview {
+                    ui.add(egui::Image::new(texture).max_size(egui::vec2(360.0, 230.0)));
+                }
+                ui.add_enabled_ui(self.web_job.is_none(), |ui| {
+                    if ui.button("Export this image").clicked() {
+                        match self.web_source() {
+                            Ok(source) => self.start_web_export(vec![source]),
+                            Err(e) => self.web_status = e.to_string(),
+                        }
+                    }
+                    if !self.documents.is_empty()
+                        && ui
+                            .button(format!(
+                                "Export collection ({} images)",
+                                self.documents.len()
+                            ))
+                            .clicked()
+                    {
+                        match self.web_sources() {
+                            Ok(sources) => self.start_web_export(sources),
+                            Err(e) => self.web_status = e.to_string(),
+                        }
+                    }
+                });
+                if self.web_job.is_some() && ui.button("Stop export").clicked() {
+                    self.web_cancel.stop();
+                }
+                ui.label(&self.web_status);
+                if let Some(folder) = &self.web_folder
+                    && ui.button("Open output folder").clicked()
+                {
+                    let _ = std::process::Command::new("explorer.exe")
+                        .arg(folder)
+                        .spawn();
+                }
+            });
+        self.web_dialog = open;
+    }
     pub fn ui(&mut self, ui: &mut egui::Ui, ctx: &egui::Context) {
         ui.horizontal(|ui| {
             ui.heading("Vector editor");
@@ -408,6 +606,12 @@ impl Editor {
                     Err(e) => self.message = e.to_string(),
                 }
             }
+            if ui
+                .add_enabled(self.root.is_some(), egui::Button::new("Export for website"))
+                .clicked()
+            {
+                self.web_dialog = true;
+            }
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 if ui
                     .add_enabled(!self.redo.is_empty(), egui::Button::new("Redo"))
@@ -417,6 +621,7 @@ impl Editor {
                     if let Some(root) = self.root.replace(previous) {
                         self.undo.push(root);
                     }
+                    self.web_preview = None;
                     self.modified = true;
                     self.dirty = true;
                 }
@@ -428,6 +633,7 @@ impl Editor {
                     if let Some(root) = self.root.replace(previous) {
                         self.redo.push(root);
                     }
+                    self.web_preview = None;
                     self.modified = true;
                     self.dirty = true;
                 }
@@ -569,6 +775,7 @@ impl Editor {
                                 if let (Some(root), Some(id)) = (&mut self.root, &self.selected) {
                                     reorder(root, id, true);
                                 }
+                                self.web_preview = None;
                                 self.modified = true;
                                 self.dirty = true;
                             }
@@ -577,6 +784,7 @@ impl Editor {
                                 if let (Some(root), Some(id)) = (&mut self.root, &self.selected) {
                                     reorder(root, id, false);
                                 }
+                                self.web_preview = None;
                                 self.modified = true;
                                 self.dirty = true;
                             }
@@ -590,6 +798,7 @@ impl Editor {
                                 self.undo.push(root.clone());
                                 if let Some(element) = element_mut(root, id) {
                                     element.children = vec![XMLNode::Text(text)];
+                                    self.web_preview = None;
                                     self.modified = true;
                                     self.dirty = true;
                                 }
@@ -601,6 +810,7 @@ impl Editor {
                                 remove(root, id);
                             }
                             self.selected = None;
+                            self.web_preview = None;
                             self.modified = true;
                             self.dirty = true;
                         }
@@ -704,6 +914,7 @@ impl Editor {
             }
         });
         ui.label(RichText::new(&self.message).small().weak());
+        self.web_export_ui(ctx);
     }
 }
 #[cfg(test)]

@@ -130,6 +130,7 @@ pub struct Atlas {
     pixels: Option<image::RgbaImage>,
     image_index: usize,
     preview_key: String,
+    web_preview: Option<(String, crate::web::Encoded)>,
     original: bool,
     zoom: f32,
     pan: egui::Vec2,
@@ -254,6 +255,7 @@ impl Atlas {
             pixels: None,
             image_index: 0,
             preview_key: String::new(),
+            web_preview: None,
             original: false,
             zoom: 1.0,
             pan: egui::Vec2::ZERO,
@@ -667,6 +669,17 @@ impl Atlas {
         ui.add_space(20.0);
         ui.weak("You can stop and resume later. Completed originals are reused automatically.");
     }
+    fn edit_key(&self) -> String {
+        format!(
+            "{:?}:{}:{:?}:{:?}:{}:{}",
+            self.files.get(self.image_index).map(|(p, _)| p),
+            self.image_index,
+            self.settings.rules,
+            self.settings.web,
+            self.settings.width,
+            self.settings.height
+        )
+    }
     fn refresh_preview(&mut self, ctx: &egui::Context) {
         if self.files.is_empty() {
             self.preview = None;
@@ -674,25 +687,28 @@ impl Atlas {
             return;
         }
         self.image_index = self.image_index.min(self.files.len() - 1);
-        let key = format!(
-            "{}:{}:{:?}:{}:{}",
-            self.image_index,
-            self.original,
-            self.settings.rules,
-            self.settings.width,
-            self.settings.height
-        );
+        let settings_key = self.edit_key();
+        let key = format!("{}:{settings_key}", self.original);
         if self.preview_key == key {
             return;
         }
         let path = self.files[self.image_index].0.clone();
-        match convert::load(&path) {
-            Ok(image) => {
-                let image = if self.original {
+        let image = if !self.original
+            && let Some((key, encoded)) = &self.web_preview
+            && key == &settings_key
+        {
+            crate::web::preview(encoded, &path)
+        } else {
+            convert::load(&path).map(|image| {
+                if self.original {
                     image
                 } else {
                     convert::prepare(image, &self.settings)
-                };
+                }
+            })
+        };
+        match image {
+            Ok(image) => {
                 let rgba = image.thumbnail(1800, 1400).to_rgba8();
                 let color = egui::ColorImage::from_rgba_unmultiplied(
                     [rgba.width() as usize, rgba.height() as usize],
@@ -929,14 +945,35 @@ impl Atlas {
         std::thread::spawn(move || {
             let mut failures = Vec::new();
             let total = paths.len();
+            let common = crate::web::common_root(
+                &paths
+                    .iter()
+                    .map(|(path, _)| path.clone())
+                    .collect::<Vec<_>>(),
+            );
+            let mut optimized_files = 0;
+            let mut before = 0;
+            let mut after = 0;
             let started = std::time::Instant::now();
             for (index, (path, _)) in paths.iter().enumerate() {
                 if cancel.stopped() {
                     break;
                 }
-                if let Err(e) = convert::export(path, &folder, &settings) {
-                    failures.push(format!("{}: {e}", path.display()));
-                    let _ = tx.send(Event::Log(failures.last().unwrap().clone()));
+                let destination = if settings.web.is_some() {
+                    crate::web::destination(path, common.as_deref(), &folder)
+                } else {
+                    folder.clone()
+                };
+                match convert::export(path, &destination, &settings) {
+                    Ok(output) => {
+                        optimized_files += 1;
+                        before += path.metadata().map(|m| m.len()).unwrap_or(0);
+                        after += output.metadata().map(|m| m.len()).unwrap_or(0);
+                    }
+                    Err(e) => {
+                        failures.push(format!("{}: {e}", path.display()));
+                        let _ = tx.send(Event::Log(failures.last().unwrap().clone()));
+                    }
                 }
                 let done = index + 1;
                 let _ = tx.send(Event::Progress {
@@ -952,41 +989,97 @@ impl Atlas {
             }
             let _ = std::fs::create_dir_all(&folder);
             let _ = std::fs::write(folder.join("conversion-errors.txt"), failures.join("\n"));
-            let _ = tx.send(Event::Finished {
-                folder,
-                failures: failures.len(),
+            let _ = tx.send(if settings.web.is_some() {
+                Event::Optimized {
+                    folder,
+                    files: optimized_files,
+                    failures: failures.len(),
+                    before,
+                    after,
+                }
+            } else {
+                Event::Finished {
+                    folder,
+                    failures: failures.len(),
+                }
             });
         });
     }
     fn inspector(&mut self, ui: &mut egui::Ui) {
-        ui.strong("Save as");
-        egui::ComboBox::from_id_salt("format")
-            .width(235.0)
-            .selected_text(&self.settings.format)
-            .show_ui(ui, |ui| {
-                for format in [
-                    "png",
-                    "jpg",
-                    "webp",
-                    "tiff",
-                    "bmp",
-                    "gif",
-                    "ico",
-                    "qoi",
-                    "tga",
-                    "avif",
-                    "pdf",
-                    "svg embedded",
-                    "svg trace",
-                ] {
-                    ui.selectable_value(&mut self.settings.format, format.into(), format);
-                }
-            });
-        if self.settings.format == "svg embedded" {
-            ui.weak("A valid SVG containing pixels.");
+        let mut web_enabled = self.settings.web.is_some();
+        if ui
+            .checkbox(&mut web_enabled, "Web optimized export")
+            .changed()
+        {
+            self.settings.web = if web_enabled {
+                Some(crate::web::Options::default())
+            } else {
+                None
+            };
         }
-        if self.settings.format == "svg trace" {
-            ui.weak("Vector tracing works best on flat artwork.");
+        if let Some(options) = &mut self.settings.web {
+            options.ui(ui);
+            ui.separator();
+        }
+        if web_enabled {
+            if ui
+                .add_enabled(
+                    !self.files.is_empty(),
+                    egui::Button::new("Preview optimized file"),
+                )
+                .clicked()
+            {
+                let path = self.files[self.image_index].0.clone();
+                match convert::encode_web(&path, &self.settings) {
+                    Ok(encoded) => {
+                        self.web_preview = Some((self.edit_key(), encoded));
+                        self.preview_key.clear();
+                        self.original = false;
+                    }
+                    Err(e) => self.error(e),
+                }
+            }
+            if let Some((key, encoded)) = &self.web_preview {
+                if *key == self.edit_key() {
+                    ui.label(crate::web::summary(
+                        encoded.input_bytes,
+                        encoded.bytes.len() as u64,
+                    ));
+                } else {
+                    ui.weak("Settings changed. Refresh the optimized preview.");
+                }
+            }
+        }
+        if !web_enabled {
+            ui.strong("Save as");
+            egui::ComboBox::from_id_salt("format")
+                .width(235.0)
+                .selected_text(&self.settings.format)
+                .show_ui(ui, |ui| {
+                    for format in [
+                        "png",
+                        "jpg",
+                        "webp",
+                        "tiff",
+                        "bmp",
+                        "gif",
+                        "ico",
+                        "qoi",
+                        "tga",
+                        "avif",
+                        "pdf",
+                        "svg embedded",
+                        "svg trace",
+                    ] {
+                        ui.selectable_value(&mut self.settings.format, format.into(), format);
+                    }
+                });
+            if self.settings.format == "svg embedded" {
+                ui.weak("A valid SVG containing pixels.");
+            }
+            if self.settings.format == "svg trace" {
+                ui.weak("Vector tracing works best on flat artwork.");
+            }
         }
         ui.add_space(10.0);
         egui::CollapsingHeader::new("Image size")
@@ -1371,6 +1464,20 @@ impl eframe::App for Atlas {
                         }
                         self.tab = 5;
                     }
+                }
+                Event::Optimized {
+                    folder,
+                    files,
+                    failures,
+                    before,
+                    after,
+                } => {
+                    self.busy = false;
+                    self.status = format!(
+                        "Saved {files} files · {failures} errors · {} · {}",
+                        crate::web::summary(before, after),
+                        folder.display()
+                    );
                 }
                 Event::Finished { folder, failures } => {
                     self.busy = false;

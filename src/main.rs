@@ -6,6 +6,7 @@ mod download;
 mod model;
 mod update;
 mod vector;
+mod web;
 
 fn main() -> eframe::Result<()> {
     let icon = image::load_from_memory(include_bytes!("../assets/app.ico"))

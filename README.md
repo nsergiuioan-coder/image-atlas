@@ -39,6 +39,18 @@ Select SVG objects on the canvas or in the layer list. Move and resize them, cha
 
 A PNG or JPEG opens as one image object. Tracing can create editable shapes; it does not recover the original document's layers or text.
 
+## Export for websites
+
+Choose **Export for website** in the Vector editor to export the current image or the collection, including unsaved vector edits. In the Batch editor, enable **Web optimized export** to combine optimization with the current color and size adjustments.
+
+Outputs are ordinary image files, with no ZIP archive. Automatic mode keeps SVG artwork as vectors and compares PNG and JPEG for raster images. Transparency stays in PNG; JPEG is selected only when it is substantially smaller. Keep-source, PNG, JPEG and lossless WebP modes are also available. WebP is optional because some upload systems do not accept it.
+
+Set the longest edge to limit oversized raster images without enlarging smaller ones. The default is 1600 pixels; enter 0 to keep the current dimensions. JPEG quality is adjustable. PNG compression preserves pixel values at the chosen dimensions, and ICC color profiles are retained. JPEG encoding and resizing can change appearance, so use **Preview optimized file** to check the result and its before/after file size before exporting.
+
+Exports preserve the shared source folder structure and never overwrite existing images. The output folder contains the image files plus a size report and error log. Upload the optimized image files to replace the images served by the website; exporting locally does not change the site.
+
+SVG optimization preserves vector shapes, text, identifiers, styles and attribution. It removes redundant formatting whitespace without converting the artwork to a bitmap. Existing embedded images and external resource references inside an SVG remain unchanged.
+
 ## Preview limitations
 
 Image discovery depends on what a website makes publicly accessible. Private libraries, access challenges, externally defined CSS images, and some scrolling or site-specific interfaces are not covered. A small source image cannot supply a higher-resolution original.
