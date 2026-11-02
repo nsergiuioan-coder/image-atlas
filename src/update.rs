@@ -12,6 +12,8 @@ pub enum MappingNotification {
 
 #[derive(Default, Serialize, Deserialize)]
 pub struct Preferences {
+    #[serde(default)]
+    pub language: String,
     pub skip_version: String,
     pub disable_updates: bool,
     pub repository: String,
@@ -143,9 +145,12 @@ mod tests {
         let old = r#"{"skip_version":"","disable_updates":false,"repository":"owner/app"}"#;
         let mut preferences: Preferences = serde_json::from_str(old).unwrap();
         assert_eq!(preferences.mapping_notification, MappingNotification::Quick);
+        assert_eq!(preferences.language, "");
+        preferences.language = "it".into();
         preferences.mapping_notification = MappingNotification::Modal;
         let restored: Preferences =
             serde_json::from_slice(&serde_json::to_vec(&preferences).unwrap()).unwrap();
         assert_eq!(restored.mapping_notification, MappingNotification::Modal);
+        assert_eq!(restored.language, "it");
     }
 }

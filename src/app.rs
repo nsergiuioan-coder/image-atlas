@@ -28,15 +28,17 @@ impl MappingStatus {
         let eta = match self.eta_seconds {
             Some(seconds) if seconds > self.received.elapsed().as_secs_f64() => {
                 let left = (seconds - self.received.elapsed().as_secs_f64()).ceil() as u64;
-                format!("ETA ~{}m {:02}s", left / 60, left % 60)
+                crate::tr!("ETA ~{}m {:02}s", left / 60, left % 60)
             }
-            Some(_) if self.queued == 0 => "Finishing mapping…".into(),
-            Some(_) => "Waiting for the server; recalculating ETA…".into(),
-            None => "Measuring scan speed…".into(),
+            Some(_) if self.queued == 0 => crate::i18n::text("Finishing mapping…").into(),
+            Some(_) => crate::i18n::text("Waiting for the server; recalculating ETA…").into(),
+            None => crate::i18n::text("Measuring scan speed…").into(),
         };
-        format!(
+        crate::tr!(
             "{} pages scanned · {} queued · {} images · {eta}",
-            self.scanned, self.queued, self.images
+            self.scanned,
+            self.queued,
+            self.images
         )
     }
 }
@@ -50,9 +52,10 @@ struct MappingNotice {
 
 impl MappingNotice {
     fn show(&self, ctx: &egui::Context) -> bool {
-        let summary = format!(
+        let summary = crate::tr!(
             "{} pages scanned · {} images found",
-            self.pages, self.images
+            self.pages,
+            self.images
         );
         let warnings = self.notices;
         match self.mode {
@@ -67,10 +70,10 @@ impl MappingNotice {
                     .interactable(false)
                     .show(ctx, |ui| {
                         Atlas::card().show(ui, |ui| {
-                            ui.strong("Mapping completed");
+                            ui.strong(crate::i18n::text("Mapping completed"));
                             ui.label(&summary);
                             if warnings > 0 {
-                                ui.label(format!("{warnings} notices in Details"));
+                                ui.label(crate::tr!("{warnings} notices in Details"));
                             }
                         });
                     });
@@ -83,15 +86,15 @@ impl MappingNotice {
                     .frame(Atlas::card())
                     .show(ctx, |ui| {
                         ui.set_min_width(350.0);
-                        ui.heading("Mapping completed");
+                        ui.heading(crate::i18n::text("Mapping completed"));
                         ui.add_space(10.0);
                         ui.label(&summary);
                         if warnings > 0 {
-                            ui.label(format!("{warnings} notices are available in Details."));
+                            ui.label(crate::tr!("{warnings} notices are available in Details."));
                         }
                         ui.add_space(20.0);
                         ui.vertical_centered(|ui| {
-                            if Atlas::primary(ui, "OK").clicked() {
+                            if Atlas::primary(ui, crate::i18n::text("OK")).clicked() {
                                 close = true;
                             }
                         });
@@ -146,40 +149,9 @@ impl Atlas {
         cc.egui_ctx
             .send_viewport_cmd(egui::ViewportCommand::SetTheme(egui::SystemTheme::Dark));
         cc.egui_ctx.set_theme(egui::ThemePreference::Dark);
-        let mut fonts = egui::FontDefinitions::default();
-        if let Ok(bytes) = std::fs::read("C:/Windows/Fonts/segoeui.ttf") {
-            fonts.font_data.insert(
-                "segoe".into(),
-                std::sync::Arc::new(egui::FontData::from_owned(bytes)),
-            );
-            fonts
-                .families
-                .entry(egui::FontFamily::Proportional)
-                .or_default()
-                .insert(0, "segoe".into());
-        }
-        if let Ok(bytes) = std::fs::read("C:/Windows/Fonts/seguisb.ttf") {
-            fonts.font_data.insert(
-                "segoe-semibold".into(),
-                std::sync::Arc::new(egui::FontData::from_owned(bytes)),
-            );
-            fonts.families.insert(
-                egui::FontFamily::Name("semibold".into()),
-                vec!["segoe-semibold".into()],
-            );
-        }
-        if let Ok(bytes) = std::fs::read("C:/Windows/Fonts/segmdl2.ttf") {
-            fonts.font_data.insert(
-                "windows-icons".into(),
-                std::sync::Arc::new(egui::FontData::from_owned(bytes)),
-            );
-            fonts
-                .families
-                .entry(egui::FontFamily::Proportional)
-                .or_default()
-                .push("windows-icons".into());
-        }
-        cc.egui_ctx.set_fonts(fonts);
+        let preferences = update::Preferences::load();
+        crate::i18n::set_language(&preferences.language);
+        crate::i18n::configure_fonts(&cc.egui_ctx);
         let mut style = (*cc.egui_ctx.style()).clone();
         style.visuals = egui::Visuals::dark();
         style.visuals.panel_fill = PAPER;
@@ -212,16 +184,17 @@ impl Atlas {
         cc.egui_ctx.set_style_of(egui::Theme::Light, style.clone());
         cc.egui_ctx.set_style_of(egui::Theme::Dark, style);
         let (tx, rx) = unbounded();
-        let preferences = update::Preferences::load();
         if !preferences.disable_updates {
             let repository = preferences.repository.clone();
             let tx = tx.clone();
             let skip = preferences.skip_version.clone();
+            let repaint = cc.egui_ctx.clone();
             std::thread::spawn(move || {
                 if let Ok(Some(r)) = update::check(&repository)
                     && r.version != skip
                 {
                     let _ = tx.send(Event::Update(r));
+                    repaint.request_repaint();
                 }
             });
         }
@@ -245,7 +218,7 @@ impl Atlas {
             rx,
             cancel: Cancel::default(),
             busy: false,
-            status: "Ready when you are".into(),
+            status: crate::i18n::text("Ready when you are").into(),
             logs: Vec::new(),
             progress: 0.0,
             files: Vec::new(),
@@ -266,14 +239,22 @@ impl Atlas {
             physical: 0.0,
             unit: 0,
         };
-        if let Some(job) = download::pending_job() {
+        if let Some((options, map)) = crawl::pending_mapping() {
+            atlas.url = options.website;
+            atlas.render = options.render;
+            atlas.sitemap = options.sitemap;
+            atlas.map = map;
+            atlas.map_website();
+        } else if let Some(job) = download::pending_job() {
             atlas.map = job.map;
             atlas.folder = job.options.folder;
             atlas.bandwidth = job.options.bandwidth_mbps;
             atlas.zip = job.options.make_zip;
             atlas.tab = 1;
-            atlas.status =
-                "An unfinished download is ready to resume. Completed files will be reused.".into();
+            atlas.status = crate::i18n::text(
+                "An unfinished download is ready to resume. Completed files will be reused.",
+            )
+            .into();
         }
         let paths = std::env::args_os()
             .skip(1)
@@ -296,6 +277,13 @@ impl Atlas {
     fn error(&mut self, error: impl ToString) {
         self.status = error.to_string();
         self.logs.push(self.status.clone());
+    }
+    fn output_format_label(format: &str) -> &str {
+        match format {
+            "svg embedded" => crate::i18n::text("SVG — embedded image"),
+            "svg trace" => crate::i18n::text("SVG — traced vectors"),
+            _ => format,
+        }
     }
     fn primary(ui: &mut egui::Ui, text: impl Into<String>) -> egui::Response {
         ui.add(
@@ -331,7 +319,9 @@ impl Atlas {
             } else if !self.files.iter().any(|(p, _)| p == &path) {
                 match convert::dimensions(&path) {
                     Ok((w, h)) => self.files.push((path, format!("{w} × {h} px"))),
-                    Err(e) => self.logs.push(format!("Skipped {}: {e}", path.display())),
+                    Err(e) => self
+                        .logs
+                        .push(crate::tr!("Skipped {}: {e}", path.display())),
                 }
             }
         }
@@ -356,17 +346,23 @@ impl Atlas {
     }
     fn website(&mut self, ui: &mut egui::Ui) {
         ui.add_space(45.0);
-        ui.label(RichText::new("Website image library").size(36.0).strong());
+        ui.label(
+            RichText::new(crate::i18n::text("Website image library"))
+                .size(36.0)
+                .strong(),
+        );
         ui.add_space(6.0);
         ui.label(
-            RichText::new("Find the originals. Review their folders. Save them together.")
-                .size(18.0)
-                .weak(),
+            RichText::new(crate::i18n::text(
+                "Find the originals. Review their folders. Save them together.",
+            ))
+            .size(18.0)
+            .weak(),
         );
         ui.add_space(30.0);
         Self::card().show(ui, |ui| {
             ui.set_min_width((ui.available_width() - 48.0).max(300.0));
-            ui.strong("Website address");
+            ui.strong(crate::i18n::text("Website address"));
             ui.horizontal(|ui| {
                 ui.add_sized(
                     [ui.available_width() - 180.0, 46.0],
@@ -375,7 +371,7 @@ impl Atlas {
                         .margin(egui::vec2(14.0, 13.0)),
                 );
                 ui.add_enabled_ui(!self.busy && !self.url.trim().is_empty(), |ui| {
-                    if Self::primary(ui, "Find images").clicked() {
+                    if Self::primary(ui, crate::i18n::text("Find images")).clicked() {
                         if !self.url.contains("://") {
                             self.url = format!("https://{}", self.url.trim());
                         }
@@ -384,30 +380,37 @@ impl Atlas {
                 });
             });
             ui.add_space(6.0);
-            ui.weak("You’ll review everything before downloading.");
-            egui::CollapsingHeader::new("Website options").show(ui, |ui| {
-                ui.checkbox(&mut self.sitemap, "Look through the sitemap");
+            ui.weak(crate::i18n::text(
+                "You’ll review everything before downloading.",
+            ));
+            egui::CollapsingHeader::new(crate::i18n::text("Website options")).show(ui, |ui| {
+                ui.checkbox(
+                    &mut self.sitemap,
+                    crate::i18n::text("Look through the sitemap"),
+                );
                 ui.checkbox(
                     &mut self.render,
-                    "Use browser rendering for a dynamic website",
+                    crate::i18n::text("Use browser rendering for a dynamic website"),
                 );
-                ui.weak("Browser rendering is slower and requires Edge or Chrome.");
+                ui.weak(crate::i18n::text(
+                    "Browser rendering is slower and requires Edge or Chrome.",
+                ));
             });
         });
         ui.add_space(28.0);
         ui.columns(3, |cols| {
             for (col, (title, text)) in cols.iter_mut().zip([
                 (
-                    "Original quality",
-                    "Files keep their real format, including SVG.",
+                    crate::i18n::text("Original quality"),
+                    crate::i18n::text("Files keep their real format, including SVG."),
                 ),
                 (
-                    "Your folder structure",
-                    "Review and edit categories before saving.",
+                    crate::i18n::text("Your folder structure"),
+                    crate::i18n::text("Review and edit categories before saving."),
                 ),
                 (
                     "A considered pace",
-                    "Downloads adapt to your connection and the server.",
+                    crate::i18n::text("Downloads adapt to your connection and the server."),
                 ),
             ]) {
                 col.strong(title);
@@ -416,13 +419,16 @@ impl Atlas {
             }
         });
         ui.add_space(24.0);
-        if ui.link("Open a saved website map").clicked() {
+        if ui
+            .link(crate::i18n::text("Open a saved website map"))
+            .clicked()
+        {
             self.open_map();
         }
     }
     fn open_map(&mut self) {
         if let Some(p) = rfd::FileDialog::new()
-            .add_filter("Website map", &["json"])
+            .add_filter(crate::i18n::text("Website map"), &["json"])
             .pick_file()
         {
             match std::fs::read(p)
@@ -438,19 +444,23 @@ impl Atlas {
         }
     }
     fn review(&mut self, ui: &mut egui::Ui) {
-        ui.heading("Review your images");
-        ui.label("Choose the images to keep and where they belong.");
+        ui.heading(crate::i18n::text("Review your images"));
+        ui.label(crate::i18n::text(
+            "Choose the images to keep and where they belong.",
+        ));
         ui.add_space(18.0);
         let count = self.map.assets.iter().filter(|a| a.selected).count();
         ui.horizontal(|ui| {
-            ui.strong(format!("{count} selected"));
-            ui.weak(format!(
+            ui.strong(crate::tr!("{count} selected"));
+            ui.weak(crate::tr!(
                 "from {} images · {} pages",
                 self.map.assets.len(),
                 self.map.pages
             ));
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                if Self::primary(ui, "Continue to download").clicked() && count > 0 {
+                if Self::primary(ui, crate::i18n::text("Continue to download")).clicked()
+                    && count > 0
+                {
                     self.tab = 1;
                 }
             });
@@ -459,27 +469,27 @@ impl Atlas {
         ui.horizontal(|ui| {
             ui.add(
                 egui::TextEdit::singleline(&mut self.filter)
-                    .hint_text("Find an image or category")
+                    .hint_text(crate::i18n::text("Find an image or category"))
                     .desired_width(330.0)
                     .margin(egui::vec2(12.0, 9.0)),
             );
-            ui.checkbox(&mut self.edit_folders, "Edit folders");
-            ui.menu_button("Selection", |ui| {
-                if ui.button("Select all").clicked() {
+            ui.checkbox(&mut self.edit_folders, crate::i18n::text("Edit folders"));
+            ui.menu_button(crate::i18n::text("Selection"), |ui| {
+                if ui.button(crate::i18n::text("Select all")).clicked() {
                     for a in &mut self.map.assets {
                         a.selected = true;
                     }
                     ui.close();
                 }
-                if ui.button("Deselect all").clicked() {
+                if ui.button(crate::i18n::text("Deselect all")).clicked() {
                     for a in &mut self.map.assets {
                         a.selected = false;
                     }
                     ui.close();
                 }
             });
-            ui.menu_button("Map", |ui| {
-                if ui.button("Save map").clicked() {
+            ui.menu_button(crate::i18n::text("Map"), |ui| {
+                if ui.button(crate::i18n::text("Save map")).clicked() {
                     if let Some(p) = rfd::FileDialog::new()
                         .set_file_name("website-map.json")
                         .save_file()
@@ -488,13 +498,13 @@ impl Atlas {
                             .map_err(anyhow::Error::from)
                             .and_then(|b| std::fs::write(p, b).map_err(Into::into))
                         {
-                            Ok(()) => self.status = "Map saved".into(),
+                            Ok(()) => self.status = crate::i18n::text("Map saved").into(),
                             Err(e) => self.error(e),
                         }
                     }
                     ui.close();
                 }
-                if ui.button("Open map").clicked() {
+                if ui.button(crate::i18n::text("Open map")).clicked() {
                     self.open_map();
                     ui.close();
                 }
@@ -508,9 +518,12 @@ impl Atlas {
             .iter()
             .enumerate()
             .filter(|(_, a)| {
-                format!("{} {} {}", a.label, a.folders.join("/"), a.url)
-                    .to_lowercase()
-                    .contains(&filter)
+                filter.is_empty()
+                    || a.label.to_lowercase().contains(&filter)
+                    || a.url.to_lowercase().contains(&filter)
+                    || a.folders
+                        .iter()
+                        .any(|folder| folder.to_lowercase().contains(&filter))
             })
             .map(|(i, _)| i)
             .collect();
@@ -561,9 +574,12 @@ impl Atlas {
                                         egui::Layout::right_to_left(egui::Align::Center),
                                         |ui| {
                                             if !a.url.starts_with("data:") {
-                                                ui.hyperlink_to("View source", &a.url);
+                                                ui.hyperlink_to(
+                                                    crate::i18n::text("View source"),
+                                                    &a.url,
+                                                );
                                             } else {
-                                                ui.weak("Inline image");
+                                                ui.weak(crate::i18n::text("Inline image"));
                                             }
                                         },
                                     );
@@ -575,7 +591,9 @@ impl Atlas {
         if self.map.assets.is_empty() {
             ui.add_space(50.0);
             ui.centered_and_justified(|ui| {
-                ui.label("No images found. Try browser rendering, or review the activity details.");
+                ui.label(crate::i18n::text(
+                    "No images found. Try browser rendering, or review the activity details.",
+                ));
             });
         }
     }
@@ -614,44 +632,51 @@ impl Atlas {
     }
     fn downloads(&mut self, ui: &mut egui::Ui) {
         ui.add_space(25.0);
-        ui.heading("Save your collection");
-        ui.label("Original files, organized exactly as you reviewed them.");
+        ui.heading(crate::i18n::text("Save your collection"));
+        ui.label(crate::i18n::text(
+            "Original files, organized exactly as you reviewed them.",
+        ));
         ui.add_space(24.0);
         Self::card().show(ui, |ui| {
             ui.set_min_width((ui.available_width() - 48.0).max(300.0));
-            ui.strong("Save location");
+            ui.strong(crate::i18n::text("Save location"));
             ui.horizontal(|ui| {
                 ui.label(self.folder.display().to_string());
-                if ui.button("Change").clicked()
+                if ui.button(crate::i18n::text("Change")).clicked()
                     && let Some(p) = rfd::FileDialog::new().pick_folder()
                 {
                     self.folder = p;
                 }
             });
             ui.add_space(8.0);
-            ui.checkbox(&mut self.zip, "Create a ZIP archive too");
-            egui::CollapsingHeader::new("Connection preferences").show(ui, |ui| {
-                ui.label("Automatic works for most connections. Add a speed hint if you know it.");
-                ui.horizontal(|ui| {
-                    ui.label("Connection speed");
-                    ui.add(egui::DragValue::new(&mut self.bandwidth).suffix(" Mbps"));
-                    ui.weak("0 = automatic");
-                });
-            });
+            ui.checkbox(&mut self.zip, crate::i18n::text("Create a ZIP archive too"));
+            egui::CollapsingHeader::new(crate::i18n::text("Connection preferences")).show(
+                ui,
+                |ui| {
+                    ui.label(crate::i18n::text(
+                        "Automatic works for most connections. Add a speed hint if you know it.",
+                    ));
+                    ui.horizontal(|ui| {
+                        ui.label(crate::i18n::text("Connection speed"));
+                        ui.add(egui::DragValue::new(&mut self.bandwidth).suffix(" Mbps"));
+                        ui.weak(crate::i18n::text("0 = automatic"));
+                    });
+                },
+            );
             ui.add_space(18.0);
             let count = self.map.assets.iter().filter(|a| a.selected).count();
             ui.horizontal(|ui| {
                 ui.add_enabled_ui(!self.busy && count > 0, |ui| {
-                    if Self::primary(ui, format!("Download {count} images")).clicked() {
+                    if Self::primary(ui, crate::tr!("Download {count} images")).clicked() {
                         self.begin_download();
                     }
                 });
-                if ui.button("Open folder").clicked() {
+                if ui.button(crate::i18n::text("Open folder")).clicked() {
                     let _ = std::process::Command::new("explorer.exe")
                         .arg(&self.folder)
                         .spawn();
                 }
-                if !self.busy && ui.link("Edit selection").clicked() {
+                if !self.busy && ui.link(crate::i18n::text("Edit selection")).clicked() {
                     self.tab = 4;
                 }
             });
@@ -667,7 +692,9 @@ impl Atlas {
             ui.label(&self.status);
         }
         ui.add_space(20.0);
-        ui.weak("You can stop and resume later. Completed originals are reused automatically.");
+        ui.weak(crate::i18n::text(
+            "You can stop and resume later. Completed originals are reused automatically.",
+        ));
     }
     fn edit_key(&self) -> String {
         format!(
@@ -709,7 +736,7 @@ impl Atlas {
         };
         match image {
             Ok(image) => {
-                let rgba = image.thumbnail(1800, 1400).to_rgba8();
+                let rgba = image.thumbnail(1800, 1400).into_rgba8();
                 let color = egui::ColorImage::from_rgba_unmultiplied(
                     [rgba.width() as usize, rgba.height() as usize],
                     rgba.as_raw(),
@@ -731,7 +758,7 @@ impl Atlas {
             if ui
                 .selectable_label(
                     self.original,
-                    RichText::new("Original").color(if self.original {
+                    RichText::new(crate::i18n::text("Original")).color(if self.original {
                         Color32::WHITE
                     } else {
                         INK
@@ -744,7 +771,7 @@ impl Atlas {
             if ui
                 .selectable_label(
                     !self.original,
-                    RichText::new("Edited").color(if !self.original {
+                    RichText::new(crate::i18n::text("Edited")).color(if !self.original {
                         Color32::WHITE
                     } else {
                         INK
@@ -755,7 +782,7 @@ impl Atlas {
                 self.original = false;
             }
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                if ui.button("Fit image").clicked() {
+                if ui.button(crate::i18n::text("Fit image")).clicked() {
                     self.zoom = 1.0;
                     self.pan = egui::Vec2::ZERO;
                 }
@@ -885,7 +912,7 @@ impl Atlas {
             painter.text(
                 rect.center(),
                 egui::Align2::CENTER_CENTER,
-                "Drop your images here",
+                crate::i18n::text("Drop your images here"),
                 egui::FontId::proportional(22.0),
                 Color32::from_gray(110),
             );
@@ -895,7 +922,10 @@ impl Atlas {
             let previous = self.image_index;
             ui.horizontal(|ui| {
                 if ui
-                    .add_enabled(self.image_index > 0, egui::Button::new("Previous"))
+                    .add_enabled(
+                        self.image_index > 0,
+                        egui::Button::new(crate::i18n::text("Previous")),
+                    )
                     .clicked()
                 {
                     self.image_index -= 1;
@@ -903,7 +933,10 @@ impl Atlas {
                 let max = self.files.len() - 1;
                 ui.add(egui::Slider::new(&mut self.image_index, 0..=max).show_value(false));
                 if ui
-                    .add_enabled(self.image_index < max, egui::Button::new("Next"))
+                    .add_enabled(
+                        self.image_index < max,
+                        egui::Button::new(crate::i18n::text("Next")),
+                    )
                     .clicked()
                 {
                     self.image_index += 1;
@@ -927,9 +960,9 @@ impl Atlas {
         }
         ui.label(
             RichText::new(if self.pick_rule.is_some() {
-                "Click the color to replace in the image."
+                crate::i18n::text("Click the color to replace in the image.")
             } else {
-                "Scroll to zoom · Drag to pan · Originals are preserved"
+                crate::i18n::text("Scroll to zoom · Drag to pan · Originals are preserved")
             })
             .small()
             .weak(),
@@ -1008,7 +1041,7 @@ impl Atlas {
     fn inspector(&mut self, ui: &mut egui::Ui) {
         let mut web_enabled = self.settings.web.is_some();
         if ui
-            .checkbox(&mut web_enabled, "Web optimized export")
+            .checkbox(&mut web_enabled, crate::i18n::text("Web optimized export"))
             .changed()
         {
             self.settings.web = if web_enabled {
@@ -1025,7 +1058,7 @@ impl Atlas {
             if ui
                 .add_enabled(
                     !self.files.is_empty(),
-                    egui::Button::new("Preview optimized file"),
+                    egui::Button::new(crate::i18n::text("Preview optimized file")),
                 )
                 .clicked()
             {
@@ -1046,15 +1079,17 @@ impl Atlas {
                         encoded.bytes.len() as u64,
                     ));
                 } else {
-                    ui.weak("Settings changed. Refresh the optimized preview.");
+                    ui.weak(crate::i18n::text(
+                        "Settings changed. Refresh the optimized preview.",
+                    ));
                 }
             }
         }
         if !web_enabled {
-            ui.strong("Save as");
+            ui.strong(crate::i18n::text("Save as"));
             egui::ComboBox::from_id_salt("format")
                 .width(235.0)
-                .selected_text(&self.settings.format)
+                .selected_text(Self::output_format_label(&self.settings.format))
                 .show_ui(ui, |ui| {
                     for format in [
                         "png",
@@ -1071,29 +1106,37 @@ impl Atlas {
                         "svg embedded",
                         "svg trace",
                     ] {
-                        ui.selectable_value(&mut self.settings.format, format.into(), format);
+                        ui.selectable_value(
+                            &mut self.settings.format,
+                            format.into(),
+                            Self::output_format_label(format),
+                        );
                     }
                 });
             if self.settings.format == "svg embedded" {
-                ui.weak("A valid SVG containing pixels.");
+                ui.weak(crate::i18n::text("A valid SVG containing pixels."));
             }
             if self.settings.format == "svg trace" {
-                ui.weak("Vector tracing works best on flat artwork.");
+                ui.weak(crate::i18n::text(
+                    "Vector tracing works best on flat artwork.",
+                ));
             }
         }
         ui.add_space(10.0);
-        egui::CollapsingHeader::new("Image size")
+        egui::CollapsingHeader::new(crate::i18n::text("Image size"))
             .default_open(false)
             .show(ui, |ui| {
                 ui.horizontal(|ui| {
-                    ui.label("Width");
+                    ui.label(crate::i18n::text("Width"));
                     ui.add(egui::DragValue::new(&mut self.settings.width).suffix(" px"));
                 });
                 ui.horizontal(|ui| {
-                    ui.label("Height");
+                    ui.label(crate::i18n::text("Height"));
                     ui.add(egui::DragValue::new(&mut self.settings.height).suffix(" px"));
                 });
-                ui.weak("0 keeps the original. Set one to keep proportions.");
+                ui.weak(crate::i18n::text(
+                    "0 keeps the original. Set one to keep proportions.",
+                ));
                 ui.horizontal(|ui| {
                     ui.add(egui::DragValue::new(&mut self.physical).range(0.0..=100000.0));
                     egui::ComboBox::from_id_salt("units")
@@ -1109,7 +1152,9 @@ impl Atlas {
                         .range(1.0..=2400.0)
                         .suffix(" DPI"),
                 );
-                if ui.button("Use physical width").clicked() && self.physical > 0.0 {
+                if ui.button(crate::i18n::text("Use physical width")).clicked()
+                    && self.physical > 0.0
+                {
                     self.settings.width = (self.physical / [25.4, 2.54, 1.0][self.unit]
                         * self.settings.dpi)
                         .round()
@@ -1118,8 +1163,8 @@ impl Atlas {
                 }
             });
         ui.separator();
-        ui.strong("Color changes");
-        ui.weak("Add one rule for each area or color.");
+        ui.strong(crate::i18n::text("Color changes"));
+        ui.weak(crate::i18n::text("Add one rule for each area or color."));
         let mut remove = None;
         for (i, rule) in self.settings.rules.iter_mut().enumerate() {
             ui.push_id(i, |ui| {
@@ -1129,34 +1174,39 @@ impl Atlas {
                     .inner_margin(10)
                     .show(ui, |ui| {
                         ui.horizontal(|ui| {
-                            ui.checkbox(&mut rule.enabled, format!("Change {}", i + 1));
-                            if ui.small_button("Remove").clicked() {
+                            ui.checkbox(&mut rule.enabled, crate::tr!("Change {}", i + 1));
+                            if ui.small_button(crate::i18n::text("Remove")).clicked() {
                                 remove = Some(i);
                             }
                         });
                         ui.horizontal(|ui| {
-                            ui.label("From");
+                            ui.label(crate::i18n::text("From"));
                             ui.color_edit_button_srgb(&mut rule.from);
-                            ui.label("To");
+                            ui.label(crate::i18n::text("To"));
                             ui.color_edit_button_srgb(&mut rule.to);
                         });
                         if ui
                             .button(if self.pick_rule == Some(i) {
-                                "Click a color in the preview…"
+                                crate::i18n::text("Click a color in the preview…")
                             } else {
-                                "Pick from image"
+                                crate::i18n::text("Pick from image")
                             })
                             .clicked()
                         {
                             self.pick_rule = Some(i);
                             self.original = true;
                         }
-                        if ui.button("Restrict to a rectangle").clicked() {
+                        if ui
+                            .button(crate::i18n::text("Restrict to a rectangle"))
+                            .clicked()
+                        {
                             self.region_rule = Some(i);
                             self.pick_rule = None;
                         }
                         if rule.region.is_some()
-                            && ui.small_button("Clear area restriction").clicked()
+                            && ui
+                                .small_button(crate::i18n::text("Clear area restriction"))
+                                .clicked()
                         {
                             rule.region = None;
                         }
@@ -1171,16 +1221,16 @@ impl Atlas {
                             .width(205.0)
                             .selected_text(
                                 [
-                                    "Background at edges",
-                                    "Matching colors everywhere",
-                                    "Connected area I click",
+                                    crate::i18n::text("Background at edges"),
+                                    crate::i18n::text("Matching colors everywhere"),
+                                    crate::i18n::text("Connected area I click"),
                                 ][scope],
                             )
                             .show_ui(ui, |ui| {
                                 for (n, label) in [
-                                    "Background at edges",
-                                    "Matching colors everywhere",
-                                    "Connected area I click",
+                                    crate::i18n::text("Background at edges"),
+                                    crate::i18n::text("Matching colors everywhere"),
+                                    crate::i18n::text("Connected area I click"),
                                 ]
                                 .iter()
                                 .enumerate()
@@ -1197,13 +1247,18 @@ impl Atlas {
                             rule.seed = None;
                         }
                         ui.add(
-                            egui::Slider::new(&mut rule.tolerance, 0.0..=441.7).text("Tolerance"),
+                            egui::Slider::new(&mut rule.tolerance, 0.0..=441.7)
+                                .text(crate::i18n::text("Tolerance")),
                         );
-                        egui::CollapsingHeader::new("Soften color match").show(ui, |ui| {
-                            ui.add(
-                                egui::Slider::new(&mut rule.feather, 0.0..=80.0).text("Feather"),
-                            );
-                        });
+                        egui::CollapsingHeader::new(crate::i18n::text("Soften color match")).show(
+                            ui,
+                            |ui| {
+                                ui.add(
+                                    egui::Slider::new(&mut rule.feather, 0.0..=80.0)
+                                        .text(crate::i18n::text("Feather")),
+                                );
+                            },
+                        );
                     });
             });
         }
@@ -1211,7 +1266,7 @@ impl Atlas {
             self.settings.rules.remove(i);
             self.pick_rule = None;
         }
-        if ui.button("Add color change").clicked() {
+        if ui.button(crate::i18n::text("Add color change")).clicked() {
             self.settings.rules.push(ColorRule {
                 enabled: false,
                 edges_only: false,
@@ -1221,7 +1276,7 @@ impl Atlas {
             });
         }
         ui.separator();
-        ui.strong("Destination");
+        ui.strong(crate::i18n::text("Destination"));
         ui.label(
             RichText::new(
                 self.output
@@ -1233,7 +1288,7 @@ impl Atlas {
             .weak(),
         )
         .on_hover_text(self.output.display().to_string());
-        if ui.button("Choose folder").clicked()
+        if ui.button(crate::i18n::text("Choose folder")).clicked()
             && let Some(p) = rfd::FileDialog::new().pick_folder()
         {
             self.output = p;
@@ -1242,7 +1297,7 @@ impl Atlas {
         ui.add_enabled_ui(!self.busy && !self.files.is_empty(), |ui| {
             if Self::primary(
                 ui,
-                format!(
+                crate::tr!(
                     "Export {} {}",
                     self.files.len(),
                     if self.files.len() == 1 {
@@ -1260,21 +1315,21 @@ impl Atlas {
     }
     fn batch(&mut self, ui: &mut egui::Ui, ctx: &egui::Context) {
         ui.horizontal(|ui| {
-            ui.heading("  Batch editor");
+            ui.heading(crate::i18n::text("  Batch editor"));
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                if ui.button("Add images").clicked()
+                if ui.button(crate::i18n::text("Add images")).clicked()
                     && let Some(paths) = rfd::FileDialog::new().pick_files()
                 {
                     self.import_files(paths);
                 }
-                if ui.button("Add folder").clicked()
+                if ui.button(crate::i18n::text("Add folder")).clicked()
                     && let Some(p) = rfd::FileDialog::new().pick_folder()
                 {
                     self.import_files(vec![p]);
                 }
-                ui.menu_button("Batch", |ui| {
-                    ui.label(format!("{} images", self.files.len()));
-                    if ui.button("Clear batch").clicked() {
+                ui.menu_button(crate::i18n::text("Batch"), |ui| {
+                    ui.label(crate::tr!("{} images", self.files.len()));
+                    if ui.button(crate::i18n::text("Clear batch")).clicked() {
                         self.files.clear();
                         self.preview = None;
                         self.preview_key.clear();
@@ -1283,7 +1338,9 @@ impl Atlas {
                 });
             });
         });
-        ui.label("Preview your changes, then apply them to the whole batch.");
+        ui.label(crate::i18n::text(
+            "Preview your changes, then apply them to the whole batch.",
+        ));
         ui.add_space(18.0);
         let height = ui.available_height();
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Min), |ui| {
@@ -1317,20 +1374,52 @@ impl Atlas {
         }
     }
     fn settings_ui(&mut self, ui: &mut egui::Ui) {
-        ui.heading("Preferences");
+        ui.heading(crate::i18n::text("Preferences"));
         ui.add_space(20.0);
         Self::card().show(ui, |ui| {
-            ui.strong("Mapping completion");
+            ui.strong(crate::i18n::text("Interface language"));
+            let old = self.preferences.language.clone();
+            let selected = crate::i18n::languages()
+                .find(|(code, _)| *code == self.preferences.language)
+                .map(|(_, name)| name)
+                .unwrap_or(crate::i18n::text("Follow Windows language"));
+            egui::ComboBox::from_id_salt("interface-language")
+                .selected_text(selected)
+                .show_ui(ui, |ui| {
+                    ui.selectable_value(
+                        &mut self.preferences.language,
+                        String::new(),
+                        crate::i18n::text("Follow Windows language"),
+                    );
+                    for (code, name) in crate::i18n::languages() {
+                        ui.selectable_value(&mut self.preferences.language, code.to_owned(), name);
+                    }
+                });
+            if old != self.preferences.language {
+                crate::i18n::set_language(&self.preferences.language);
+                crate::i18n::configure_fonts(ui.ctx());
+                if let Err(error) = self.preferences.save() {
+                    self.error(error);
+                }
+            }
+            if crate::i18n::preview_language() {
+                ui.weak(crate::i18n::text(
+                    "Complex scripts may not display correctly yet.",
+                ));
+            }
+            ui.add_space(16.0);
+            ui.separator();
+            ui.strong(crate::i18n::text("Mapping completion"));
             let old = self.preferences.mapping_notification;
             ui.radio_value(
                 &mut self.preferences.mapping_notification,
                 update::MappingNotification::Quick,
-                "Quick popup — disappears after a few seconds",
+                crate::i18n::text("Quick popup — disappears after a few seconds"),
             );
             ui.radio_value(
                 &mut self.preferences.mapping_notification,
                 update::MappingNotification::Modal,
-                "Blocking popup — requires OK to continue",
+                crate::i18n::text("Blocking popup — requires OK to continue"),
             );
             if old != self.preferences.mapping_notification
                 && let Err(e) = self.preferences.save()
@@ -1340,39 +1429,44 @@ impl Atlas {
             ui.add_space(10.0);
             ui.separator();
             ui.add_space(10.0);
-            ui.strong("App updates");
+            ui.strong(crate::i18n::text("App updates"));
             ui.checkbox(
                 &mut self.preferences.disable_updates,
-                "Turn off automatic update checks",
+                crate::i18n::text("Turn off automatic update checks"),
             );
-            egui::CollapsingHeader::new("Release source").show(ui, |ui| {
+            egui::CollapsingHeader::new(crate::i18n::text("Release source")).show(ui, |ui| {
                 ui.text_edit_singleline(&mut self.preferences.repository);
             });
             ui.horizontal(|ui| {
-                if Self::primary(ui, "Save preferences").clicked() {
+                if Self::primary(ui, crate::i18n::text("Save preferences")).clicked() {
                     match self.preferences.save() {
-                        Ok(()) => self.status = "Preferences saved".into(),
+                        Ok(()) => self.status = crate::i18n::text("Preferences saved").into(),
                         Err(e) => self.error(e),
                     }
                 }
-                if ui.button("Check for updates").clicked() {
+                if ui.button(crate::i18n::text("Check for updates")).clicked() {
                     let repo = self.preferences.repository.clone();
                     let tx = self.tx.clone();
+                    let repaint = ui.ctx().clone();
                     std::thread::spawn(move || {
                         let event = match update::check(&repo) {
                             Ok(Some(r)) => Event::Update(r),
                             Ok(None) => Event::Log(
-                                "You're up to date. No newer release is available.".into(),
+                                crate::i18n::text(
+                                    "You're up to date. No newer release is available.",
+                                )
+                                .into(),
                             ),
                             Err(e) => Event::Log(e.to_string()),
                         };
                         let _ = tx.send(event);
+                        repaint.request_repaint();
                     });
                 }
             });
         });
         ui.add_space(24.0);
-        ui.weak(format!(
+        ui.weak(crate::tr!(
             "Image Atlas {} · NIS · MIT",
             env!("CARGO_PKG_VERSION")
         ));
@@ -1418,7 +1512,7 @@ impl eframe::App for Atlas {
                             created: Instant::now(),
                         });
                     }
-                    self.status = format!(
+                    self.status = crate::tr!(
                         "Found {} images across {} pages",
                         map.assets.len(),
                         map.pages
@@ -1437,9 +1531,9 @@ impl eframe::App for Atlas {
                 } => {
                     self.progress = done as f32 / total.max(1) as f32;
                     let eta = eta_seconds
-                        .map(|s| format!("About {}m {:02}s left", s as u64 / 60, s as u64 % 60))
-                        .unwrap_or("Estimating time remaining…".into());
-                    self.status = format!("{done} of {total} · {:.1} MB/s · {eta}", speed / 1e6);
+                        .map(|s| crate::tr!("About {}m {:02}s left", s as u64 / 60, s as u64 % 60))
+                        .unwrap_or(crate::i18n::text("Estimating time remaining…").into());
+                    self.status = crate::tr!("{done} of {total} · {:.1} MB/s · {eta}", speed / 1e6);
                     self.logs
                         .push(format!("{done}/{total}, {bytes} bytes, {active} active"));
                     if self.logs.len() > 500 {
@@ -1453,14 +1547,14 @@ impl eframe::App for Atlas {
                 } => {
                     self.busy = false;
                     let count = files.len();
-                    self.status = format!(
+                    self.status = crate::tr!(
                         "Downloaded {count} files · {failures} errors · {}",
                         folder.display()
                     );
                     if !files.is_empty() {
                         self.import_files(files.clone());
                         if let Err(e) = self.vector.add_files(files) {
-                            self.error(format!("Files are downloaded; editor preview: {e}"));
+                            self.error(crate::tr!("Files are downloaded; editor preview: {e}"));
                         }
                         self.tab = 5;
                     }
@@ -1473,7 +1567,7 @@ impl eframe::App for Atlas {
                     after,
                 } => {
                     self.busy = false;
-                    self.status = format!(
+                    self.status = crate::tr!(
                         "Saved {files} files · {failures} errors · {} · {}",
                         crate::web::summary(before, after),
                         folder.display()
@@ -1481,12 +1575,12 @@ impl eframe::App for Atlas {
                 }
                 Event::Finished { folder, failures } => {
                     self.busy = false;
-                    self.status = format!(
+                    self.status = crate::tr!(
                         "{} · {failures} errors · {}",
                         if self.cancel.stopped() {
-                            "Stopped. Completed files are safe"
+                            crate::i18n::text("Stopped. Completed files are safe")
                         } else {
-                            "All finished"
+                            crate::i18n::text("All finished")
                         },
                         folder.display()
                     );
@@ -1541,25 +1635,28 @@ impl eframe::App for Atlas {
                     );
                     ui.add_space(35.0);
                     if ui
-                        .selectable_label(matches!(self.tab, 0 | 1 | 4), "  Website images")
+                        .selectable_label(
+                            matches!(self.tab, 0 | 1 | 4),
+                            crate::i18n::text("  Website images"),
+                        )
                         .clicked()
                     {
                         self.tab = if self.map.assets.is_empty() { 0 } else { 4 };
                     }
                     if ui
-                        .selectable_label(self.tab == 5, "  Vector editor")
+                        .selectable_label(self.tab == 5, crate::i18n::text("  Vector editor"))
                         .clicked()
                     {
                         self.tab = 5;
                     }
                     if ui
-                        .selectable_label(self.tab == 2, "  Batch editor")
+                        .selectable_label(self.tab == 2, crate::i18n::text("  Batch editor"))
                         .clicked()
                     {
                         self.tab = 2;
                     }
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                        if ui.button("  Preferences").clicked() {
+                        if ui.button(crate::i18n::text("  Preferences")).clicked() {
                             self.tab = 3;
                         }
                     });
@@ -1578,14 +1675,14 @@ impl eframe::App for Atlas {
                 ui.horizontal(|ui| {
                     if self.busy {
                         ui.spinner();
-                        if ui.small_button("Stop").clicked() {
+                        if ui.small_button(crate::i18n::text("Stop")).clicked() {
                             self.cancel.stop();
                             self.status = "Stopping…".into();
                         }
                     }
                     ui.add(egui::Label::new(RichText::new(&self.status).small()).truncate());
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                        ui.menu_button("Details", |ui| {
+                        ui.menu_button(crate::i18n::text("Details"), |ui| {
                             egui::ScrollArea::vertical()
                                 .max_height(220.0)
                                 .max_width(700.0)
@@ -1616,7 +1713,7 @@ impl eframe::App for Atlas {
                 if mapping_blocked{ui.disable();}
                 if matches!(self.tab, 0 | 1 | 4) {
                     ui.horizontal(|ui| {
-                        for (tab, label) in [(0, "Website"), (4, "Review images"), (1, "Download")]
+                        for (tab, label) in [(0, crate::i18n::text("Website")), (4, crate::i18n::text("Review images")), (1, crate::i18n::text("Download"))]
                         {
                             let enabled = tab == 0 || !self.map.assets.is_empty();
                             if ui
@@ -1644,14 +1741,17 @@ impl eframe::App for Atlas {
                 }
                 if let Some(mapping)=&self.mapping_status{
                     Self::card().inner_margin(16).show(ui,|ui|{
-                        ui.strong("Mapping your website");
+                        ui.strong(crate::i18n::text("Mapping your website"));
                         ui.label(mapping.label());
                         ui.add(egui::ProgressBar::new(self.progress).desired_height(6.0).fill(ACCENT));
                         ui.add(egui::Label::new(RichText::new(&mapping.current_url).small().weak()).truncate());
-                        ui.weak("Based on measured page response times and the known queue. The estimate updates as more pages are discovered.");
+                        ui.weak(crate::i18n::text("Based on measured page response times and the known queue. The estimate updates as more pages are discovered."));
                     });ui.add_space(14.0);
                 }
-                ui.add_enabled_ui(!self.busy && !mapping_blocked, |ui| match self.tab {
+                if self.mapping_status.is_some() && matches!(self.tab, 0 | 1 | 4) {
+                    ui.weak(crate::i18n::text("Your image list will appear when mapping finishes."));
+                } else {
+                ui.add_enabled_ui((!self.busy || self.tab == 3) && !mapping_blocked, |ui| match self.tab {
                     0 => {
                         egui::ScrollArea::vertical().show(ui, |ui| self.website(ui));
                     }
@@ -1663,34 +1763,37 @@ impl eframe::App for Atlas {
                     4 => self.review(ui),
                     _ => self.settings_ui(ui),
                 });
+                }
             });
         if !mapping_blocked && let Some(release) = self.release.clone() {
-            egui::Window::new("A fresh version is ready")
+            egui::Window::new(crate::i18n::text("A fresh version is ready"))
                 .collapsible(false)
                 .resizable(false)
                 .show(ctx, |ui| {
-                    ui.heading(format!("Image Atlas {}", release.version));
+                    ui.heading(crate::tr!("Image Atlas {}", release.version));
                     ui.label(&release.notes);
                     ui.horizontal(|ui| {
-                        if Self::primary(ui, "Update now").clicked() {
+                        if Self::primary(ui, crate::i18n::text("Update now")).clicked() {
                             let tx = self.tx.clone();
                             let r = release.clone();
+                            let repaint = ui.ctx().clone();
                             std::thread::spawn(move || {
                                 let event = match update::install(&r) {
                                     Ok(()) => Event::Log(
-                                        "Installer opened. Close Image Atlas to finish updating."
+                                        crate::i18n::text("Installer opened. Close Image Atlas to finish updating.")
                                             .into(),
                                     ),
                                     Err(e) => Event::Failed(e.to_string()),
                                 };
                                 let _ = tx.send(event);
+                                repaint.request_repaint();
                             });
                             self.release = None;
                         }
-                        if ui.button("Later").clicked() {
+                        if ui.button(crate::i18n::text("Later")).clicked() {
                             self.release = None;
                         }
-                        if ui.button("Skip this version").clicked() {
+                        if ui.button(crate::i18n::text("Skip this version")).clicked() {
                             self.preferences.skip_version = release.version.clone();
                             if let Err(e) = self.preferences.save() {
                                 self.error(e);
@@ -1701,11 +1804,13 @@ impl eframe::App for Atlas {
                 });
         }
         self.show_mapping_notice(ctx);
-        ctx.request_repaint_after(if self.busy {
-            Duration::from_millis(100)
-        } else {
-            Duration::from_secs(2)
-        });
+        if self.busy {
+            ctx.request_repaint_after(Duration::from_millis(if self.mapping_status.is_some() {
+                250
+            } else {
+                100
+            }));
+        }
     }
 }
 

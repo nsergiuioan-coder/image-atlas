@@ -18,11 +18,11 @@ pub enum Format {
 impl Format {
     fn label(self) -> &'static str {
         match self {
-            Self::Automatic => "Automatic PNG / JPEG / SVG",
-            Self::Original => "Keep PNG / JPEG / SVG",
-            Self::Png => "PNG — lossless",
-            Self::Jpeg => "JPEG — smaller photos",
-            Self::Webp => "WebP — lossless",
+            Self::Automatic => crate::i18n::text("Automatic PNG / JPEG / SVG"),
+            Self::Original => crate::i18n::text("Keep PNG / JPEG / SVG"),
+            Self::Png => crate::i18n::text("PNG — lossless"),
+            Self::Jpeg => crate::i18n::text("JPEG — smaller photos"),
+            Self::Webp => crate::i18n::text("WebP — lossless"),
         }
     }
 }
@@ -57,26 +57,35 @@ impl Options {
                 }
             });
         ui.horizontal(|ui| {
-            ui.label("Longest edge");
+            ui.label(crate::i18n::text("Longest edge"));
             ui.add(egui::DragValue::new(&mut self.max_edge).suffix(" px"));
         });
-        ui.weak("0 keeps dimensions. Smaller images are never enlarged.");
+        ui.weak(crate::i18n::text(
+            "0 keeps dimensions. Smaller images are never enlarged.",
+        ));
         if matches!(
             self.format,
             Format::Automatic | Format::Original | Format::Jpeg
         ) {
-            ui.add(egui::Slider::new(&mut self.quality, 40..=100).text("JPEG quality"));
+            ui.add(
+                egui::Slider::new(&mut self.quality, 40..=100)
+                    .text(crate::i18n::text("JPEG quality")),
+            );
         }
         if self.format == Format::Automatic {
-            ui.weak("PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.");
+            ui.weak(crate::i18n::text("PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector."));
         }
         if self.format == Format::Jpeg {
-            ui.weak("JPEG flattens transparency onto white.");
+            ui.weak(crate::i18n::text("JPEG flattens transparency onto white."));
         }
         if self.format == Format::Webp {
-            ui.weak("Check that your website accepts WebP uploads.");
+            ui.weak(crate::i18n::text(
+                "Check that your website accepts WebP uploads.",
+            ));
         }
-        ui.weak("Normal image files in a folder. No ZIP archive.");
+        ui.weak(crate::i18n::text(
+            "Normal image files in a folder. No ZIP archive.",
+        ));
     }
 }
 #[derive(Clone)]
@@ -99,12 +108,16 @@ pub fn summary(before: u64, after: u64) -> String {
         return format!("{:.1} KB", after as f64 / 1000.0);
     }
     let delta = (1.0 - after as f64 / before as f64) * 100.0;
-    format!(
+    crate::tr!(
         "{:.1} KB → {:.1} KB · {:.1}% {}",
         before as f64 / 1000.0,
         after as f64 / 1000.0,
         delta.abs(),
-        if delta >= 0.0 { "smaller" } else { "larger" }
+        if delta >= 0.0 {
+            crate::i18n::text("smaller")
+        } else {
+            crate::i18n::text("larger")
+        }
     )
 }
 fn original_format(path: &Path) -> Option<String> {
@@ -164,28 +177,58 @@ fn png(image: &DynamicImage, icc: Option<Vec<u8>>) -> Result<Vec<u8>> {
     Ok(bytes)
 }
 fn jpeg(image: &DynamicImage, quality: u8, icc: Option<Vec<u8>>) -> Result<Vec<u8>> {
-    let rgb = crate::convert::flatten_white(image);
     let mut bytes = Vec::new();
     let mut encoder = image::codecs::jpeg::JpegEncoder::new_with_quality(&mut bytes, quality);
     if let Some(icc) = icc {
         encoder.set_icc_profile(icc)?;
     }
-    encoder.encode_image(&DynamicImage::ImageRgb8(rgb))?;
+    if let Some(rgb) = image.as_rgb8() {
+        encoder.encode(
+            rgb.as_raw(),
+            rgb.width(),
+            rgb.height(),
+            image::ExtendedColorType::Rgb8,
+        )?;
+    } else {
+        let rgb = crate::convert::flatten_white(image);
+        encoder.encode(
+            rgb.as_raw(),
+            rgb.width(),
+            rgb.height(),
+            image::ExtendedColorType::Rgb8,
+        )?;
+    }
     Ok(bytes)
 }
 fn webp(image: &DynamicImage, icc: Option<Vec<u8>>) -> Result<Vec<u8>> {
-    let rgba = image.to_rgba8();
     let mut bytes = Vec::new();
     let mut encoder = image::codecs::webp::WebPEncoder::new_lossless(&mut bytes);
     if let Some(icc) = icc {
         encoder.set_icc_profile(icc)?;
     }
-    encoder.write_image(
-        rgba.as_raw(),
-        rgba.width(),
-        rgba.height(),
-        image::ExtendedColorType::Rgba8,
-    )?;
+    match image {
+        DynamicImage::ImageRgb8(rgb) => encoder.write_image(
+            rgb.as_raw(),
+            rgb.width(),
+            rgb.height(),
+            image::ExtendedColorType::Rgb8,
+        )?,
+        DynamicImage::ImageRgba8(rgba) => encoder.write_image(
+            rgba.as_raw(),
+            rgba.width(),
+            rgba.height(),
+            image::ExtendedColorType::Rgba8,
+        )?,
+        _ => {
+            let rgba = image.to_rgba8();
+            encoder.write_image(
+                rgba.as_raw(),
+                rgba.width(),
+                rgba.height(),
+                image::ExtendedColorType::Rgba8,
+            )?;
+        }
+    }
     Ok(bytes)
 }
 fn extension(format: Format, source: Option<&str>) -> &'static str {
@@ -314,7 +357,7 @@ fn compact_svg(source: &[u8]) -> Result<Vec<u8>> {
     }
     let output = writer.into_inner();
     resvg::usvg::Tree::from_data(&output, &Default::default())
-        .context("Invalid SVG after optimization")?;
+        .context(crate::i18n::text("Invalid SVG after optimization"))?;
     Ok(output)
 }
 fn render_svg(bytes: &[u8], path: &Path, max_edge: u32) -> Result<DynamicImage> {
@@ -334,7 +377,9 @@ fn render_svg(bytes: &[u8], path: &Path, max_edge: u32) -> Result<DynamicImage> 
         (size.width() * scale).round().max(1.0) as u32,
         (size.height() * scale).round().max(1.0) as u32,
     )
-    .context("Image dimensions exceed available memory")?;
+    .context(crate::i18n::text(
+        "Image dimensions exceed available memory",
+    ))?;
     resvg::render(
         &tree,
         resvg::tiny_skia::Transform::from_scale(scale, scale),

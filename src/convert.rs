@@ -212,7 +212,7 @@ pub fn replace_background(image: &mut RgbaImage, settings: &ColorRule) {
 
 pub fn prepare(mut image: DynamicImage, settings: &Settings) -> DynamicImage {
     if settings.rules.iter().any(|r| r.enabled) {
-        let mut rgba = image.to_rgba8();
+        let mut rgba = image.into_rgba8();
         for rule in settings.rules.iter().filter(|r| r.enabled) {
             replace_background(&mut rgba, rule);
         }
@@ -232,7 +232,10 @@ pub fn prepare(mut image: DynamicImage, settings: &Settings) -> DynamicImage {
 }
 
 pub(crate) fn flatten_white(image: &DynamicImage) -> image::RgbImage {
-    let rgba = image.to_rgba8();
+    let rgba = image.as_rgba8().map_or_else(
+        || std::borrow::Cow::Owned(image.to_rgba8()),
+        std::borrow::Cow::Borrowed,
+    );
     image::RgbImage::from_fn(rgba.width(), rgba.height(), |x, y| {
         let p = rgba.get_pixel(x, y);
         let a = p[3] as u32;

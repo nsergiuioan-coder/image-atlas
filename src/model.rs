@@ -103,6 +103,7 @@ pub fn safe_segment(value: &str) -> String {
         .chars()
         .take(100)
         .collect();
+    s = s.trim_end_matches([' ', '.']).to_owned();
     if s.is_empty() || s == "." || s == ".." {
         s = "Untitled".into();
     }
@@ -179,5 +180,13 @@ mod tests {
         let first = asset_path(&a);
         a.url = "https://a.test/pic.png?a=2".into();
         assert_ne!(first, asset_path(&a));
+    }
+    #[test]
+    fn truncated_folder_names_cannot_end_with_windows_trimmed_characters() {
+        let name = format!("{} trailing", "x".repeat(99));
+        let safe = safe_segment(&name);
+        assert_eq!(safe, "x".repeat(99));
+        let name = format!("{}.tail", "x".repeat(99));
+        assert_eq!(safe_segment(&name), "x".repeat(99));
     }
 }

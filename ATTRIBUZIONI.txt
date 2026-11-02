@@ -108,6 +108,11 @@ Authors: Jorge Aparicio <jorge@japaric.io>; Emil Fresk <emil.fresk@gmail.com>
 License: MIT OR Apache-2.0
 Source: https://github.com/japaric/as-slice
 
+ash-0.38.0+1.3.281
+Authors: Maik Klein <maikklein@googlemail.com>; Benjamin Saunders <ben.e.saunders@gmail.com>; Marijn Suijten <marijn@traverseresearch.nl>
+License: MIT OR Apache-2.0
+Source: https://github.com/ash-rs/ash
+
 async-compression-0.4.51
 Authors: Wim Looman <wim@nemo157.com>; Allen Bui <fairingrey@gmail.com>
 License: MIT OR Apache-2.0
@@ -653,6 +658,31 @@ Authors: Kirill Chibisov <contact@kchibisov.com>
 License: Apache-2.0
 Source: https://github.com/rust-windowing/glutin
 
+gpu-alloc-0.6.2
+Authors: Zakarum <roman@barykin.me>
+License: MIT OR Apache-2.0
+Source: https://github.com/zakarumych/gpu-alloc
+
+gpu-alloc-types-0.3.1
+Authors: Zakarum <roman@barykin.me>
+License: MIT OR Apache-2.0
+Source: https://github.com/zakarumych/gpu-alloc
+
+gpu-allocator-0.27.0
+Authors: Traverse Research <opensource@traverseresearch.nl>
+License: MIT OR Apache-2.0
+Source: https://github.com/Traverse-Research/gpu-allocator
+
+gpu-descriptor-0.3.2
+Authors: Zakarum <zakarumych@ya.ru>
+License: MIT OR Apache-2.0
+Source: https://github.com/zakarumych/gpu-descriptor
+
+gpu-descriptor-types-0.2.0
+Authors: Zakarum <zakarumych@ya.ru>
+License: MIT OR Apache-2.0
+Source: https://github.com/zakarumych/gpu-descriptor
+
 half-2.7.1
 Authors: Kathryn Long <squeeself@gmail.com>
 License: MIT OR Apache-2.0
@@ -822,6 +852,11 @@ jpeg-decoder-0.1.22
 Authors: Ulf Nilsson <kaksmet@gmail.com>
 License: MIT / Apache-2.0
 Source: https://github.com/image-rs/jpeg-decoder
+
+khronos-egl-6.0.0
+Authors: Timothée Haudebourg <author@haudebourg.net>; Sean Kerr <sean@metatomic.io>
+License: MIT/Apache-2.0
+Source: https://github.com/timothee-haudebourg/khronos-egl
 
 khronos_api-3.1.0
 Authors: Brendan Zabarauskas <bjzaba@yahoo.com.au>; Corey Richardson; Arseny Kapoulkine; Pierre Krieger <pierre.krieger1708@gmail.com>
@@ -1033,6 +1068,11 @@ Authors: Aleksey Kladov <aleksey.kladov@gmail.com>
 License: MIT OR Apache-2.0
 Source: https://github.com/matklad/once_cell
 
+ordered-float-5.5.1
+Authors: Jonathan Reem <jonathan.reem@gmail.com>; Matt Brubeck <mbrubeck@limpet.net>
+License: MIT
+Source: https://github.com/reem/rust-ordered-float
+
 owned_ttf_parser-0.25.1
 Authors: Alex Butler <alexheretic@gmail.com>
 License: Apache-2.0
@@ -1098,6 +1138,11 @@ Authors:
 License: Apache-2.0 OR MIT
 Source: https://github.com/taiki-e/pin-project-lite
 
+pkg-config-0.3.34
+Authors: Alex Crichton <alex@alexcrichton.com>
+License: MIT OR Apache-2.0
+Source: https://github.com/rust-lang/pkg-config-rs
+
 png-0.16.8
 Authors: nwin <nwin@users.noreply.github.com>
 License: MIT OR Apache-2.0
@@ -1113,6 +1158,11 @@ Authors: The image-rs Developers
 License: MIT OR Apache-2.0
 Source: https://github.com/image-rs/image-png
 
+pollster-0.4.0
+Authors: Joshua Barretto <joshua.s.barretto@gmail.com>
+License: Apache-2.0/MIT
+Source: https://github.com/zesterer/pollster
+
 potential_utf-0.1.6
 Authors: The ICU4X Project Developers
 License: Unicode-3.0
@@ -1127,6 +1177,11 @@ precomputed-hash-0.1.1
 Authors: Emilio Cobos Álvarez <emilio@crisal.io>
 License: MIT
 Source: https://github.com/emilio/precomputed-hash
+
+presser-0.3.1
+Authors: Embark <opensource@embark-studios.com>; Gray Olson <gray@grayolson.com
+License: MIT OR Apache-2.0
+Source: https://github.com/EmbarkStudios/presser
 
 proc-macro2-1.0.107
 Authors: David Tolnay <dtolnay@gmail.com>; Alex Crichton <alex@alexcrichton.com>
@@ -1192,6 +1247,11 @@ rand_core-0.9.5
 Authors: The Rand Project Developers; The Rust Project Developers
 License: MIT OR Apache-2.0
 Source: https://github.com/rust-random/rand
+
+range-alloc-0.1.5
+Authors: the gfx-rs Developers
+License: MIT OR Apache-2.0
+Source: https://github.com/gfx-rs/range-alloc
 
 rangemap-1.8.0
 Authors: Jeff Parsons <jeff@parsons.io>
@@ -1403,6 +1463,11 @@ Authors: Alex Crichton <alex@alexcrichton.com>; Thomas de Zeeuw <thomasdezeeuw@g
 License: MIT OR Apache-2.0
 Source: https://github.com/rust-lang/socket2
 
+spirv-0.3.0+sdk-1.3.268.0
+Authors: Lei Zhang <antiagainst@gmail.com>
+License: Apache-2.0
+Source: https://github.com/gfx-rs/rspirv
+
 stable_deref_trait-1.2.1
 Authors: Robert Grosse <n210241048576@gmail.com>
 License: MIT OR Apache-2.0
@@ -1478,7 +1543,17 @@ Authors: Martin Geisler <martin@geisler.net>
 License: MIT
 Source: https://github.com/mgeisler/textwrap
 
+thiserror-1.0.69
+Authors: David Tolnay <dtolnay@gmail.com>
+License: MIT OR Apache-2.0
+Source: https://github.com/dtolnay/thiserror
+
 thiserror-2.0.21
+Authors: David Tolnay <dtolnay@gmail.com>
+License: MIT OR Apache-2.0
+Source: https://github.com/dtolnay/thiserror
+
+thiserror-impl-1.0.69
 Authors: David Tolnay <dtolnay@gmail.com>
 License: MIT OR Apache-2.0
 Source: https://github.com/dtolnay/thiserror
@@ -1778,6 +1853,11 @@ Authors: Andrew Gallant <jamslam@gmail.com>
 License: Unlicense OR MIT
 Source: https://github.com/BurntSushi/winapi-util
 
+windows-0.58.0
+Authors: Microsoft
+License: MIT OR Apache-2.0
+Source: https://github.com/microsoft/windows-rs
+
 windows-0.61.3
 Authors: Microsoft
 License: MIT OR Apache-2.0
@@ -1785,6 +1865,11 @@ Source: https://github.com/microsoft/windows-rs
 
 windows-collections-0.2.0
 Authors: 
+License: MIT OR Apache-2.0
+Source: https://github.com/microsoft/windows-rs
+
+windows-core-0.58.0
+Authors: Microsoft
 License: MIT OR Apache-2.0
 Source: https://github.com/microsoft/windows-rs
 
@@ -1798,8 +1883,18 @@ Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/microsoft/windows-rs
 
+windows-implement-0.58.0
+Authors: Microsoft
+License: MIT OR Apache-2.0
+Source: https://github.com/microsoft/windows-rs
+
 windows-implement-0.60.2
 Authors: 
+License: MIT OR Apache-2.0
+Source: https://github.com/microsoft/windows-rs
+
+windows-interface-0.58.0
+Authors: Microsoft
 License: MIT OR Apache-2.0
 Source: https://github.com/microsoft/windows-rs
 
@@ -1828,6 +1923,11 @@ Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/microsoft/windows-rs
 
+windows-result-0.2.0
+Authors: Microsoft
+License: MIT OR Apache-2.0
+Source: https://github.com/microsoft/windows-rs
+
 windows-result-0.3.4
 Authors: Microsoft
 License: MIT OR Apache-2.0
@@ -1835,6 +1935,11 @@ Source: https://github.com/microsoft/windows-rs
 
 windows-result-0.4.1
 Authors: 
+License: MIT OR Apache-2.0
+Source: https://github.com/microsoft/windows-rs
+
+windows-strings-0.1.0
+Authors: Microsoft
 License: MIT OR Apache-2.0
 Source: https://github.com/microsoft/windows-rs
 

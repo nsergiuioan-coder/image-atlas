@@ -13,6 +13,8 @@ The installer runs per user without administrator rights. The portable version r
 - Map public pages and sitemaps before starting a download, with a time estimate based on measured scan times and the pages still queued. The estimate updates as more pages are discovered.
 - Review image sources, select files, and edit category and subcategory folders.
 - Save maps and reopen them later.
+- Recover interrupted mapping automatically when Atlas reopens. Progress is saved after each processed page; a page interrupted by a crash is tried again.
+- Restart automatically after unexpected crashes, with up to five consecutive attempts. Closing the window normally does not restart the app.
 - Download available originals without converting them. File contents determine the extension, so an SVG remains an SVG and a JPEG is saved as a JPEG.
 - Adapt connection counts to observed throughput and server responses, with an approximate time remaining.
 - Resume saved jobs, reuse completed downloads, and continue partial downloads when the server supports ETag-based resumption.
@@ -22,6 +24,12 @@ The installer runs per user without administrator rights. The portable version r
 Preferences offers two mapping-completion notifications: a quick popup that disappears after five seconds, or a blocking dialog with an OK button beneath the summary. The blocking dialog stays open until OK is selected.
 
 Optional browser rendering supports many JavaScript-based websites and requires an installed copy of Edge or Chrome.
+
+## Languages and recovery
+
+Choose the interface language in Preferences, or follow the Windows display language. Translations are included with the app and work offline. Italian, English and other European languages, Chinese, Japanese, Korean, Indonesian, Malay and Vietnamese are available. Arabic, Persian, Urdu, Hebrew, Hindi, Bengali, Tamil, Telugu and Thai are preview translations; their text shaping and layout still need further work. Translations have not all been reviewed by native speakers. Source image names, URLs and folder names are kept as supplied.
+
+Mapping progress is saved after each processed page. Reopening Atlas resumes the pending queue, including any page interrupted by a crash. Unexpected app exits trigger up to five restart attempts with increasing delays. A normal close leaves the mapping saved without restarting. A small download journal records completed originals so a crash does not require fetching them again. Saved progress is stored locally under `%LOCALAPPDATA%\ImageAtlas`.
 
 ## Batch editor
 
@@ -57,7 +65,7 @@ Image discovery depends on what a website makes publicly accessible. Private lib
 
 PDF is export-only. AVIF export is supported, but AVIF import is not enabled in the packaged build. Animated inputs are flattened to the decoded frame. Color selection regions are reused at the same relative position across a batch, so check the preview when layouts differ.
 
-The vector editor does not support CorelDRAW documents, path-node editing, pen tools, or boolean geometry. Automatic recovery from prolonged network outages is experimental.
+The vector editor does not support CorelDRAW documents, path-node editing, pen tools, or boolean geometry. Automatic recovery from prolonged network outages is experimental. Mapping recovery applies to scans started with version 0.1.3 or later; earlier versions did not save the pending page queue.
 
 ## Build from source
 

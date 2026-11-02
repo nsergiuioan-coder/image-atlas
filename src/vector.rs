@@ -129,7 +129,7 @@ impl Editor {
         self.zoom = 1.0;
         self.pan = egui::Vec2::ZERO;
         self.dirty = true;
-        self.message = "Select an object on the canvas or in Layers.".into();
+        self.message = crate::i18n::text("Select an object on the canvas or in Layers.").into();
         Ok(())
     }
     pub fn open(&mut self, path: &Path) -> Result<()> {
@@ -163,7 +163,7 @@ impl Editor {
         let path = self
             .documents
             .get(index)
-            .context("Image is not in this collection")?
+            .context(crate::i18n::text("Image is not in this collection"))?
             .clone();
         if self.path.as_ref() == Some(&path) {
             self.document_index = index;
@@ -207,7 +207,7 @@ impl Editor {
         self.zoom = 1.0;
         self.pan = egui::Vec2::ZERO;
         self.dirty = true;
-        self.message = "Select an object on the canvas or in Layers.".into();
+        self.message = crate::i18n::text("Select an object on the canvas or in Layers.").into();
         loaded
     }
     fn snapshot(&mut self) {
@@ -222,7 +222,7 @@ impl Editor {
         let mut bytes = Vec::new();
         self.root
             .as_ref()
-            .context("Open an image first")?
+            .context(crate::i18n::text("Open an image first"))?
             .write(&mut bytes)?;
         Ok(bytes)
     }
@@ -328,7 +328,7 @@ impl Editor {
             (size.width() * self.scale).ceil().max(1.0) as u32,
             (size.height() * self.scale).ceil().max(1.0) as u32,
         )
-        .context("Canvas too large")?;
+        .context(crate::i18n::text("Canvas too large"))?;
         resvg::render(
             &tree,
             resvg::tiny_skia::Transform::from_scale(self.scale, self.scale),
@@ -384,7 +384,9 @@ impl Editor {
                 element.attributes.insert("x".into(), "100".into());
                 element.attributes.insert("y".into(), "150".into());
                 element.attributes.insert("font-size".into(), "40".into());
-                element.children.push(XMLNode::Text("Your text".into()));
+                element
+                    .children
+                    .push(XMLNode::Text(crate::i18n::text("Your text").into()));
             }
         }
         self.root
@@ -432,7 +434,7 @@ impl Editor {
     }
     fn start_web_export(&mut self, sources: Vec<crate::web::Source>) {
         let Some(folder) = rfd::FileDialog::new()
-            .set_title("Choose a folder for optimized images")
+            .set_title(crate::i18n::text("Choose a folder for optimized images"))
             .pick_folder()
         else {
             return;
@@ -443,7 +445,7 @@ impl Editor {
         let options = self.web_options.clone();
         let (tx, rx) = crossbeam_channel::unbounded();
         self.web_job = Some(rx);
-        self.web_status = "Optimizing image files…".into();
+        self.web_status = crate::i18n::text("Optimizing image files…").into();
         std::thread::spawn(move || {
             let event = match crate::web::export_collection(
                 sources,
@@ -469,7 +471,7 @@ impl Editor {
             while let Ok(event) = rx.try_recv() {
                 match event {
                     crate::model::Event::Progress { done, total, .. } => {
-                        self.web_status = format!("Optimizing {done} of {total} images…")
+                        self.web_status = crate::tr!("Optimizing {done} of {total} images…")
                     }
                     crate::model::Event::Optimized {
                         folder,
@@ -478,7 +480,7 @@ impl Editor {
                         before,
                         after,
                     } => {
-                        self.web_status = format!(
+                        self.web_status = crate::tr!(
                             "Saved {files} files · {failures} errors · {}",
                             crate::web::summary(before, after)
                         );
@@ -501,12 +503,14 @@ impl Editor {
             return;
         }
         let mut open = true;
-        egui::Window::new("Export for website")
+        egui::Window::new(crate::i18n::text("Export for website"))
             .open(&mut open)
             .resizable(false)
             .default_width(390.0)
             .show(ctx, |ui| {
-                ui.label("Smaller, regular image files. Your originals stay untouched.");
+                ui.label(crate::i18n::text(
+                    "Smaller, regular image files. Your originals stay untouched.",
+                ));
                 ui.add_space(8.0);
                 let old_options = self.web_options.clone();
                 self.web_options.ui(ui);
@@ -517,12 +521,15 @@ impl Editor {
                     }
                 }
                 ui.add_space(12.0);
-                if ui.button("Preview optimized file").clicked() {
+                if ui
+                    .button(crate::i18n::text("Preview optimized file"))
+                    .clicked()
+                {
                     let result = self.web_source().and_then(|source| {
                         let encoded = crate::web::encode(&source, &self.web_options)?;
                         let preview = crate::web::preview(&encoded, &source.path)?
                             .thumbnail(700, 420)
-                            .to_rgba8();
+                            .into_rgba8();
                         Ok((encoded, preview))
                     });
                     match result {
@@ -548,7 +555,7 @@ impl Editor {
                     ui.add(egui::Image::new(texture).max_size(egui::vec2(360.0, 230.0)));
                 }
                 ui.add_enabled_ui(self.web_job.is_none(), |ui| {
-                    if ui.button("Export this image").clicked() {
+                    if ui.button(crate::i18n::text("Export this image")).clicked() {
                         match self.web_source() {
                             Ok(source) => self.start_web_export(vec![source]),
                             Err(e) => self.web_status = e.to_string(),
@@ -556,7 +563,7 @@ impl Editor {
                     }
                     if !self.documents.is_empty()
                         && ui
-                            .button(format!(
+                            .button(crate::tr!(
                                 "Export collection ({} images)",
                                 self.documents.len()
                             ))
@@ -568,12 +575,12 @@ impl Editor {
                         }
                     }
                 });
-                if self.web_job.is_some() && ui.button("Stop export").clicked() {
+                if self.web_job.is_some() && ui.button(crate::i18n::text("Stop export")).clicked() {
                     self.web_cancel.stop();
                 }
                 ui.label(&self.web_status);
                 if let Some(folder) = &self.web_folder
-                    && ui.button("Open output folder").clicked()
+                    && ui.button(crate::i18n::text("Open output folder")).clicked()
                 {
                     let _ = std::process::Command::new("explorer.exe")
                         .arg(folder)
@@ -584,15 +591,18 @@ impl Editor {
     }
     pub fn ui(&mut self, ui: &mut egui::Ui, ctx: &egui::Context) {
         ui.horizontal(|ui| {
-            ui.heading("Vector editor");
-            if ui.button("Open image").clicked()
+            ui.heading(crate::i18n::text("Vector editor"));
+            if ui.button(crate::i18n::text("Open image")).clicked()
                 && let Some(path) = rfd::FileDialog::new().pick_file()
                 && let Err(e) = self.open(&path)
             {
                 self.message = e.to_string();
             }
             if ui
-                .add_enabled(self.root.is_some(), egui::Button::new("Save SVG"))
+                .add_enabled(
+                    self.root.is_some(),
+                    egui::Button::new(crate::i18n::text("Save SVG")),
+                )
                 .clicked()
                 && let Some(path) = rfd::FileDialog::new()
                     .set_file_name("edited.svg")
@@ -602,19 +612,25 @@ impl Editor {
                     .bytes()
                     .and_then(|b| std::fs::write(&path, b).map_err(Into::into))
                 {
-                    Ok(()) => self.message = format!("Saved {}", path.display()),
+                    Ok(()) => self.message = crate::tr!("Saved {}", path.display()),
                     Err(e) => self.message = e.to_string(),
                 }
             }
             if ui
-                .add_enabled(self.root.is_some(), egui::Button::new("Export for website"))
+                .add_enabled(
+                    self.root.is_some(),
+                    egui::Button::new(crate::i18n::text("Export for website")),
+                )
                 .clicked()
             {
                 self.web_dialog = true;
             }
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 if ui
-                    .add_enabled(!self.redo.is_empty(), egui::Button::new("Redo"))
+                    .add_enabled(
+                        !self.redo.is_empty(),
+                        egui::Button::new(crate::i18n::text("Redo")),
+                    )
                     .clicked()
                     && let Some(previous) = self.redo.pop()
                 {
@@ -626,7 +642,10 @@ impl Editor {
                     self.dirty = true;
                 }
                 if ui
-                    .add_enabled(!self.undo.is_empty(), egui::Button::new("Undo"))
+                    .add_enabled(
+                        !self.undo.is_empty(),
+                        egui::Button::new(crate::i18n::text("Undo")),
+                    )
                     .clicked()
                     && let Some(previous) = self.undo.pop()
                 {
@@ -643,7 +662,7 @@ impl Editor {
             let mut next = self.document_index;
             ui.horizontal(|ui| {
                 if ui
-                    .add_enabled(next > 0, egui::Button::new("Previous"))
+                    .add_enabled(next > 0, egui::Button::new(crate::i18n::text("Previous")))
                     .clicked()
                 {
                     next -= 1;
@@ -654,7 +673,7 @@ impl Editor {
                     egui::Slider::new(&mut next, 0..=last).show_value(false),
                 );
                 if ui
-                    .add_enabled(next < last, egui::Button::new("Next"))
+                    .add_enabled(next < last, egui::Button::new(crate::i18n::text("Next")))
                     .clicked()
                 {
                     next += 1;
@@ -676,19 +695,21 @@ impl Editor {
         }
         ui.horizontal(|ui| {
             for (kind, label) in [
-                ("rect", "Rectangle"),
-                ("ellipse", "Ellipse"),
-                ("text", "Text"),
+                ("rect", crate::i18n::text("Rectangle")),
+                ("ellipse", crate::i18n::text("Ellipse")),
+                ("text", crate::i18n::text("Text")),
             ] {
                 if ui.button(label).clicked() {
                     self.add_shape(kind);
                 }
             }
-            if ui.button("Fit").clicked() {
+            if ui.button(crate::i18n::text("Fit")).clicked() {
                 self.zoom = 1.0;
                 self.pan = egui::Vec2::ZERO;
             }
-            ui.weak("Select and drag objects. Hold Space to pan. Scroll to zoom.");
+            ui.weak(crate::i18n::text(
+                "Select and drag objects. Hold Space to pan. Scroll to zoom.",
+            ));
         });
         if self.dirty
             && let Err(e) = self.rebuild(ctx)
@@ -703,7 +724,7 @@ impl Editor {
                 egui::vec2(230.0, height),
                 egui::Layout::top_down(egui::Align::LEFT),
                 |ui| {
-                    ui.strong("Layers");
+                    ui.strong(crate::i18n::text("Layers"));
                     egui::ScrollArea::vertical()
                         .max_height(height * 0.36)
                         .show(ui, |ui| {
@@ -721,9 +742,9 @@ impl Editor {
                         });
                     ui.separator();
                     ui.add_enabled_ui(self.selected.is_some(), |ui| {
-                        ui.strong("Object color");
+                        ui.strong(crate::i18n::text("Object color"));
                         ui.horizontal(|ui| {
-                            ui.label("Fill");
+                            ui.label(crate::i18n::text("Fill"));
                             let before = self.fill;
                             if ui.color_edit_button_srgb(&mut self.fill).changed() {
                                 let new = self.fill;
@@ -737,7 +758,7 @@ impl Editor {
                             }
                         });
                         ui.horizontal(|ui| {
-                            ui.label("Stroke");
+                            ui.label(crate::i18n::text("Stroke"));
                             let before = self.stroke;
                             if ui.color_edit_button_srgb(&mut self.stroke).changed() {
                                 let new = self.stroke;
@@ -762,15 +783,15 @@ impl Editor {
                             self.paint_color("stroke-width", self.stroke_width.to_string());
                         }
                         ui.horizontal(|ui| {
-                            if ui.button("Smaller").clicked() {
+                            if ui.button(crate::i18n::text("Smaller")).clicked() {
                                 self.scale_selected(0.9);
                             }
-                            if ui.button("Larger").clicked() {
+                            if ui.button(crate::i18n::text("Larger")).clicked() {
                                 self.scale_selected(1.1);
                             }
                         });
                         ui.horizontal(|ui| {
-                            if ui.button("Front").clicked() {
+                            if ui.button(crate::i18n::text("Front")).clicked() {
                                 self.snapshot();
                                 if let (Some(root), Some(id)) = (&mut self.root, &self.selected) {
                                     reorder(root, id, true);
@@ -779,7 +800,7 @@ impl Editor {
                                 self.modified = true;
                                 self.dirty = true;
                             }
-                            if ui.button("Back").clicked() {
+                            if ui.button(crate::i18n::text("Back")).clicked() {
                                 self.snapshot();
                                 if let (Some(root), Some(id)) = (&mut self.root, &self.selected) {
                                     reorder(root, id, false);
@@ -804,7 +825,7 @@ impl Editor {
                                 }
                             }
                         }
-                        if ui.button("Delete object").clicked() {
+                        if ui.button(crate::i18n::text("Delete object")).clicked() {
                             self.snapshot();
                             if let (Some(root), Some(id)) = (&mut self.root, &self.selected) {
                                 remove(root, id);
@@ -904,9 +925,9 @@ impl Editor {
                     rect.center(),
                     egui::Align2::CENTER_CENTER,
                     if self.documents.is_empty() {
-                        "Open an SVG, or add a shape to start"
+                        crate::i18n::text("Open an SVG, or add a shape to start")
                     } else {
-                        "Preview unavailable for this image"
+                        crate::i18n::text("Preview unavailable for this image")
                     },
                     egui::FontId::proportional(20.0),
                     Color32::from_gray(100),

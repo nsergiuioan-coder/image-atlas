@@ -11,11 +11,47 @@ use std::{
 };
 use url::Url;
 
-#[derive(Clone)]
+#[derive(Clone, serde::Serialize, serde::Deserialize, PartialEq)]
 pub struct CrawlOptions {
     pub website: String,
     pub render: bool,
     pub sitemap: bool,
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
+struct Checkpoint {
+    options: CrawlOptions,
+    map: SiteMap,
+    queue: VecDeque<(String, Vec<String>)>,
+    seen: HashSet<String>,
+    scanned: usize,
+}
+
+fn checkpoint_path() -> PathBuf {
+    crate::recovery::folder().join("mapping-job.json")
+}
+
+fn read_checkpoint(path: &std::path::Path) -> Option<Checkpoint> {
+    serde_json::from_reader(std::fs::File::open(path).ok()?).ok()
+}
+
+pub fn pending_mapping() -> Option<(CrawlOptions, SiteMap)> {
+    let job = read_checkpoint(&checkpoint_path())?;
+    if job.queue.is_empty() {
+        return None;
+    }
+    Some((job.options, job.map))
+}
+
+fn save_checkpoint(path: &std::path::Path, job: &impl serde::Serialize) -> Result<()> {
+    use std::io::Write;
+    std::fs::create_dir_all(path.parent().context("Missing checkpoint folder")?)?;
+    let mut file = tempfile::NamedTempFile::new_in(path.parent().unwrap())?;
+    serde_json::to_writer(file.as_file_mut(), job)?;
+    file.flush()?;
+    file.as_file().sync_all()?;
+    file.persist(path).map_err(|e| e.error)?;
+    Ok(())
 }
 
 #[derive(Default)]
@@ -552,6 +588,15 @@ impl MappingEstimate {
 }
 
 pub fn map_site(options: CrawlOptions, cancel: Cancel, events: Sender<Event>) -> Result<SiteMap> {
+    map_site_at(options, cancel, events, &checkpoint_path())
+}
+
+fn map_site_at(
+    options: CrawlOptions,
+    cancel: Cancel,
+    events: Sender<Event>,
+    checkpoint: &std::path::Path,
+) -> Result<SiteMap> {
     let base =
         Url::parse(&options.website).context("Enter a complete http:// or https:// website URL")?;
     anyhow::ensure!(
@@ -578,12 +623,58 @@ pub fn map_site(options: CrawlOptions, cancel: Cancel, events: Sender<Event>) ->
         website: base.to_string(),
         ..Default::default()
     };
-    while let Some((url, folders)) = queue.pop_front() {
+    if let Some(saved) = read_checkpoint(checkpoint).filter(|job| job.options == options) {
+        queue = saved
+            .queue
+            .into_iter()
+            .map(|(url, path)| Ok((Url::parse(&url)?, path)))
+            .collect::<Result<_>>()?;
+        seen = saved.seen;
+        scanned = saved.scanned;
+        map = saved.map;
+        discovered = seen.clone();
+        discovered.extend(queue.iter().map(|(url, _)| url.to_string()));
+        unique.extend(map.assets.iter().map(|asset| {
+            (
+                asset.url.clone(),
+                asset.folders.clone(),
+                asset.label.clone(),
+            )
+        }));
+    }
+    #[derive(serde::Serialize)]
+    struct Snapshot<'a> {
+        options: &'a CrawlOptions,
+        map: &'a SiteMap,
+        queue: Vec<(&'a str, &'a Vec<String>)>,
+        seen: &'a HashSet<String>,
+        scanned: usize,
+    }
+    let persist =
+        |queue: &VecDeque<(Url, Vec<String>)>, seen: &HashSet<String>, scanned, map: &SiteMap| {
+            save_checkpoint(
+                checkpoint,
+                &Snapshot {
+                    options: &options,
+                    map,
+                    queue: queue
+                        .iter()
+                        .map(|(url, path)| (url.as_str(), path))
+                        .collect(),
+                    seen,
+                    scanned,
+                },
+            )
+            .context("Could not save mapping recovery progress")
+        };
+    persist(&queue, &seen, scanned, &map)?;
+    while !queue.is_empty() {
         if cancel.stopped() {
             map.notices
                 .push("Mapping stopped by user; the partial map is available for review".into());
             break;
         }
+        let (url, folders) = queue.pop_front().unwrap();
         if !seen.insert(url.to_string()) {
             continue;
         }
@@ -628,6 +719,7 @@ pub fn map_site(options: CrawlOptions, cancel: Cancel, events: Sender<Event>) ->
             Err(e) => map.notices.push(format!("{}: {}", url, e)),
         }
         scanned += 1;
+        persist(&queue, &seen, scanned, &map)?;
         estimate.observe(request_started.elapsed().as_secs_f64());
         let _ = events.send(Event::MappingProgress {
             scanned,
@@ -637,12 +729,88 @@ pub fn map_site(options: CrawlOptions, cancel: Cancel, events: Sender<Event>) ->
             current_url: url.to_string(),
         });
     }
+    if queue.is_empty() {
+        std::fs::remove_file(checkpoint).context("Could not clear completed mapping recovery")?;
+    }
     Ok(map)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn mapping_resumes_pending_page_without_refetching_completed_pages() {
+        use std::{
+            io::{Read, Write},
+            net::TcpListener,
+        };
+        let server = TcpListener::bind("127.0.0.1:0").unwrap();
+        let website = format!("http://{}/", server.local_addr().unwrap());
+        let pending = format!("{website}pending");
+        let options = CrawlOptions {
+            website: website.clone(),
+            render: false,
+            sitemap: false,
+        };
+        let folder = tempfile::tempdir().unwrap();
+        let path = folder.path().join("mapping.json");
+        let map = SiteMap {
+            website: website.clone(),
+            pages: 7,
+            ..Default::default()
+        };
+        save_checkpoint(
+            &path,
+            &Checkpoint {
+                options: options.clone(),
+                map,
+                queue: VecDeque::from([(pending.clone(), vec!["Category".into()])]),
+                seen: HashSet::from([website.clone()]),
+                scanned: 7,
+            },
+        )
+        .unwrap();
+        let worker = std::thread::spawn(move || {
+            let (mut socket, _) = server.accept().unwrap();
+            socket
+                .set_read_timeout(Some(Duration::from_secs(5)))
+                .unwrap();
+            let mut bytes = [0; 4096];
+            let length = socket.read(&mut bytes).unwrap();
+            assert!(String::from_utf8_lossy(&bytes[..length]).starts_with("GET /pending "));
+            let body = "<h1>Recovered</h1><img src='/original.svg'>";
+            write!(
+                socket,
+                "HTTP/1.1 200 OK\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",
+                body.len()
+            )
+            .unwrap();
+        });
+        let (tx, _) = crossbeam_channel::unbounded();
+        let map = map_site_at(options, Cancel::default(), tx, &path).unwrap();
+        worker.join().unwrap();
+        assert_eq!(map.pages, 8);
+        assert_eq!(map.assets.len(), 1);
+        assert!(!path.exists());
+    }
+    #[test]
+    fn cancelled_mapping_keeps_pending_queue_and_atomic_replacements_are_readable() {
+        let folder = tempfile::tempdir().unwrap();
+        let path = folder.path().join("mapping.json");
+        let options = CrawlOptions {
+            website: "https://example.test/".into(),
+            render: false,
+            sitemap: true,
+        };
+        let cancel = Cancel::default();
+        cancel.stop();
+        let (tx, _) = crossbeam_channel::unbounded();
+        map_site_at(options.clone(), cancel.clone(), tx.clone(), &path).unwrap();
+        let saved = read_checkpoint(&path).unwrap();
+        assert_eq!(saved.queue.len(), 2);
+        map_site_at(options, cancel, tx, &path).unwrap();
+        assert_eq!(read_checkpoint(&path).unwrap().queue.len(), 2);
+    }
     #[test]
     fn generic_mapping_uses_original_and_breadcrumb() {
         let source = r#"<html><title>Shop</title><nav><img src="logo.png"></nav><div class="breadcrumb"><a>Home</a><a>Prints</a></div><h1>Poster</h1><img src="small.jpg" srcset="small.jpg 100w, full.jpg 1200w" alt="Poster"><a href="/next">Next</a></html>"#;
@@ -702,7 +870,8 @@ mod tests {
             }
         });
         let (tx, rx) = crossbeam_channel::unbounded();
-        let map = map_site(
+        let temp = tempfile::tempdir().unwrap();
+        let map = map_site_at(
             CrawlOptions {
                 website,
                 render: false,
@@ -710,6 +879,7 @@ mod tests {
             },
             Cancel::default(),
             tx,
+            &temp.path().join("mapping.json"),
         )
         .unwrap();
         server.join().unwrap();

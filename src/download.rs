@@ -22,6 +22,8 @@ pub struct Saved {
     pub height: Option<u32>,
     #[serde(default)]
     pub response_ms: u64,
+    #[serde(skip)]
+    pub network_bytes: u64,
 }
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -86,16 +88,39 @@ pub fn detected_extension(bytes: &[u8], mime: &str) -> Option<String> {
 }
 
 fn read_index(path: &Path) -> HashMap<String, Saved> {
-    fs::read(path)
+    use std::io::BufRead;
+    let mut values: HashMap<String, Saved> = fs::read(path)
         .ok()
         .and_then(|b| serde_json::from_slice(&b).ok())
-        .unwrap_or_default()
+        .unwrap_or_default();
+    if let Ok(file) = File::open(path.with_extension("journal")) {
+        for line in std::io::BufReader::new(file).lines().map_while(Result::ok) {
+            if let Ok((url, saved)) = serde_json::from_str::<(String, Saved)>(&line) {
+                values.insert(url, saved);
+            }
+        }
+    }
+    values
+}
+
+fn journal(path: &Path, url: &str, saved: &Saved) -> Result<()> {
+    let mut file = OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(path.with_extension("journal"))?;
+    serde_json::to_writer(&mut file, &(url, saved))?;
+    file.write_all(b"\n")?;
+    file.sync_data()?;
+    Ok(())
 }
 
 fn checkpoint(path: &Path, values: &HashMap<String, Saved>) -> Result<()> {
-    let temp = path.with_extension("json.tmp");
-    fs::write(&temp, serde_json::to_vec_pretty(values)?)?;
-    fs::rename(temp, path)?;
+    let mut file =
+        tempfile::NamedTempFile::new_in(path.parent().context("Missing cache directory")?)?;
+    serde_json::to_writer(file.as_file_mut(), values)?;
+    file.as_file().sync_all()?;
+    file.persist(path).map_err(|e| e.error)?;
+    File::create(path.with_extension("journal"))?.sync_all()?;
     Ok(())
 }
 
@@ -106,25 +131,29 @@ async fn one(
     existing: Option<Saved>,
     cancel: Cancel,
 ) -> Result<(String, Saved)> {
-    if let Some(saved) = existing
+    if let Some(mut saved) = existing
         && cache
             .join(&saved.file)
             .metadata()
             .is_ok_and(|m| m.len() == saved.bytes)
     {
+        saved.network_bytes = 0;
         return Ok((url, saved));
     }
     let key = digest(url.as_bytes());
 
     if url.starts_with("data:image/") {
         use base64::Engine;
-        let (header, payload) = url.split_once(',').context("Invalid inline image")?;
+        let (header, payload) = url
+            .split_once(',')
+            .context(crate::i18n::text("Invalid inline image"))?;
         let bytes = if header.ends_with(";base64") {
             base64::engine::general_purpose::STANDARD.decode(payload)?
         } else {
             percent_encoding::percent_decode_str(payload).collect::<Vec<_>>()
         };
-        let extension = detected_extension(&bytes, header).context("Invalid inline image data")?;
+        let extension = detected_extension(&bytes, header)
+            .context(crate::i18n::text("Invalid inline image data"))?;
         let file = format!("{key}.{extension}");
         fs::write(cache.join(&file), &bytes)?;
         let size = image::load_from_memory(&bytes)
@@ -140,12 +169,14 @@ async fn one(
                 width: size.map(|s| s.0),
                 height: size.map(|s| s.1),
                 response_ms: 0,
+                network_bytes: 0,
             },
         ));
     }
     let part = cache.join(format!("{key}.part"));
     let side = cache.join(format!("{key}.part.json"));
     let mut last = String::new();
+    let mut network_bytes = 0;
     for attempt in 0..4 {
         anyhow::ensure!(!cancel.stopped(), "Cancelled");
         let mut request = client
@@ -176,7 +207,7 @@ async fn one(
         if status == reqwest::StatusCode::RANGE_NOT_SATISFIABLE {
             let _ = fs::remove_file(&part);
             let _ = fs::remove_file(&side);
-            last = "Restarting an invalid partial download".into();
+            last = crate::i18n::text("Restarting an invalid partial download").into();
             continue;
         }
         if status.as_u16() == 429 || status.is_server_error() {
@@ -200,7 +231,7 @@ async fn one(
                 .unwrap_or("");
             anyhow::ensure!(
                 range.starts_with(&format!("bytes {offset}-")),
-                "Unexpected resume range"
+                crate::i18n::text("Unexpected resume range")
             );
         }
         if let Some(tag) = response
@@ -227,7 +258,10 @@ async fn one(
         while let Some(chunk) = stream.next().await {
             anyhow::ensure!(!cancel.stopped(), "Cancelled");
             match chunk {
-                Ok(bytes) => file.write_all(&bytes)?,
+                Ok(bytes) => {
+                    network_bytes += bytes.len() as u64;
+                    file.write_all(&bytes)?;
+                }
                 Err(e) => {
                     failed = Some(e.to_string());
                     break;
@@ -243,8 +277,9 @@ async fn one(
         let mut file = File::open(&part)?;
         let mut head = [0u8; 8192];
         let count = file.read(&mut head)?;
-        let extension = detected_extension(&head[..count], &mime)
-            .context("The server returned a non-image response")?;
+        let extension = detected_extension(&head[..count], &mime).context(crate::i18n::text(
+            "The server returned a non-image response",
+        ))?;
         let (width, height) = if extension == "svg" {
             (None, None)
         } else {
@@ -285,6 +320,7 @@ async fn one(
                 width,
                 height,
                 response_ms,
+                network_bytes,
             },
         ));
     }
@@ -295,19 +331,21 @@ fn place(root: &Path, cache: &Path, asset: &Asset, saved: &Saved) -> Result<Path
     let mut relative = asset_path(asset);
     anyhow::ensure!(
         crate::model::safe_relative(&relative.to_string_lossy()),
-        "Invalid output path"
+        crate::i18n::text("Invalid output path")
     );
     relative.set_extension(&saved.extension);
     let destination = root.join(&relative);
     if let Some(parent) = destination.parent() {
-        fs::create_dir_all(parent)?;
+        fs::create_dir_all(parent)
+            .with_context(|| crate::tr!("Could not create image folder {}", parent.display()))?;
     }
     if !destination.metadata().is_ok_and(|m| m.len() == saved.bytes) {
         if destination.exists() {
             fs::remove_file(&destination)?;
         }
         if fs::hard_link(cache.join(&saved.file), &destination).is_err() {
-            fs::copy(cache.join(&saved.file), &destination)?;
+            fs::copy(cache.join(&saved.file), &destination)
+                .with_context(|| crate::tr!("Could not place image {}", destination.display()))?;
         }
     }
     Ok(relative)
@@ -334,7 +372,7 @@ async fn download_pass(
     let client = reqwest::Client::builder()
         .connect_timeout(Duration::from_secs(12))
         .timeout(Duration::from_secs(90))
-        .user_agent("ImageAtlas/0.1 original image backup")
+        .user_agent(crate::i18n::text("ImageAtlas/0.1 original image backup"))
         .build()?;
     let mut adaptive = Adaptive::new(options.bandwidth_mbps);
     let mut done = 0;
@@ -362,11 +400,18 @@ async fn download_pass(
         if let Some(result) = jobs.next().await {
             done += 1;
             let success = result.is_ok();
+            let mut transferred = false;
             match result {
                 Ok((url, saved)) => {
-                    bytes += saved.bytes;
-                    response_total += saved.response_ms;
-                    successful += 1;
+                    transferred = saved.network_bytes > 0;
+                    bytes += saved.network_bytes;
+                    if transferred {
+                        response_total += saved.response_ms;
+                        successful += 1;
+                    }
+                    if transferred || !index.contains_key(&url) {
+                        journal(&index_path, &url, &saved)?;
+                    }
                     for asset in &groups[&url] {
                         match place(&options.folder, &cache, asset, &saved) {
                             Ok(path) => exported.push((asset.clone(), path, saved.clone())),
@@ -375,7 +420,7 @@ async fn download_pass(
                     }
                     if saved.width.is_some_and(|w| w < 500) || saved.height.is_some_and(|h| h < 500)
                     {
-                        let _ = events.send(Event::Log(format!(
+                        let _ = events.send(Event::Log(crate::tr!(
                             "Low-resolution source: {} × {} — {}",
                             saved.width.unwrap_or(0),
                             saved.height.unwrap_or(0),
@@ -391,7 +436,9 @@ async fn download_pass(
                 }
             }
             let speed = bytes as f64 / started.elapsed().as_secs_f64().max(0.01);
-            adaptive.sample(success, speed);
+            if transferred || !success {
+                adaptive.sample(success, speed);
+            }
             let _ = events.send(Event::Progress {
                 done,
                 total,
@@ -408,7 +455,7 @@ async fn download_pass(
                     started.elapsed().as_secs_f64(),
                 ),
             });
-            if done % 10 == 0 {
+            if done % 100 == 0 {
                 checkpoint(&index_path, &index)?;
             }
         }
@@ -551,7 +598,7 @@ pub async fn download_map(
         if !retryable {
             return Ok(failures);
         }
-        let _=events.send(Event::Log(format!("Server unavailable. Retrying failed files in {delay} seconds; completed downloads are safe.")));
+        let _=events.send(Event::Log(crate::tr!("Server unavailable. Retrying failed files in {delay} seconds; completed downloads are safe.")));
         for _ in 0..delay {
             if cancel.stopped() {
                 return Ok(failures);
@@ -587,6 +634,66 @@ fn estimate_eta(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn journal_recovers_completed_files_even_with_an_interrupted_final_record() {
+        let folder = tempfile::tempdir().unwrap();
+        let path = folder.path().join("downloads.json");
+        let saved = Saved {
+            file: "original.svg".into(),
+            bytes: 3,
+            sha256: "hash".into(),
+            extension: "svg".into(),
+            width: None,
+            height: None,
+            response_ms: 12,
+            network_bytes: 3,
+        };
+        journal(&path, "https://example.test/image.svg", &saved).unwrap();
+        OpenOptions::new()
+            .append(true)
+            .open(path.with_extension("journal"))
+            .unwrap()
+            .write_all(b"{interrupted")
+            .unwrap();
+        let recovered = read_index(&path);
+        assert_eq!(
+            recovered["https://example.test/image.svg"].file,
+            "original.svg"
+        );
+        checkpoint(&path, &recovered).unwrap();
+        assert_eq!(read_index(&path).len(), 1);
+        assert_eq!(
+            fs::metadata(path.with_extension("journal")).unwrap().len(),
+            0
+        );
+    }
+    #[test]
+    fn cached_file_is_reused_offline_without_inflating_network_speed() {
+        let folder = tempfile::tempdir().unwrap();
+        fs::write(folder.path().join("cached.png"), b"png").unwrap();
+        let saved = Saved {
+            file: "cached.png".into(),
+            bytes: 3,
+            sha256: "hash".into(),
+            extension: "png".into(),
+            width: None,
+            height: None,
+            response_ms: 12,
+            network_bytes: 9000,
+        };
+        let runtime = tokio::runtime::Runtime::new().unwrap();
+        let (_, reused) = runtime
+            .block_on(one(
+                reqwest::Client::new(),
+                "https://unreachable.invalid/image".into(),
+                folder.path().into(),
+                Some(saved),
+                Cancel::default(),
+            ))
+            .unwrap();
+        assert_eq!(reused.network_bytes, 0);
+        assert_eq!(reused.bytes, 3);
+    }
     #[test]
     fn svg_remains_vector_despite_wrong_extension() {
         assert_eq!(
@@ -741,6 +848,7 @@ mod tests {
             width: None,
             height: None,
             response_ms: 0,
+            network_bytes: 0,
         };
         let index = HashMap::from([
             (asset.url.clone(), saved.clone()),

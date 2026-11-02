@@ -17,7 +17,7 @@ try {
     New-Item -ItemType Directory -Force dist | Out-Null
     & $Nsis "/DVERSION=$version" packaging/windows.nsi
     if ($LASTEXITCODE) { throw 'Installer build failed' }
-    $portable = Join-Path $projectRoot 'dist/portable'
+    $portable = Join-Path $projectRoot "dist/portable-$version"
     New-Item -ItemType Directory -Force $portable | Out-Null
     Copy-Item target/release/image-atlas.exe "$portable/ImageAtlas.exe"
     Copy-Item LICENSE,NOTICE,ATTRIBUZIONI.txt,README.md $portable
