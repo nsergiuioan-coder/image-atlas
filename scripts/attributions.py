@@ -29,5 +29,5 @@ lines.extend(['Local text-engine adaptations', 'egui / epaint: Emil Ernerfeldt a
 patch_notes = licenses / 'Atlas-local-patches'
 patch_notes.mkdir(exist_ok=True)
 shutil.copy2(root / 'vendor/README.md', patch_notes / 'README.md')
-(root / 'ATTRIBUZIONI.txt').write_text('\n'.join(lines), encoding='utf-8')
+(root / 'ATTRIBUZIONI.txt').write_text('\n'.join(line.rstrip() for line in lines), encoding='utf-8')
 print(f"Attributed {len(metadata['packages']) - 1} dependencies")

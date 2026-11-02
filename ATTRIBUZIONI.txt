@@ -54,7 +54,7 @@ License: Unlicense OR MIT
 Source: https://github.com/BurntSushi/aho-corasick
 
 aligned-0.4.3
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/rust-embedded-community/aligned
 
@@ -89,27 +89,27 @@ License: MIT OR Apache-2.0
 Source: https://github.com/zrzka/anes-rs
 
 anstream-1.0.0
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/rust-cli/anstyle.git
 
 anstyle-1.0.14
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/rust-cli/anstyle.git
 
 anstyle-parse-1.0.0
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/rust-cli/anstyle.git
 
 anstyle-query-1.1.5
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/rust-cli/anstyle.git
 
 anstyle-wincon-3.0.11
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/rust-cli/anstyle.git
 
@@ -119,7 +119,7 @@ License: MIT OR Apache-2.0
 Source: https://github.com/dtolnay/anyhow
 
 arboard-3.7.0
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/1Password/arboard
 
@@ -174,7 +174,7 @@ License: MIT
 Source: https://github.com/rust-av/av-scenechange
 
 av1-grain-0.2.5
-Authors: 
+Authors:
 License: BSD-2-Clause
 Source: https://github.com/rust-av/av1-grain
 
@@ -279,7 +279,7 @@ License: Unlicense OR MIT
 Source: https://github.com/BurntSushi/byteorder
 
 byteorder-lite-0.1.0
-Authors: 
+Authors:
 License: Unlicense OR MIT
 Source: https://github.com/image-rs/byteorder-lite
 
@@ -299,7 +299,7 @@ License: MIT OR Apache-2.0
 Source: https://github.com/RustCrypto/block-modes
 
 cc-1.10.0
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/rust-lang/cc-rs
 
@@ -339,17 +339,17 @@ License: MIT
 Source: https://github.com/clap-rs/clap
 
 clap-4.6.7
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/clap-rs/clap
 
 clap_builder-4.6.7
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/clap-rs/clap
 
 clap_lex-1.1.1
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/clap-rs/clap
 
@@ -364,7 +364,7 @@ License: Apache-2.0
 Source: https://github.com/brendanzab/codespan
 
 color-0.3.3
-Authors: 
+Authors:
 License: Apache-2.0 OR MIT
 Source: https://github.com/linebender/color
 
@@ -374,7 +374,7 @@ License: MIT
 Source: https://github.com/image-rs/color_quant.git
 
 colorchoice-1.0.5
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/rust-cli/anstyle.git
 
@@ -389,7 +389,7 @@ License: MIT OR Apache-2.0
 Source: https://github.com/Nullus157/async-compression
 
 console-0.16.6
-Authors: 
+Authors:
 License: MIT
 Source: https://github.com/console-rs/console
 
@@ -424,22 +424,22 @@ License: Apache-2.0 OR MIT
 Source: https://github.com/criterion-rs/criterion.rs
 
 crossbeam-channel-0.5.17
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/crossbeam-rs/crossbeam
 
 crossbeam-deque-0.8.8
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/crossbeam-rs/crossbeam
 
 crossbeam-epoch-0.9.21
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/crossbeam-rs/crossbeam
 
 crossbeam-utils-0.8.23
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/crossbeam-rs/crossbeam
 
@@ -514,7 +514,7 @@ License: MIT OR Apache-2.0
 Source: https://github.com/slint-ui/document-features
 
 dpi-0.1.2
-Authors: 
+Authors:
 License: Apache-2.0 AND MIT
 Source: https://github.com/rust-windowing/winit
 
@@ -579,7 +579,7 @@ License: MIT OR Apache-2.0
 Source: https://github.com/emilk/egui/tree/main/crates/egui_system_font_provider
 
 either-1.19.0
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/rayon-rs/either
 
@@ -599,12 +599,12 @@ License: (Apache-2.0 OR MIT) AND BSD-3-Clause
 Source: https://github.com/hsivonen/encoding_rs
 
 env_filter-2.0.0
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/rust-cli/env_logger
 
 env_logger-0.11.11
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/rust-cli/env_logger
 
@@ -629,7 +629,7 @@ License: MIT
 Source: https://github.com/sarah-ek/equator/
 
 equivalent-1.0.3
-Authors: 
+Authors:
 License: Apache-2.0 OR MIT
 Source: https://github.com/indexmap-rs/equivalent
 
@@ -664,7 +664,7 @@ License: Apache-2.0 OR MIT
 Source: https://github.com/linebender/fearless_simd
 
 find-msvc-tools-0.1.15
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/rust-lang/cc-rs
 
@@ -689,7 +689,7 @@ License: Zlib
 Source: https://github.com/orlp/foldhash
 
 font-types-0.12.7
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/googlefonts/fontations
 
@@ -699,7 +699,7 @@ License: MIT
 Source: https://github.com/RazrFalcon/fontdb
 
 fontique-0.11.1
-Authors: 
+Authors:
 License: Apache-2.0 OR MIT
 Source: https://github.com/linebender/parley
 
@@ -714,37 +714,37 @@ License: MIT / Apache-2.0
 Source: https://github.com/servo/futf
 
 futures-channel-0.3.34
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/rust-lang/futures-rs
 
 futures-core-0.3.34
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/rust-lang/futures-rs
 
 futures-io-0.3.34
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/rust-lang/futures-rs
 
 futures-macro-0.3.34
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/rust-lang/futures-rs
 
 futures-sink-0.3.34
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/rust-lang/futures-rs
 
 futures-task-0.3.34
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/rust-lang/futures-rs
 
 futures-util-0.3.34
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/rust-lang/futures-rs
 
@@ -794,7 +794,7 @@ License: Apache-2.0
 Source: https://github.com/brendanzab/gl-rs/
 
 glifo-0.3.0
-Authors: 
+Authors:
 License: Apache-2.0 OR MIT
 Source: https://github.com/linebender/vello
 
@@ -839,7 +839,7 @@ License: MIT OR Apache-2.0
 Source: https://github.com/VoidStarKat/half-rs
 
 harfrust-0.12.0
-Authors: 
+Authors:
 License: MIT
 Source: https://github.com/harfbuzz/harfrust
 
@@ -849,7 +849,7 @@ License: MIT OR Apache-2.0
 Source: https://github.com/rust-lang/hashbrown
 
 hashbrown-0.17.1
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/rust-lang/hashbrown
 
@@ -949,7 +949,7 @@ License: MIT OR Apache-2.0
 Source: https://github.com/image-rs/image
 
 image-webp-0.2.4
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/image-rs/image-webp
 
@@ -964,7 +964,7 @@ License: CC0-1.0 OR Apache-2.0
 Source: https://github.com/kornelski/imgref
 
 indexmap-2.14.2
-Authors: 
+Authors:
 License: Apache-2.0 OR MIT
 Source: https://github.com/indexmap-rs/indexmap
 
@@ -979,7 +979,7 @@ License: MIT OR Apache-2.0
 Source: https://github.com/krisprice/ipnet
 
 is_terminal_polyfill-1.70.2
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/polyfill-rs/is_terminal_polyfill
 
@@ -1049,12 +1049,12 @@ License: Apache-2.0 OR MIT
 Source: https://github.com/linebender/kurbo
 
 kurbo-0.13.1
-Authors: 
+Authors:
 License: Apache-2.0 OR MIT
 Source: https://github.com/linebender/kurbo
 
 libc-0.2.191
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/rust-lang/libc
 
@@ -1074,7 +1074,7 @@ License: MIT
 Source: https://github.com/purpleprotocol/mimalloc_rust/tree/master/libmimalloc-sys
 
 linebender_resource_handle-0.1.1
-Authors: 
+Authors:
 License: Apache-2.0 OR MIT
 Source: https://github.com/linebender/raw_resource_handle
 
@@ -1124,7 +1124,7 @@ License: MIT OR Apache-2.0
 Source: https://github.com/servo/html5ever
 
 maybe-rayon-0.1.1
-Authors: 
+Authors:
 License: MIT
 Source: https://github.com/shssoichiro/maybe-rayon
 
@@ -1204,7 +1204,7 @@ License: MIT
 Source: https://github.com/mbrubeck/rust-debug-unreachable
 
 no_std_io2-0.9.4
-Authors: 
+Authors:
 License: Apache-2.0 OR MIT
 Source: https://github.com/wcampbell0x2a/no-std-io2
 
@@ -1269,7 +1269,7 @@ License: MIT OR Apache-2.0
 Source: https://github.com/matklad/once_cell
 
 once_cell_polyfill-1.70.2
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/polyfill-rs/once_cell_polyfill
 
@@ -1299,7 +1299,7 @@ License: MIT OR Apache-2.0
 Source: https://github.com/Amanieu/parking_lot
 
 parlance-0.1.1
-Authors: 
+Authors:
 License: Apache-2.0 OR MIT
 Source: https://github.com/linebender/parley
 
@@ -1314,7 +1314,7 @@ License: MIT OR Apache-2.0
 Source: https://github.com/as1100k/pastey
 
 peniko-0.6.1
-Authors: 
+Authors:
 License: Apache-2.0 OR MIT
 Source: https://github.com/linebender/peniko
 
@@ -1354,7 +1354,7 @@ License: MIT
 Source: https://github.com/RazrFalcon/pico-args
 
 pin-project-lite-0.2.17
-Authors: 
+Authors:
 License: Apache-2.0 OR MIT
 Source: https://github.com/taiki-e/pin-project-lite
 
@@ -1389,7 +1389,7 @@ License: Apache-2.0/MIT
 Source: https://github.com/zesterer/pollster
 
 polycool-0.4.0
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/linebender/kurbo
 
@@ -1444,7 +1444,7 @@ License: MIT/Apache-2.0
 Source: http://github.com/tailhook/quick-error
 
 quick-xml-0.38.4
-Authors: 
+Authors:
 License: MIT
 Source: https://github.com/tafia/quick-xml
 
@@ -1504,17 +1504,17 @@ License: MIT OR Apache-2.0 OR Zlib
 Source: https://github.com/rust-windowing/raw-window-handle
 
 rayon-1.12.0
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/rayon-rs/rayon
 
 rayon-core-1.13.0
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/rayon-rs/rayon
 
 read-fonts-0.41.0
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/googlefonts/fontations
 
@@ -1544,7 +1544,7 @@ License: MIT OR Apache-2.0
 Source: https://github.com/seanmonstar/reqwest
 
 resvg-0.45.1
-Authors: 
+Authors:
 License: Apache-2.0 OR MIT
 Source: https://github.com/linebender/resvg
 
@@ -1579,12 +1579,12 @@ License: Apache-2.0 OR MIT
 Source: https://github.com/rust-lang/rustc-hash
 
 rustc_version-0.4.1
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/djc/rustc-version-rs
 
 rustls-pki-types-1.15.1
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/rustls/pki-types
 
@@ -1654,12 +1654,12 @@ License: MIT OR Apache-2.0
 Source: https://github.com/serde-rs/serde
 
 serde_json-1.0.154
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/serde-rs/json
 
 serde_spanned-1.1.2
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/toml-rs/toml
 
@@ -1704,7 +1704,7 @@ License: Apache-2.0
 Source: https://github.com/mitsuhiko/similar-asserts
 
 simplecss-0.2.2
-Authors: 
+Authors:
 License: Apache-2.0 OR MIT
 Source: https://github.com/linebender/simplecss
 
@@ -1714,7 +1714,7 @@ License: MIT OR Apache-2.0
 Source: https://github.com/jedisct1/rust-siphash
 
 skrifa-0.44.0
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/googlefonts/fontations
 
@@ -1784,7 +1784,7 @@ License: MIT
 Source: https://github.com/dguo/strsim-rs
 
 svgtypes-0.15.3
-Authors: 
+Authors:
 License: Apache-2.0 OR MIT
 Source: https://github.com/linebender/svgtypes
 
@@ -1894,17 +1894,17 @@ License: MIT
 Source: https://github.com/tokio-rs/tokio
 
 toml-1.1.8+spec-1.1.0
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/toml-rs/toml
 
 toml_datetime-1.1.2+spec-1.1.0
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/toml-rs/toml
 
 toml_parser-1.1.5+spec-1.1.0
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/toml-rs/toml
 
@@ -1959,7 +1959,7 @@ License: MIT/Apache-2.0
 Source: https://github.com/kardeiz/type-map
 
 typenum-1.20.1
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/paholg/typenum
 
@@ -2029,7 +2029,7 @@ License: MIT OR Apache-2.0
 Source: https://github.com/servo/rust-url
 
 usvg-0.45.1
-Authors: 
+Authors:
 License: Apache-2.0 OR MIT
 Source: https://github.com/linebender/resvg
 
@@ -2069,12 +2069,12 @@ License: MIT/Apache-2.0
 Source: https://github.com/contain-rs/vec-map
 
 vello_common-0.2.0
-Authors: 
+Authors:
 License: Apache-2.0 OR MIT
 Source: https://github.com/linebender/vello
 
 vello_cpu-0.2.0
-Authors: 
+Authors:
 License: Apache-2.0 OR MIT
 Source: https://github.com/linebender/vello
 
@@ -2124,7 +2124,7 @@ License: MIT OR Apache-2.0
 Source: https://github.com/wasm-bindgen/wasm-bindgen/tree/master/crates/shared
 
 web-time-1.1.0
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/daxpedda/web-time
 
@@ -2184,57 +2184,57 @@ License: Unlicense OR MIT
 Source: https://github.com/BurntSushi/winapi-util
 
 windows-0.62.2
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/microsoft/windows-rs
 
 windows-collections-0.3.2
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/microsoft/windows-rs
 
 windows-core-0.62.2
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/microsoft/windows-rs
 
 windows-future-0.3.2
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/microsoft/windows-rs
 
 windows-implement-0.60.2
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/microsoft/windows-rs
 
 windows-interface-0.59.3
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/microsoft/windows-rs
 
 windows-link-0.2.1
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/microsoft/windows-rs
 
 windows-numerics-0.3.1
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/microsoft/windows-rs
 
 windows-registry-0.6.1
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/microsoft/windows-rs
 
 windows-result-0.4.1
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/microsoft/windows-rs
 
 windows-strings-0.5.1
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/microsoft/windows-rs
 
@@ -2244,7 +2244,7 @@ License: MIT OR Apache-2.0
 Source: https://github.com/microsoft/windows-rs
 
 windows-sys-0.61.2
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/microsoft/windows-rs
 
@@ -2254,7 +2254,7 @@ License: MIT OR Apache-2.0
 Source: https://github.com/microsoft/windows-rs
 
 windows-threading-0.2.1
-Authors: 
+Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/microsoft/windows-rs
 
@@ -2269,7 +2269,7 @@ License: Apache-2.0
 Source: https://github.com/rust-windowing/winit
 
 winnow-1.0.4
-Authors: 
+Authors:
 License: MIT
 Source: https://github.com/winnow-rs/winnow
 
@@ -2309,12 +2309,12 @@ License: Unicode-3.0
 Source: https://github.com/unicode-org/icu4x
 
 zerocopy-0.8.63
-Authors: 
+Authors:
 License: BSD-2-Clause OR Apache-2.0 OR MIT
 Source: https://github.com/google/zerocopy
 
 zerocopy-derive-0.8.63
-Authors: 
+Authors:
 License: BSD-2-Clause OR Apache-2.0 OR MIT
 Source: https://github.com/google/zerocopy
 
@@ -2354,7 +2354,7 @@ License: MIT
 Source: https://github.com/zip-rs/zip2.git
 
 zlib-rs-0.6.8
-Authors: 
+Authors:
 License: Zlib
 Source: https://github.com/trifectatechfoundation/zlib-rs
 
@@ -2364,17 +2364,17 @@ License: MIT
 Source: https://github.com/dtolnay/zmij
 
 zopfli-0.8.4
-Authors: 
+Authors:
 License: Apache-2.0
 Source: https://github.com/zopfli-rs/zopfli
 
 zune-core-0.4.12
-Authors: 
+Authors:
 License: MIT OR Apache-2.0 OR Zlib
 Source: registry+https://github.com/rust-lang/crates.io-index
 
 zune-core-0.5.3
-Authors: 
+Authors:
 License: MIT OR Apache-2.0 OR Zlib
 Source: https://github.com/etemesi254/zune-image
 
