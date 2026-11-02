@@ -252,5 +252,14 @@
   "Update the existing copy in this folder.": "इस फ़ोल्डर में मौजूद कॉपी अपडेट करें।",
   "Save your work and close Atlas before updating.": "अपडेट से पहले अपना काम सहेजें और Atlas बंद करें।",
   "GitHub ({repository}): {latest} · This app: {current} · Checked: {time}": "GitHub ({repository}): {latest} · यह ऐप: {current} · जाँच का समय: {time}",
-  "Update check failed: {error}": "अपडेट की जाँच विफल: {error}"
+  "Update check failed: {error}": "अपडेट की जाँच विफल: {error}",
+  "Upscale images": "छवियों का रिज़ॉल्यूशन बढ़ाएँ",
+  "Photos (AI)": "फ़ोटो (AI)",
+  "Signs and logos (SVG)": "संकेत और लोगो (SVG)",
+  "Preview": "पूर्वावलोकन",
+  "First use downloads a 46 MB AI engine.": "पहले उपयोग पर 46 MB का AI इंजन डाउनलोड होगा।",
+  "Dima": "टेम्पलेट",
+  "Margin around artwork": "चित्र के चारों ओर मार्जिन",
+  "Fixed width and height": "निश्चित चौड़ाई और ऊँचाई",
+  "Corner radius": "कोने की त्रिज्या"
 }

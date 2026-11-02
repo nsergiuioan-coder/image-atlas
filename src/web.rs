@@ -360,7 +360,7 @@ fn compact_svg(source: &[u8]) -> Result<Vec<u8>> {
         .context(crate::i18n::text("Invalid SVG after optimization"))?;
     Ok(output)
 }
-fn render_svg(bytes: &[u8], path: &Path, max_edge: u32) -> Result<DynamicImage> {
+pub(crate) fn render_svg(bytes: &[u8], path: &Path, max_edge: u32) -> Result<DynamicImage> {
     let options = resvg::usvg::Options {
         resources_dir: path.parent().map(Path::to_path_buf),
         fontdb: crate::convert::system_fonts(),

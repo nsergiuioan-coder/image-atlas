@@ -252,5 +252,14 @@
   "Update the existing copy in this folder.": "Werk de bestaande kopie in deze map bij.",
   "Save your work and close Atlas before updating.": "Sla je werk op en sluit Atlas voordat je bijwerkt.",
   "GitHub ({repository}): {latest} · This app: {current} · Checked: {time}": "GitHub ({repository}): {latest} · Deze app: {current} · Gecontroleerd: {time}",
-  "Update check failed: {error}": "Controleren op updates mislukt: {error}"
+  "Update check failed: {error}": "Controleren op updates mislukt: {error}",
+  "Upscale images": "Afbeeldingen vergroten",
+  "Photos (AI)": "Foto’s (AI)",
+  "Signs and logos (SVG)": "Borden en logo’s (SVG)",
+  "Preview": "Voorbeeld",
+  "First use downloads a 46 MB AI engine.": "Bij het eerste gebruik wordt een AI-engine van 46 MB gedownload.",
+  "Dima": "Sjabloon",
+  "Margin around artwork": "Marge rond de afbeelding",
+  "Fixed width and height": "Vaste breedte en hoogte",
+  "Corner radius": "Hoekradius"
 }

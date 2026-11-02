@@ -252,5 +252,14 @@
   "Update the existing copy in this folder.": "更新此文件夹中的现有副本。",
   "Save your work and close Atlas before updating.": "更新前请保存工作并关闭 Atlas。",
   "GitHub ({repository}): {latest} · This app: {current} · Checked: {time}": "GitHub ({repository}): {latest} · 当前应用: {current} · 检查时间: {time}",
-  "Update check failed: {error}": "更新检查失败: {error}"
+  "Update check failed: {error}": "更新检查失败: {error}",
+  "Upscale images": "提升图像分辨率",
+  "Photos (AI)": "照片 (AI)",
+  "Signs and logos (SVG)": "标志和徽标 (SVG)",
+  "Preview": "预览",
+  "First use downloads a 46 MB AI engine.": "首次使用将下载46 MB的AI引擎。",
+  "Dima": "模板",
+  "Margin around artwork": "图案周围的边距",
+  "Fixed width and height": "固定宽度和高度",
+  "Corner radius": "圆角半径"
 }

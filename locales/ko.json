@@ -252,5 +252,14 @@
   "Update the existing copy in this folder.": "이 폴더에 있는 기존 사본을 업데이트합니다.",
   "Save your work and close Atlas before updating.": "업데이트하기 전에 작업을 저장하고 Atlas를 닫으세요.",
   "GitHub ({repository}): {latest} · This app: {current} · Checked: {time}": "GitHub ({repository}): {latest} · 이 앱: {current} · 확인 시각: {time}",
-  "Update check failed: {error}": "업데이트 확인 실패: {error}"
+  "Update check failed: {error}": "업데이트 확인 실패: {error}",
+  "Upscale images": "이미지 해상도 높이기",
+  "Photos (AI)": "사진 (AI)",
+  "Signs and logos (SVG)": "표지판과 로고 (SVG)",
+  "Preview": "미리 보기",
+  "First use downloads a 46 MB AI engine.": "처음 사용할 때 46 MB AI 엔진을 다운로드합니다.",
+  "Dima": "템플릿",
+  "Margin around artwork": "아트워크 주변 여백",
+  "Fixed width and height": "고정 너비와 높이",
+  "Corner radius": "모서리 반경"
 }

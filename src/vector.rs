@@ -21,6 +21,7 @@ struct DocumentState {
 
 #[derive(Default)]
 pub struct Editor {
+    upscaler: crate::upscale::Studio,
     web_dialog: bool,
     web_options: crate::web::Options,
     web_status: String,
@@ -152,7 +153,7 @@ impl SavedDocument {
 
 impl Editor {
     pub fn can_restart(&self) -> bool {
-        self.web_job.is_none()
+        self.web_job.is_none() && !self.upscaler.busy()
     }
     pub fn workspace_snapshot(&self) -> Result<Snapshot> {
         Ok(Snapshot {
@@ -705,6 +706,23 @@ impl Editor {
     pub fn ui(&mut self, ui: &mut egui::Ui, ctx: &egui::Context) {
         ui.horizontal(|ui| {
             ui.heading(crate::i18n::text("Vector editor"));
+            if ui
+                .add_enabled(
+                    self.root.is_some(),
+                    egui::Button::new(crate::i18n::text("Upscale images")),
+                )
+                .clicked()
+            {
+                let sources = if self.documents.is_empty() {
+                    self.web_source().map(|source| vec![source])
+                } else {
+                    self.web_sources()
+                };
+                match sources {
+                    Ok(sources) => self.upscaler.open(sources, self.document_index, None),
+                    Err(error) => self.message = error.to_string(),
+                }
+            }
             if ui.button(crate::i18n::text("Open image")).clicked()
                 && let Some(path) = rfd::FileDialog::new().pick_file()
                 && let Err(e) = self.open(&path)
@@ -1049,6 +1067,7 @@ impl Editor {
         });
         ui.label(RichText::new(&self.message).small().weak());
         self.web_export_ui(ctx);
+        self.upscaler.ui(ctx);
     }
 }
 #[cfg(test)]

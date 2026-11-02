@@ -10,3 +10,8 @@ Bidirectional text patch: abdu-benayad, https://github.com/emilk/egui/pull/8577
 Atlas integration and corrective changes: NIS.
 Locally patched gpu-allocator: Traverse Research.
 See THIRD-PARTY-LICENSES/Atlas-local-patches/README.md for pinned source revisions and modifications.
+
+Optional local upscaling: Real-ESRGAN by Xintao Wang and contributors.
+NCNN Vulkan implementation: Xintao Wang and nihui.
+Inference runtime: Tencent ncnn. Image codec: WebM libwebp contributors.
+The pinned upstream engine and models download on first use; their licenses are included.

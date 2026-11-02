@@ -11,7 +11,9 @@ mod model;
 mod profiling;
 mod progress;
 mod recovery;
+mod template;
 mod update;
+mod upscale;
 mod vector;
 mod web;
 

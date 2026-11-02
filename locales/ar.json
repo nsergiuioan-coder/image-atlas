@@ -252,5 +252,14 @@
   "Update the existing copy in this folder.": "حدّث النسخة الموجودة في هذا المجلد.",
   "Save your work and close Atlas before updating.": "احفظ عملك وأغلق Atlas قبل التحديث.",
   "GitHub ({repository}): {latest} · This app: {current} · Checked: {time}": "GitHub ({repository}): {latest} · هذا التطبيق: {current} · وقت التحقق: {time}",
-  "Update check failed: {error}": "فشل التحقق من التحديثات: {error}"
+  "Update check failed: {error}": "فشل التحقق من التحديثات: {error}",
+  "Upscale images": "تكبير الصور",
+  "Photos (AI)": "صور فوتوغرافية (AI)",
+  "Signs and logos (SVG)": "لافتات وشعارات (SVG)",
+  "Preview": "معاينة",
+  "First use downloads a 46 MB AI engine.": "سيتم تنزيل محرك AI بحجم 46 MB عند أول استخدام.",
+  "Dima": "قالب",
+  "Margin around artwork": "هامش حول الرسم",
+  "Fixed width and height": "عرض وارتفاع ثابتان",
+  "Corner radius": "نصف قطر الزوايا"
 }

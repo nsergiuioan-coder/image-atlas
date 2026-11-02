@@ -252,5 +252,14 @@
   "Update the existing copy in this folder.": "Uppdatera den befintliga kopian i den här mappen.",
   "Save your work and close Atlas before updating.": "Spara ditt arbete och stäng Atlas innan du uppdaterar.",
   "GitHub ({repository}): {latest} · This app: {current} · Checked: {time}": "GitHub ({repository}): {latest} · Den här appen: {current} · Kontrollerat: {time}",
-  "Update check failed: {error}": "Kunde inte söka efter uppdateringar: {error}"
+  "Update check failed: {error}": "Kunde inte söka efter uppdateringar: {error}",
+  "Upscale images": "Skala upp bilder",
+  "Photos (AI)": "Foton (AI)",
+  "Signs and logos (SVG)": "Skyltar och logotyper (SVG)",
+  "Preview": "Förhandsvisning",
+  "First use downloads a 46 MB AI engine.": "Vid första användningen hämtas en AI-motor på 46 MB.",
+  "Dima": "Mall",
+  "Margin around artwork": "Marginal runt motivet",
+  "Fixed width and height": "Fast bredd och höjd",
+  "Corner radius": "Hörnradie"
 }

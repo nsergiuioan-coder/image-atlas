@@ -26,6 +26,7 @@ for package in sorted(metadata['packages'], key=lambda p: (p['name'], p['version
             target.mkdir(exist_ok=True)
             shutil.copy2(source / relative, target / Path(relative).name)
 lines.extend(['Local text-engine adaptations', 'egui / epaint: Emil Ernerfeldt and egui contributors', 'Bidirectional text patch: abdu-benayad', 'Source: https://github.com/emilk/egui/pull/8577', 'Pinned revision: c93e8863e958507056415e2a6dace56e23ba5f3a', 'Integration and corrective changes: NIS', 'License: MIT OR Apache-2.0', 'Local Windows binding compatibility patch: gpu-allocator by Traverse Research', 'See vendor/README.md for modifications.', ''])
+lines.extend(['Optional local AI engine', 'Real-ESRGAN: Xintao Wang and contributors, BSD-3-Clause', 'NCNN Vulkan implementation: Xintao Wang and nihui, MIT', 'Inference runtime: Tencent ncnn, BSD-3-Clause', 'WebP codec: WebM libwebp contributors, BSD-3-Clause', 'Source: https://github.com/xinntao/Real-ESRGAN/releases/tag/v0.2.5.0', 'Engine archive: realesrgan-ncnn-vulkan-20220424-windows.zip', 'SHA-256: abc02804e17982a3be33675e4d471e91ea374e65b70167abc09e31acb412802d', 'Original Atlas integration: NIS', ''])
 patch_notes = licenses / 'Atlas-local-patches'
 patch_notes.mkdir(exist_ok=True)
 shutil.copy2(root / 'vendor/README.md', patch_notes / 'README.md')

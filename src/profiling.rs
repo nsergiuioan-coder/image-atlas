@@ -37,7 +37,7 @@ fn profile_resource_usage() {
             }],
             ..Default::default()
         };
-        let image = crate::convert::prepare(image, &settings);
+        let image = crate::convert::prepare(image, &settings).unwrap();
         let encoded = crate::web::encode_raster(
             image,
             &source,

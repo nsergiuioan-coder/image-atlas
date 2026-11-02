@@ -102,3 +102,11 @@ Copyright (c) 2026 NIS. Licensed under the [MIT License](LICENSE).
 Third-party authors and licenses are listed in [ATTRIBUZIONI.txt](ATTRIBUZIONI.txt) and [THIRD-PARTY-LICENSES](THIRD-PARTY-LICENSES).
 
 Vibe coded.
+
+## Upscaling and templates
+
+**Upscale images** is available in the Batch and Vector editors. Photos use a local Real-ESRGAN model, with 2× or 4× output. The 46 MB engine downloads once from its pinned upstream release and is checked against its SHA-256 hash. It requires a Vulkan-capable GPU on Windows. Processing runs in a separate background process; an engine failure does not terminate Atlas. Transparent areas are retained. The 2× option uses the 4× model and downsamples its output.
+
+Signs and logos use SVG tracing. Existing SVG inputs keep their vector data. Preview the result with the draggable before/after divider and browse images with the slider before exporting. Tracing and AI enhancement can change shapes or small lettering; neither can reliably reconstruct unreadable text. Originals are never overwritten. Completed outputs are recorded with hashes; repeating an interrupted batch reuses valid completed files. Failed files can be retried separately.
+
+In the Batch editor, enable **Template** (Dima in Italian) to add a margin around each image or choose a fixed width and height in millimetres. Set the margin, fill, outline, corner radius, and DPI. The preview and batch save use the same settings. Fixed templates fit the whole image inside the available area without cropping it. PNG, JPEG, WebP, SVG, and PDF exports include the visible template; PNG, JPEG and WebP carry resolution metadata, while SVG and PDF store physical dimensions. Programs that ignore resolution metadata may display raster dimensions only. Web optimization may reduce pixel dimensions; the resolution metadata is adjusted to retain the intended physical size.

@@ -252,5 +252,14 @@
   "Update the existing copy in this folder.": "Cập nhật bản hiện có trong thư mục này.",
   "Save your work and close Atlas before updating.": "Lưu công việc và đóng Atlas trước khi cập nhật.",
   "GitHub ({repository}): {latest} · This app: {current} · Checked: {time}": "GitHub ({repository}): {latest} · Ứng dụng này: {current} · Đã kiểm tra: {time}",
-  "Update check failed: {error}": "Không thể kiểm tra bản cập nhật: {error}"
+  "Update check failed: {error}": "Không thể kiểm tra bản cập nhật: {error}",
+  "Upscale images": "Tăng độ phân giải ảnh",
+  "Photos (AI)": "Ảnh chụp (AI)",
+  "Signs and logos (SVG)": "Biển báo và logo (SVG)",
+  "Preview": "Xem trước",
+  "First use downloads a 46 MB AI engine.": "Lần sử dụng đầu tiên sẽ tải công cụ AI dung lượng 46 MB.",
+  "Dima": "Khuôn mẫu",
+  "Margin around artwork": "Lề quanh hình",
+  "Fixed width and height": "Chiều rộng và chiều cao cố định",
+  "Corner radius": "Bán kính góc"
 }

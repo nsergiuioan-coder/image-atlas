@@ -252,5 +252,14 @@
   "Update the existing copy in this folder.": "Kemas kini salinan sedia ada dalam folder ini.",
   "Save your work and close Atlas before updating.": "Simpan kerja anda dan tutup Atlas sebelum mengemas kini.",
   "GitHub ({repository}): {latest} · This app: {current} · Checked: {time}": "GitHub ({repository}): {latest} · Aplikasi ini: {current} · Disemak: {time}",
-  "Update check failed: {error}": "Semakan kemas kini gagal: {error}"
+  "Update check failed: {error}": "Semakan kemas kini gagal: {error}",
+  "Upscale images": "Tingkatkan resolusi imej",
+  "Photos (AI)": "Foto (AI)",
+  "Signs and logos (SVG)": "Papan tanda dan logo (SVG)",
+  "Preview": "Pratonton",
+  "First use downloads a 46 MB AI engine.": "Penggunaan pertama memuat turun enjin AI sebesar 46 MB.",
+  "Dima": "Templat",
+  "Margin around artwork": "Jidar di sekeliling grafik",
+  "Fixed width and height": "Lebar dan tinggi tetap",
+  "Corner radius": "Jejari sudut"
 }

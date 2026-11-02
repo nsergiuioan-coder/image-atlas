@@ -252,5 +252,14 @@
   "Update the existing copy in this folder.": "Ενημερώστε το υπάρχον αντίγραφο σε αυτόν τον φάκελο.",
   "Save your work and close Atlas before updating.": "Αποθηκεύστε την εργασία σας και κλείστε το Atlas πριν από την ενημέρωση.",
   "GitHub ({repository}): {latest} · This app: {current} · Checked: {time}": "GitHub ({repository}): {latest} · Αυτή η εφαρμογή: {current} · Έλεγχος: {time}",
-  "Update check failed: {error}": "Ο έλεγχος ενημερώσεων απέτυχε: {error}"
+  "Update check failed: {error}": "Ο έλεγχος ενημερώσεων απέτυχε: {error}",
+  "Upscale images": "Μεγέθυνση εικόνων",
+  "Photos (AI)": "Φωτογραφίες (AI)",
+  "Signs and logos (SVG)": "Πινακίδες και λογότυπα (SVG)",
+  "Preview": "Προεπισκόπηση",
+  "First use downloads a 46 MB AI engine.": "Κατά την πρώτη χρήση γίνεται λήψη μηχανής AI 46 MB.",
+  "Dima": "Πρότυπο",
+  "Margin around artwork": "Περιθώριο γύρω από το σχέδιο",
+  "Fixed width and height": "Σταθερό πλάτος και ύψος",
+  "Corner radius": "Ακτίνα γωνιών"
 }

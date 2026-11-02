@@ -252,5 +252,14 @@
   "Update the existing copy in this folder.": "Bu klasördeki mevcut kopyayı güncelleyin.",
   "Save your work and close Atlas before updating.": "Güncellemeden önce çalışmanızı kaydedip Atlas’ı kapatın.",
   "GitHub ({repository}): {latest} · This app: {current} · Checked: {time}": "GitHub ({repository}): {latest} · Bu uygulama: {current} · Kontrol zamanı: {time}",
-  "Update check failed: {error}": "Güncelleme kontrolü başarısız: {error}"
+  "Update check failed: {error}": "Güncelleme kontrolü başarısız: {error}",
+  "Upscale images": "Görüntü çözünürlüğünü artır",
+  "Photos (AI)": "Fotoğraflar (YZ)",
+  "Signs and logos (SVG)": "İşaretler ve logolar (SVG)",
+  "Preview": "Önizleme",
+  "First use downloads a 46 MB AI engine.": "İlk kullanımda 46 MB boyutunda bir YZ motoru indirilir.",
+  "Dima": "Şablon",
+  "Margin around artwork": "Görsel çevresindeki kenar boşluğu",
+  "Fixed width and height": "Sabit genişlik ve yükseklik",
+  "Corner radius": "Köşe yarıçapı"
 }

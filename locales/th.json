@@ -252,5 +252,14 @@
   "Update the existing copy in this folder.": "อัปเดตสำเนาที่มีอยู่ในโฟลเดอร์นี้",
   "Save your work and close Atlas before updating.": "บันทึกงานและปิด Atlas ก่อนอัปเดต",
   "GitHub ({repository}): {latest} · This app: {current} · Checked: {time}": "GitHub ({repository}): {latest} · แอปนี้: {current} · ตรวจสอบเมื่อ: {time}",
-  "Update check failed: {error}": "ตรวจสอบการอัปเดตไม่สำเร็จ: {error}"
+  "Update check failed: {error}": "ตรวจสอบการอัปเดตไม่สำเร็จ: {error}",
+  "Upscale images": "เพิ่มความละเอียดภาพ",
+  "Photos (AI)": "ภาพถ่าย (AI)",
+  "Signs and logos (SVG)": "ป้ายและโลโก้ (SVG)",
+  "Preview": "ดูตัวอย่าง",
+  "First use downloads a 46 MB AI engine.": "การใช้งานครั้งแรกจะดาวน์โหลดเอนจิน AI ขนาด 46 MB",
+  "Dima": "แม่แบบ",
+  "Margin around artwork": "ระยะขอบรอบงานภาพ",
+  "Fixed width and height": "ความกว้างและความสูงคงที่",
+  "Corner radius": "รัศมีมุม"
 }

@@ -252,5 +252,14 @@
   "Update the existing copy in this folder.": "Оновити наявну копію в цій папці.",
   "Save your work and close Atlas before updating.": "Перед оновленням збережіть роботу й закрийте Atlas.",
   "GitHub ({repository}): {latest} · This app: {current} · Checked: {time}": "GitHub ({repository}): {latest} · Ця програма: {current} · Перевірено: {time}",
-  "Update check failed: {error}": "Не вдалося перевірити оновлення: {error}"
+  "Update check failed: {error}": "Не вдалося перевірити оновлення: {error}",
+  "Upscale images": "Збільшити роздільність",
+  "Photos (AI)": "Фотографії (ШІ)",
+  "Signs and logos (SVG)": "Знаки та логотипи (SVG)",
+  "Preview": "Попередній перегляд",
+  "First use downloads a 46 MB AI engine.": "Під час першого використання завантажується модуль ШІ розміром 46 MB.",
+  "Dima": "Шаблон",
+  "Margin around artwork": "Поля навколо зображення",
+  "Fixed width and height": "Фіксовані ширина й висота",
+  "Corner radius": "Радіус кутів"
 }

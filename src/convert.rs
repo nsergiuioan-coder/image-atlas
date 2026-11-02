@@ -15,6 +15,8 @@ pub struct Settings {
     pub dpi: f32,
     pub rules: Vec<ColorRule>,
     pub web: Option<crate::web::Options>,
+    #[serde(default)]
+    pub template: Option<crate::template::Template>,
 }
 impl Default for Settings {
     fn default() -> Self {
@@ -25,6 +27,7 @@ impl Default for Settings {
             dpi: 300.0,
             rules: Vec::new(),
             web: None,
+            template: None,
         }
     }
 }
@@ -210,7 +213,7 @@ pub fn replace_background(image: &mut RgbaImage, settings: &ColorRule) {
     }
 }
 
-pub fn prepare(mut image: DynamicImage, settings: &Settings) -> DynamicImage {
+pub fn prepare(mut image: DynamicImage, settings: &Settings) -> Result<DynamicImage> {
     if settings.rules.iter().any(|r| r.enabled) {
         let mut rgba = image.into_rgba8();
         for rule in settings.rules.iter().filter(|r| r.enabled) {
@@ -228,7 +231,10 @@ pub fn prepare(mut image: DynamicImage, settings: &Settings) -> DynamicImage {
     if (w, h) != (width, height) {
         image = image.resize_exact(width, height, image::imageops::FilterType::Lanczos3);
     }
-    image
+    match &settings.template {
+        Some(template) => template.apply(image, settings.dpi),
+        None => Ok(image),
+    }
 }
 
 pub(crate) fn flatten_white(image: &DynamicImage) -> image::RgbImage {
@@ -288,8 +294,10 @@ pub fn encode_web(source: &Path, settings: &Settings) -> Result<crate::web::Enco
         .web
         .as_ref()
         .context("Enable web optimized export first")?;
-    let untouched =
-        settings.width == 0 && settings.height == 0 && !settings.rules.iter().any(|r| r.enabled);
+    let untouched = settings.width == 0
+        && settings.height == 0
+        && settings.template.is_none()
+        && !settings.rules.iter().any(|r| r.enabled);
     if untouched {
         crate::web::encode(
             &crate::web::Source {
@@ -299,7 +307,19 @@ pub fn encode_web(source: &Path, settings: &Settings) -> Result<crate::web::Enco
             options,
         )
     } else {
-        crate::web::encode_raster(prepare(load(source)?, settings), source, options, false)
+        let image = prepare(load(source)?, settings)?;
+        let width = image.width();
+        let mut encoded = crate::web::encode_raster(image, source, options, false)?;
+        let saved_width = image::ImageReader::new(std::io::Cursor::new(&encoded.bytes))
+            .with_guessed_format()?
+            .into_dimensions()?
+            .0;
+        crate::template::density(
+            &mut encoded.bytes,
+            &encoded.extension,
+            settings.dpi * saved_width as f32 / width as f32,
+        )?;
+        Ok(encoded)
     }
 }
 
@@ -308,7 +328,7 @@ pub fn export(source: &Path, folder: &Path, settings: &Settings) -> Result<PathB
     if settings.web.is_some() {
         return Ok(crate::web::save(encode_web(source, settings)?, source, folder)?.path);
     }
-    let image = prepare(load(source)?, settings);
+    let image = prepare(load(source)?, settings)?;
     let extension = if settings.format.starts_with("svg") {
         "svg"
     } else {
@@ -355,8 +375,14 @@ pub fn export(source: &Path, folder: &Path, settings: &Settings) -> Result<PathB
                 ImageFormat::from_extension(format).context("Unsupported output format")?;
             if format == ImageFormat::Jpeg {
                 let rgb = flatten_white(&image);
-                image::codecs::jpeg::JpegEncoder::new_with_quality(fs::File::create(&output)?, 95)
-                    .encode_image(&DynamicImage::ImageRgb8(rgb))?;
+                let mut encoder = image::codecs::jpeg::JpegEncoder::new_with_quality(
+                    fs::File::create(&output)?,
+                    95,
+                );
+                encoder.set_pixel_density(image::codecs::jpeg::PixelDensity::dpi(
+                    settings.dpi.round().clamp(1.0, 65535.0) as u16,
+                ));
+                encoder.encode_image(&DynamicImage::ImageRgb8(rgb))?;
             } else if format == ImageFormat::Pnm {
                 DynamicImage::ImageRgb8(flatten_white(&image)).save_with_format(&output, format)?;
             } else {
@@ -364,12 +390,68 @@ pub fn export(source: &Path, folder: &Path, settings: &Settings) -> Result<PathB
             }
         }
     }
+    if ["png", "jpg", "jpeg", "webp"].contains(&extension) {
+        let mut bytes = fs::read(&output)?;
+        crate::template::density(&mut bytes, extension, settings.dpi)?;
+        fs::write(&output, bytes)?;
+    } else if extension == "svg" {
+        let bytes = crate::template::svg_size(
+            &fs::read(&output)?,
+            image.width(),
+            image.height(),
+            settings.dpi,
+        )?;
+        fs::write(&output, bytes)?;
+    }
     Ok(output)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn dima_and_dpi_are_present_in_batch_exports() {
+        let folder = tempfile::tempdir().unwrap();
+        let source = folder.path().join("art.png");
+        DynamicImage::new_rgb8(100, 50).save(&source).unwrap();
+        let mut settings = Settings {
+            dpi: 254.0,
+            template: Some(crate::template::Template {
+                layout: crate::template::Layout::Fixed,
+                width: 30.0,
+                height: 20.0,
+                margin: 2.0,
+                ..Default::default()
+            }),
+            ..Default::default()
+        };
+        for format in ["png", "jpg", "webp", "pdf", "svg trace", "svg embedded"] {
+            settings.format = format.into();
+            let output = export(&source, &folder.path().join("output"), &settings).unwrap();
+            match format {
+                "png" | "jpg" | "webp" => assert_eq!(dimensions(&output).unwrap(), (300, 200)),
+                "pdf" => {
+                    let pdf = lopdf::Document::load(&output).unwrap();
+                    let page = *pdf.get_pages().values().next().unwrap();
+                    let media = pdf
+                        .get_object(page)
+                        .unwrap()
+                        .as_dict()
+                        .unwrap()
+                        .get(b"MediaBox")
+                        .unwrap()
+                        .as_array()
+                        .unwrap();
+                    assert!((media[2].as_float().unwrap() - 30.0 * 72.0 / 25.4).abs() < 0.01);
+                }
+                _ => {
+                    let root = xmltree::Element::parse(fs::File::open(&output).unwrap()).unwrap();
+                    assert_eq!(root.attributes["width"], "30mm");
+                    assert_eq!(root.attributes["height"], "20mm");
+                }
+            }
+        }
+    }
     #[test]
     fn only_connected_background_changes() {
         let mut img = RgbaImage::from_pixel(5, 5, image::Rgba([128, 128, 128, 255]));
@@ -405,7 +487,9 @@ mod tests {
             ..Default::default()
         };
         assert_eq!(
-            prepare(load(&input).unwrap(), &settings).dimensions(),
+            prepare(load(&input).unwrap(), &settings)
+                .unwrap()
+                .dimensions(),
             (200, 100)
         );
     }
@@ -429,7 +513,9 @@ mod tests {
             rules: vec![object, background],
             ..Default::default()
         };
-        let output = prepare(DynamicImage::ImageRgba8(pixels), &settings).to_rgba8();
+        let output = prepare(DynamicImage::ImageRgba8(pixels), &settings)
+            .unwrap()
+            .to_rgba8();
         assert_eq!(output.get_pixel(2, 2).0, [255, 255, 255, 255]);
         assert_eq!(output.get_pixel(0, 0).0, [20, 30, 40, 255]);
     }

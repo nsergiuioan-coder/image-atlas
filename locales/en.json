@@ -252,5 +252,14 @@
   "Update the existing copy in this folder.": "Update the existing copy in this folder.",
   "Save your work and close Atlas before updating.": "Save your work and close Atlas before updating.",
   "GitHub ({repository}): {latest} · This app: {current} · Checked: {time}": "GitHub ({repository}): {latest} · This app: {current} · Checked: {time}",
-  "Update check failed: {error}": "Update check failed: {error}"
+  "Update check failed: {error}": "Update check failed: {error}",
+  "Upscale images": "Upscale images",
+  "Photos (AI)": "Photos (AI)",
+  "Signs and logos (SVG)": "Signs and logos (SVG)",
+  "Preview": "Preview",
+  "First use downloads a 46 MB AI engine.": "First use downloads a 46 MB AI engine.",
+  "Dima": "Template",
+  "Margin around artwork": "Margin around artwork",
+  "Fixed width and height": "Fixed width and height",
+  "Corner radius": "Corner radius"
 }

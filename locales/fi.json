@@ -252,5 +252,14 @@
   "Update the existing copy in this folder.": "Päivitä tämän kansion olemassa oleva kopio.",
   "Save your work and close Atlas before updating.": "Tallenna työsi ja sulje Atlas ennen päivitystä.",
   "GitHub ({repository}): {latest} · This app: {current} · Checked: {time}": "GitHub ({repository}): {latest} · Tämä sovellus: {current} · Tarkistettu: {time}",
-  "Update check failed: {error}": "Päivitysten tarkistus epäonnistui: {error}"
+  "Update check failed: {error}": "Päivitysten tarkistus epäonnistui: {error}",
+  "Upscale images": "Suurenna kuvia",
+  "Photos (AI)": "Valokuvat (AI)",
+  "Signs and logos (SVG)": "Kyltit ja logot (SVG)",
+  "Preview": "Esikatselu",
+  "First use downloads a 46 MB AI engine.": "Ensimmäisellä käyttökerralla ladataan 46 MB:n tekoälymoottori.",
+  "Dima": "Pohja",
+  "Margin around artwork": "Reunus kuvan ympärillä",
+  "Fixed width and height": "Kiinteä leveys ja korkeus",
+  "Corner radius": "Kulmien säde"
 }

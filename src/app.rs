@@ -136,6 +136,7 @@ pub struct Atlas {
     export_status: Option<(usize, usize, f64, Option<f64>, Instant)>,
     mapping_notice: Option<MappingNotice>,
     vector: crate::vector::Editor,
+    upscaler: crate::upscale::Studio,
     tab: usize,
     url: String,
     render: bool,
@@ -228,6 +229,7 @@ impl Atlas {
             export_status: None,
             mapping_notice: None,
             vector: Default::default(),
+            upscaler: Default::default(),
             tab: 0,
             url: String::new(),
             render: false,
@@ -426,7 +428,10 @@ impl Atlas {
                     ui.label(crate::i18n::text(
                         "Your workspace will reopen after the update.",
                     ));
-                    let ready = !self.busy && !self.importing && self.vector.can_restart();
+                    let ready = !self.busy
+                        && !self.importing
+                        && !self.upscaler.busy()
+                        && self.vector.can_restart();
                     if !ready {
                         ui.weak(crate::i18n::text(
                             "Wait for the current task to finish before restarting.",
@@ -897,13 +902,15 @@ impl Atlas {
     }
     fn edit_key(&self) -> String {
         format!(
-            "{:?}:{}:{:?}:{:?}:{}:{}",
+            "{:?}:{}:{:?}:{:?}:{}:{}:{:?}:{}",
             self.files.get(self.image_index).map(|(p, _)| p),
             self.image_index,
             self.settings.rules,
             self.settings.web,
             self.settings.width,
-            self.settings.height
+            self.settings.height,
+            self.settings.template,
+            self.settings.dpi
         )
     }
     fn refresh_preview(&mut self, ctx: &egui::Context) {
@@ -925,9 +932,9 @@ impl Atlas {
         {
             crate::web::preview(encoded, &path)
         } else {
-            convert::load(&path).map(|image| {
+            convert::load(&path).and_then(|image| {
                 if self.original {
-                    image
+                    Ok(image)
                 } else {
                     convert::prepare(image, &self.settings)
                 }
@@ -1243,6 +1250,36 @@ impl Atlas {
         });
     }
     fn inspector(&mut self, ui: &mut egui::Ui) {
+        if ui
+            .add_enabled(
+                !self.files.is_empty() && !self.importing,
+                egui::Button::new(crate::i18n::text("Upscale images")),
+            )
+            .clicked()
+        {
+            let sources = self
+                .files
+                .iter()
+                .map(|(path, _)| crate::web::Source {
+                    path: path.clone(),
+                    edited_svg: None,
+                })
+                .collect();
+            self.upscaler
+                .open(sources, self.image_index, Some(self.settings.clone()));
+        }
+        ui.separator();
+        let mut template_enabled = self.settings.template.is_some();
+        if ui
+            .checkbox(&mut template_enabled, crate::i18n::text("Dima"))
+            .changed()
+        {
+            self.settings.template = template_enabled.then(Default::default);
+        }
+        if let Some(template) = &mut self.settings.template {
+            template.ui(ui, &mut self.settings.dpi);
+        }
+        ui.separator();
         let mut web_enabled = self.settings.web.is_some();
         if ui
             .checkbox(&mut web_enabled, crate::i18n::text("Web optimized export"))
@@ -2105,6 +2142,7 @@ impl eframe::App for Atlas {
                 });
         }
         self.update_progress_ui(ctx);
+        self.upscaler.ui(ctx);
         self.show_mapping_notice(ctx);
         update::report_healthy();
         if self.workspace_restored {

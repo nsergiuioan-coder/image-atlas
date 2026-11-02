@@ -252,5 +252,14 @@
   "Update the existing copy in this folder.": "Aktualizujte stávající kopii v této složce.",
   "Save your work and close Atlas before updating.": "Před aktualizací uložte práci a zavřete Atlas.",
   "GitHub ({repository}): {latest} · This app: {current} · Checked: {time}": "GitHub ({repository}): {latest} · Tato aplikace: {current} · Zkontrolováno: {time}",
-  "Update check failed: {error}": "Kontrola aktualizací selhala: {error}"
+  "Update check failed: {error}": "Kontrola aktualizací selhala: {error}",
+  "Upscale images": "Zvětšit obrázky",
+  "Photos (AI)": "Fotografie (AI)",
+  "Signs and logos (SVG)": "Značky a loga (SVG)",
+  "Preview": "Náhled",
+  "First use downloads a 46 MB AI engine.": "Při prvním použití se stáhne 46 MB AI modul.",
+  "Dima": "Šablona",
+  "Margin around artwork": "Okraj kolem grafiky",
+  "Fixed width and height": "Pevná šířka a výška",
+  "Corner radius": "Poloměr rohů"
 }

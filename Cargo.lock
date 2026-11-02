@@ -2826,10 +2826,11 @@ dependencies = [
 
 [[package]]
 name = "image-atlas"
-version = "0.1.7"
+version = "0.1.8"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
+ "crc32fast",
  "crossbeam-channel",
  "eframe",
  "egui_kittest",

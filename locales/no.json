@@ -252,5 +252,14 @@
   "Update the existing copy in this folder.": "Oppdater den eksisterende kopien i denne mappen.",
   "Save your work and close Atlas before updating.": "Lagre arbeidet ditt og lukk Atlas før oppdateringen.",
   "GitHub ({repository}): {latest} · This app: {current} · Checked: {time}": "GitHub ({repository}): {latest} · Denne appen: {current} · Kontrollert: {time}",
-  "Update check failed: {error}": "Kunne ikke se etter oppdateringer: {error}"
+  "Update check failed: {error}": "Kunne ikke se etter oppdateringer: {error}",
+  "Upscale images": "Oppskaler bilder",
+  "Photos (AI)": "Bilder (KI)",
+  "Signs and logos (SVG)": "Skilt og logoer (SVG)",
+  "Preview": "Forhåndsvisning",
+  "First use downloads a 46 MB AI engine.": "Ved første bruk lastes en KI-motor på 46 MB ned.",
+  "Dima": "Mal",
+  "Margin around artwork": "Marg rundt motivet",
+  "Fixed width and height": "Fast bredde og høyde",
+  "Corner radius": "Hjørneradius"
 }

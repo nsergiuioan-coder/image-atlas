@@ -1,6 +1,6 @@
 [package]
 name = "image-atlas"
-version = "0.1.7"
+version = "0.1.8"
 edition = "2024"
 authors = ["NIS"]
 license = "MIT"
@@ -10,6 +10,7 @@ description = "Map website images, download organized collections, and prepare i
 anyhow = "1"
 base64 = "0.22"
 crossbeam-channel = "0.5"
+crc32fast = "1"
 eframe = { version = "0.37.0", default-features = false, features = ["accesskit", "clipboard", "links", "default_fonts", "wgpu_no_default_features", "wayland", "x11"] }
 egui_system_font_provider = "0.37.0"
 flate2 = "1"
