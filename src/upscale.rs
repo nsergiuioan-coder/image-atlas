@@ -155,7 +155,11 @@ fn enhance(
             let root = root.context("Download the AI engine first")?;
             let dimensions = image.dimensions();
             ensure_memory(dimensions.0, dimensions.1)?;
-            let alpha = image.has_alpha().then(|| image.to_rgba8());
+            let alpha = image.has_alpha().then(|| {
+                image::GrayImage::from_fn(image.width(), image.height(), |x, y| {
+                    image::Luma([image.get_pixel(x, y)[3]])
+                })
+            });
             DynamicImage::ImageRgb8(crate::convert::flatten_white(&image))
                 .save_with_format(&source_path, image::ImageFormat::Png)?;
             engine::run(
@@ -180,10 +184,13 @@ fn enhance(
                     ),
                 "AI engine returned incorrect dimensions"
             );
-            let rgb = result.to_rgb8();
             anyhow::ensure!(
-                rgb.as_raw().iter().any(|value| *value > 0)
-                    || image.to_rgb8().as_raw().iter().all(|value| *value == 0),
+                result
+                    .pixels()
+                    .any(|(_, _, pixel)| pixel.0[..3].iter().any(|value| *value > 0))
+                    || image
+                        .pixels()
+                        .all(|(_, _, pixel)| pixel.0[..3].iter().all(|value| *value == 0)),
                 "AI engine produced an empty black image"
             );
             if options.scale == 2 {
@@ -194,11 +201,8 @@ fn enhance(
                 );
             }
             if let Some(alpha) = alpha {
-                let mask = image::GrayImage::from_fn(alpha.width(), alpha.height(), |x, y| {
-                    image::Luma([alpha.get_pixel(x, y)[3]])
-                });
                 let mask = image::imageops::resize(
-                    &mask,
+                    &alpha,
                     result.width(),
                     result.height(),
                     image::imageops::FilterType::Triangle,

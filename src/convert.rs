@@ -238,6 +238,9 @@ pub fn prepare(mut image: DynamicImage, settings: &Settings) -> Result<DynamicIm
 }
 
 pub(crate) fn flatten_white(image: &DynamicImage) -> image::RgbImage {
+    if let Some(rgb) = image.as_rgb8() {
+        return rgb.clone();
+    }
     let rgba = image.as_rgba8().map_or_else(
         || std::borrow::Cow::Owned(image.to_rgba8()),
         std::borrow::Cow::Borrowed,

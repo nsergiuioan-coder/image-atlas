@@ -18,3 +18,16 @@ The new shaping engine increases UI layout cost: this fixture took about 36 ms f
 The crawler now overlaps requests and parsing, saves pending and in-flight work durably, and reduces concurrency on transient failures or server throttling. The local crawl used about 13.7 MiB peak working set, compared with 8.6 MiB previously; CPU time increased from 0.078 to 0.203 seconds while elapsed time fell. Browser-rendered mapping uses one browser page at a time to avoid launching multiple browser processes. Real websites have different response times and rate limits, so the local timing does not predict a specific site's speed.
 
 The ignored tests in `src/profiling.rs` reproduce image, local-server and headless language-rendering workloads. Set `IMAGE_ATLAS_SAMPLE` to an input file for the image workload and `IMAGE_ATLAS_PROFILE_NATIVE=1` for native-size JPEG export. Desktop resource profiling remains separate from these headless measurements.
+
+## Dima rendering, 0.1.10
+
+A local release-build comparison used a 700 × 1000 RGBA image fitted inside a 200 × 300 mm dima at 300 DPI. Three alternating old/new renders were performed for each corner radius. Every output pixel was compared, with identical results. Median elapsed time, including fitting and drawing the dima:
+
+| Corner radius | Before | After | Reduction |
+| --- | ---: | ---: | ---: |
+| 0 mm | 279.8 ms | 166.2 ms | 40.6% |
+| 8 mm | 272.7 ms | 169.7 ms | 37.8% |
+
+The renderer now processes edge bands rather than repeating border-distance calculations over untouched interior pixels. This is a rendering measurement, not an estimate of total export speed.
+
+The AI path also stores the original transparency mask as one byte per input pixel instead of copying a four-byte RGBA image, and checks for black output without allocating a full RGB copy of the enlarged result. Opaque RGB inputs bypass an unnecessary RGBA conversion when flattening. Whole-process RAM savings were not measured in this pass.

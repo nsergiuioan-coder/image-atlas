@@ -191,18 +191,47 @@ impl Template {
             ((height - image.height()) / 2) as i64,
         );
         let radius = (self.radius as f64 * pixels).min(width.min(height) as f64 / 2.0);
-        for (x, y, pixel) in canvas.enumerate_pixels_mut() {
+        let band = ((radius + stroke + 1.0).ceil() as usize).min(width as usize);
+        let paint = |x: usize, y: usize, pixel: &mut [u8]| {
             let qx = (x as f64 + 0.5 - width as f64 / 2.0).abs() - (width as f64 / 2.0 - radius);
             let qy = (y as f64 + 0.5 - height as f64 / 2.0).abs() - (height as f64 / 2.0 - radius);
             let distance = qx.max(0.0).hypot(qy.max(0.0)) + qx.max(qy).min(0.0) - radius;
             let alpha = (0.5 - distance).clamp(0.0, 1.0);
             let outline = (distance + stroke + 0.5).clamp(0.0, 1.0) * (stroke > 0.0) as u8 as f64;
-            for channel in 0..3 {
-                pixel[channel] = (pixel[channel] as f64 * (1.0 - outline)
-                    + self.stroke[channel] as f64 * outline)
+            for (channel, value) in pixel.iter_mut().take(3).enumerate() {
+                *value = (*value as f64 * (1.0 - outline) + self.stroke[channel] as f64 * outline)
                     .round() as u8;
             }
             pixel[3] = (pixel[3] as f64 * alpha).round() as u8;
+        };
+        for (y, row) in canvas
+            .as_mut()
+            .chunks_exact_mut(width as usize * 4)
+            .enumerate()
+        {
+            if y < band || y + band >= height as usize || band * 2 >= width as usize {
+                for (x, pixel) in row.as_chunks_mut::<4>().0.iter_mut().enumerate() {
+                    paint(x, y, pixel);
+                }
+            } else {
+                for (x, pixel) in row[..band * 4]
+                    .as_chunks_mut::<4>()
+                    .0
+                    .iter_mut()
+                    .enumerate()
+                {
+                    paint(x, y, pixel);
+                }
+                let start = width as usize - band;
+                for (x, pixel) in row[start * 4..]
+                    .as_chunks_mut::<4>()
+                    .0
+                    .iter_mut()
+                    .enumerate()
+                {
+                    paint(start + x, y, pixel);
+                }
+            }
         }
         Ok(DynamicImage::ImageRgba8(canvas))
     }
