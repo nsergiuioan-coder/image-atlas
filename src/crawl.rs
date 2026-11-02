@@ -521,6 +521,36 @@ fn render(url: &Url) -> Result<String> {
     Ok(String::from_utf8_lossy(&bytes).into_owned())
 }
 
+#[derive(Default)]
+struct MappingEstimate {
+    samples: VecDeque<f64>,
+}
+impl MappingEstimate {
+    fn observe(&mut self, seconds: f64) {
+        self.samples.push_back(seconds.max(0.001));
+        if self.samples.len() > 20 {
+            self.samples.pop_front();
+        }
+    }
+    fn remaining(&self, pages: usize) -> Option<f64> {
+        if pages == 0 {
+            return Some(0.0);
+        }
+        if self.samples.len() < 2 {
+            return None;
+        }
+        let (weighted, weights) =
+            self.samples
+                .iter()
+                .enumerate()
+                .fold((0.0, 0.0), |(sum, weights), (i, time)| {
+                    let weight = (i + 1) as f64;
+                    (sum + time * weight, weights + weight)
+                });
+        Some(weighted / weights * pages as f64)
+    }
+}
+
 pub fn map_site(options: CrawlOptions, cancel: Cancel, events: Sender<Event>) -> Result<SiteMap> {
     let base =
         Url::parse(&options.website).context("Enter a complete http:// or https:// website URL")?;
@@ -538,6 +568,10 @@ pub fn map_site(options: CrawlOptions, cancel: Cancel, events: Sender<Event>) ->
     {
         queue.push_back((u, Vec::new()));
     }
+    let mut discovered = HashSet::new();
+    queue.retain(|(url, _)| discovered.insert(url.to_string()));
+    let mut estimate = MappingEstimate::default();
+    let mut scanned = 0;
     let mut seen = HashSet::new();
     let mut unique = HashSet::new();
     let mut map = SiteMap {
@@ -553,12 +587,14 @@ pub fn map_site(options: CrawlOptions, cancel: Cancel, events: Sender<Event>) ->
         if !seen.insert(url.to_string()) {
             continue;
         }
-        let _ = events.send(Event::Log(format!(
-            "Mapping {} · {} pages · {} images",
-            url,
-            map.pages,
-            map.assets.len()
-        )));
+        let request_started = std::time::Instant::now();
+        let _ = events.send(Event::MappingProgress {
+            scanned,
+            queued: queue.len() + 1,
+            images: map.assets.len(),
+            eta_seconds: estimate.remaining(queue.len() + 1),
+            current_url: url.to_string(),
+        });
         let source = if options.render && !url.path().ends_with(".xml") {
             render(&url)
         } else {
@@ -584,13 +620,22 @@ pub fn map_site(options: CrawlOptions, cancel: Cancel, events: Sender<Event>) ->
                     }
                 }
                 for (next, path) in page.links {
-                    if next.origin() == base.origin() && !seen.contains(next.as_str()) {
+                    if next.origin() == base.origin() && discovered.insert(next.to_string()) {
                         queue.push_back((next, path));
                     }
                 }
             }
             Err(e) => map.notices.push(format!("{}: {}", url, e)),
         }
+        scanned += 1;
+        estimate.observe(request_started.elapsed().as_secs_f64());
+        let _ = events.send(Event::MappingProgress {
+            scanned,
+            queued: queue.len(),
+            images: map.assets.len(),
+            eta_seconds: estimate.remaining(queue.len()),
+            current_url: url.to_string(),
+        });
     }
     Ok(map)
 }
@@ -616,5 +661,85 @@ mod tests {
         let base = Url::parse("https://example.test").unwrap();
         assert!(web_url(&base, "javascript:alert(1)").is_none());
         assert!(web_url(&base, "file:///etc/passwd").is_none());
+    }
+    #[test]
+    fn mapping_eta_uses_measured_times_and_current_queue() {
+        let mut estimate = MappingEstimate::default();
+        assert_eq!(estimate.remaining(5), None);
+        estimate.observe(1.0);
+        assert_eq!(estimate.remaining(5), None);
+        estimate.observe(3.0);
+        let earlier = estimate.remaining(3).unwrap();
+        assert!((earlier - 7.0).abs() < 0.001);
+        assert!((estimate.remaining(6).unwrap() - earlier * 2.0).abs() < 0.001);
+        estimate.observe(15.0);
+        assert!(estimate.remaining(3).unwrap() > earlier);
+        assert_eq!(estimate.remaining(0), Some(0.0));
+    }
+    #[test]
+    fn mapping_reports_unique_pending_pages_and_completion() {
+        use std::{
+            io::{Read, Write},
+            net::TcpListener,
+        };
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let website = format!("http://{}/", listener.local_addr().unwrap());
+        let server = std::thread::spawn(move || {
+            for number in 0..3 {
+                let (mut socket, _) = listener.accept().unwrap();
+                socket
+                    .set_read_timeout(Some(Duration::from_secs(5)))
+                    .unwrap();
+                let mut request = [0u8; 4096];
+                socket.read(&mut request).unwrap();
+                std::thread::sleep(Duration::from_millis(15 * (number + 1)));
+                let body = if number == 0 {
+                    "<h1>Home</h1><a href='/one'>One</a><a href='/one'>Duplicate</a><a href='/two'>Two</a>"
+                } else {
+                    "<h1>Product</h1><img src='/original.svg'>"
+                };
+                write!(socket,"HTTP/1.1 200 OK\r\nContent-Length: {}\r\nContent-Type: text/html\r\nConnection: close\r\n\r\n{body}",body.len()).unwrap();
+            }
+        });
+        let (tx, rx) = crossbeam_channel::unbounded();
+        let map = map_site(
+            CrawlOptions {
+                website,
+                render: false,
+                sitemap: false,
+            },
+            Cancel::default(),
+            tx,
+        )
+        .unwrap();
+        server.join().unwrap();
+        assert_eq!(map.pages, 3);
+        let samples = rx
+            .try_iter()
+            .filter_map(|event| {
+                if let Event::MappingProgress {
+                    scanned,
+                    queued,
+                    eta_seconds,
+                    ..
+                } = event
+                {
+                    Some((scanned, queued, eta_seconds))
+                } else {
+                    None
+                }
+            })
+            .collect::<Vec<_>>();
+        assert!(
+            samples
+                .iter()
+                .any(|(scanned, queued, _)| *scanned == 1 && *queued == 2)
+        );
+        assert!(
+            samples
+                .iter()
+                .any(|(_, queued, eta)| *queued > 0 && eta.is_some_and(|s| s > 0.0))
+        );
+        assert_eq!(samples.last().unwrap(), &(3, 0, Some(0.0)));
     }
 }

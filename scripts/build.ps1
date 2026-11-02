@@ -23,5 +23,5 @@ try {
     Copy-Item LICENSE,NOTICE,ATTRIBUZIONI.txt,README.md $portable
     Copy-Item THIRD-PARTY-LICENSES $portable -Recurse -Force
     Compress-Archive -Path "$portable/*" -DestinationPath "dist/ImageAtlas-$version-portable.zip" -Force
-    Get-ChildItem dist -File | Where-Object Extension -in '.exe','.zip' | ForEach-Object { '{0}  {1}' -f (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower(), $_.Name } | Set-Content dist/SHA256SUMS.txt
+    Get-Item "dist/ImageAtlas-$version-setup.exe", "dist/ImageAtlas-$version-portable.zip" | ForEach-Object { '{0}  {1}' -f (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower(), $_.Name } | Set-Content dist/SHA256SUMS.txt
 } finally { Pop-Location }

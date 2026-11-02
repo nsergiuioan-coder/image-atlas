@@ -13,8 +13,18 @@ struct Object {
     bounds: egui::Rect,
     inverse: resvg::tiny_skia::Transform,
 }
+struct DocumentState {
+    root: Element,
+    undo: Vec<Element>,
+    redo: Vec<Element>,
+}
+
 #[derive(Default)]
 pub struct Editor {
+    documents: Vec<PathBuf>,
+    document_index: usize,
+    saved_documents: HashMap<PathBuf, DocumentState>,
+    modified: bool,
     root: Option<Element>,
     path: Option<PathBuf>,
     objects: Vec<Object>,
@@ -90,7 +100,7 @@ fn reorder(root: &mut Element, id: &str, front: bool) -> bool {
         .any(|e| reorder(e, id, front))
 }
 impl Editor {
-    pub fn open(&mut self, path: &Path) -> Result<()> {
+    fn load(&mut self, path: &Path) -> Result<()> {
         let mut root = if crate::download::detected_extension(&std::fs::read(path)?, "").as_deref()
             == Some("svg")
         {
@@ -115,7 +125,84 @@ impl Editor {
         self.message = "Select an object on the canvas or in Layers.".into();
         Ok(())
     }
+    pub fn open(&mut self, path: &Path) -> Result<()> {
+        self.add_files(vec![path.to_path_buf()])
+    }
+    pub fn add_files(&mut self, paths: Vec<PathBuf>) -> Result<()> {
+        if self.root.is_some() && self.path.is_none() {
+            let mut number = 1;
+            let mut key = PathBuf::from("Untitled.svg");
+            while self.documents.contains(&key) {
+                number += 1;
+                key = PathBuf::from(format!("Untitled-{number}.svg"));
+            }
+            self.documents.push(key.clone());
+            self.path = Some(key);
+            self.modified = true;
+        }
+        let first = paths.first().cloned();
+        for path in paths {
+            if path.is_file() && !self.documents.contains(&path) {
+                self.documents.push(path);
+            }
+        }
+        if let Some(index) = first.and_then(|path| self.documents.iter().position(|p| p == &path)) {
+            self.switch_document(index)?;
+        }
+        Ok(())
+    }
+    fn switch_document(&mut self, index: usize) -> Result<()> {
+        let path = self
+            .documents
+            .get(index)
+            .context("Image is not in this collection")?
+            .clone();
+        if self.path.as_ref() == Some(&path) {
+            self.document_index = index;
+            return Ok(());
+        }
+        let remembered = self.saved_documents.remove(&path);
+        let mut candidate = Self::default();
+        let loaded = if remembered.is_none() {
+            candidate.load(&path)
+        } else {
+            Ok(())
+        };
+        if self.modified
+            && let (Some(old_path), Some(root)) = (self.path.clone(), self.root.take())
+        {
+            self.saved_documents.insert(
+                old_path,
+                DocumentState {
+                    root,
+                    undo: std::mem::take(&mut self.undo),
+                    redo: std::mem::take(&mut self.redo),
+                },
+            );
+        }
+        self.modified = remembered.is_some();
+        if let Some(state) = remembered {
+            self.root = Some(state.root);
+            self.undo = state.undo;
+            self.redo = state.redo;
+        } else {
+            self.root = candidate.root;
+            self.undo.clear();
+            self.redo.clear();
+        }
+        self.path = Some(path);
+        self.document_index = index;
+        self.selected = None;
+        self.texture = None;
+        self.objects.clear();
+        self.zoom = 1.0;
+        self.pan = egui::Vec2::ZERO;
+        self.dirty = true;
+        self.message = "Select an object on the canvas or in Layers.".into();
+        loaded
+    }
     fn snapshot(&mut self) {
+        self.modified = true;
         if let Some(root) = &self.root {
             self.undo.push(root.clone());
             self.redo.clear();
@@ -136,6 +223,7 @@ impl Editor {
             let old = e.attributes.get("transform").cloned().unwrap_or_default();
             e.attributes
                 .insert("transform".into(), format!("{old} {value}"));
+            self.modified = true;
             self.dirty = true;
         }
     }
@@ -169,6 +257,7 @@ impl Editor {
                 .join(";");
             e.attributes
                 .insert("style".into(), format!("{filtered};{property}:{value}"));
+            self.modified = true;
             self.dirty = true;
         }
     }
@@ -328,6 +417,7 @@ impl Editor {
                     if let Some(root) = self.root.replace(previous) {
                         self.undo.push(root);
                     }
+                    self.modified = true;
                     self.dirty = true;
                 }
                 if ui
@@ -338,10 +428,46 @@ impl Editor {
                     if let Some(root) = self.root.replace(previous) {
                         self.redo.push(root);
                     }
+                    self.modified = true;
                     self.dirty = true;
                 }
             });
         });
+        if !self.documents.is_empty() {
+            let mut next = self.document_index;
+            ui.horizontal(|ui| {
+                if ui
+                    .add_enabled(next > 0, egui::Button::new("Previous"))
+                    .clicked()
+                {
+                    next -= 1;
+                }
+                let last = self.documents.len() - 1;
+                ui.add_enabled(
+                    last > 0,
+                    egui::Slider::new(&mut next, 0..=last).show_value(false),
+                );
+                if ui
+                    .add_enabled(next < last, egui::Button::new("Next"))
+                    .clicked()
+                {
+                    next += 1;
+                }
+                ui.label(format!("{} / {}", next + 1, self.documents.len()));
+                if let Some(path) = self.documents.get(next) {
+                    ui.add(
+                        egui::Label::new(path.file_name().unwrap_or_default().to_string_lossy())
+                            .truncate(),
+                    )
+                    .on_hover_text(path.display().to_string());
+                }
+            });
+            if next != self.document_index
+                && let Err(e) = self.switch_document(next)
+            {
+                self.message = e.to_string();
+            }
+        }
         ui.horizontal(|ui| {
             for (kind, label) in [
                 ("rect", "Rectangle"),
@@ -443,6 +569,7 @@ impl Editor {
                                 if let (Some(root), Some(id)) = (&mut self.root, &self.selected) {
                                     reorder(root, id, true);
                                 }
+                                self.modified = true;
                                 self.dirty = true;
                             }
                             if ui.button("Back").clicked() {
@@ -450,6 +577,7 @@ impl Editor {
                                 if let (Some(root), Some(id)) = (&mut self.root, &self.selected) {
                                     reorder(root, id, false);
                                 }
+                                self.modified = true;
                                 self.dirty = true;
                             }
                         });
@@ -462,6 +590,7 @@ impl Editor {
                                 self.undo.push(root.clone());
                                 if let Some(element) = element_mut(root, id) {
                                     element.children = vec![XMLNode::Text(text)];
+                                    self.modified = true;
                                     self.dirty = true;
                                 }
                             }
@@ -472,6 +601,7 @@ impl Editor {
                                 remove(root, id);
                             }
                             self.selected = None;
+                            self.modified = true;
                             self.dirty = true;
                         }
                     });
@@ -563,7 +693,11 @@ impl Editor {
                 painter.text(
                     rect.center(),
                     egui::Align2::CENTER_CENTER,
-                    "Open an SVG, or add a shape to start",
+                    if self.documents.is_empty() {
+                        "Open an SVG, or add a shape to start"
+                    } else {
+                        "Preview unavailable for this image"
+                    },
                     egui::FontId::proportional(20.0),
                     Color32::from_gray(100),
                 );
@@ -598,6 +732,54 @@ mod tests {
             !String::from_utf8(editor.bytes().unwrap())
                 .unwrap()
                 .contains("translate")
+        );
+    }
+    #[test]
+    fn collection_navigation_keeps_edits_and_loads_only_current_document() {
+        let dir = tempfile::tempdir().unwrap();
+        let first = dir.path().join("one.svg");
+        let second = dir.path().join("two.svg");
+        let bad = dir.path().join("bad.svg");
+        let svg=b"<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100\" height=\"100\"><rect id=\"box\" width=\"20\" height=\"30\"/></svg>";
+        std::fs::write(&first, svg).unwrap();
+        std::fs::write(&second, svg).unwrap();
+        std::fs::write(&bad, b"not an image").unwrap();
+        let mut editor = Editor::default();
+        editor
+            .add_files(vec![
+                first.clone(),
+                second.clone(),
+                bad.clone(),
+                first.clone(),
+            ])
+            .unwrap();
+        assert_eq!(editor.documents.len(), 3);
+        assert!(editor.saved_documents.is_empty());
+        editor.selected = Some("box".into());
+        editor.snapshot();
+        editor.paint_color("fill", "#ffffff".into());
+        editor.switch_document(1).unwrap();
+        assert_eq!(editor.saved_documents.len(), 1);
+        assert!(
+            !String::from_utf8(editor.bytes().unwrap())
+                .unwrap()
+                .contains("#ffffff")
+        );
+        editor.switch_document(0).unwrap();
+        assert!(
+            String::from_utf8(editor.bytes().unwrap())
+                .unwrap()
+                .contains("#ffffff")
+        );
+        assert_eq!(editor.undo.len(), 1);
+        assert!(editor.switch_document(2).is_err());
+        assert_eq!(editor.document_index, 2);
+        assert!(editor.root.is_none());
+        editor.switch_document(0).unwrap();
+        assert!(
+            String::from_utf8(editor.bytes().unwrap())
+                .unwrap()
+                .contains("#ffffff")
         );
     }
 }

@@ -6,13 +6,105 @@ use crate::{
 };
 use crossbeam_channel::{Receiver, Sender, unbounded};
 use eframe::egui::{self, Color32, RichText};
-use std::{path::PathBuf, time::Duration};
+use std::{
+    path::PathBuf,
+    time::{Duration, Instant},
+};
 
 const INK: Color32 = Color32::from_rgb(228, 234, 240);
 const ACCENT: Color32 = Color32::from_rgb(31, 124, 110);
 const PAPER: Color32 = Color32::from_rgb(23, 28, 34);
 
+struct MappingStatus {
+    scanned: usize,
+    queued: usize,
+    images: usize,
+    eta_seconds: Option<f64>,
+    received: Instant,
+    current_url: String,
+}
+impl MappingStatus {
+    fn label(&self) -> String {
+        let eta = match self.eta_seconds {
+            Some(seconds) if seconds > self.received.elapsed().as_secs_f64() => {
+                let left = (seconds - self.received.elapsed().as_secs_f64()).ceil() as u64;
+                format!("ETA ~{}m {:02}s", left / 60, left % 60)
+            }
+            Some(_) if self.queued == 0 => "Finishing mapping…".into(),
+            Some(_) => "Waiting for the server; recalculating ETA…".into(),
+            None => "Measuring scan speed…".into(),
+        };
+        format!(
+            "{} pages scanned · {} queued · {} images · {eta}",
+            self.scanned, self.queued, self.images
+        )
+    }
+}
+struct MappingNotice {
+    pages: usize,
+    images: usize,
+    notices: usize,
+    mode: update::MappingNotification,
+    created: Instant,
+}
+
+impl MappingNotice {
+    fn show(&self, ctx: &egui::Context) -> bool {
+        let summary = format!(
+            "{} pages scanned · {} images found",
+            self.pages, self.images
+        );
+        let warnings = self.notices;
+        match self.mode {
+            update::MappingNotification::Quick => {
+                if self.created.elapsed() >= Duration::from_secs(5) {
+                    return true;
+                }
+                let remaining = Duration::from_secs(5).saturating_sub(self.created.elapsed());
+                egui::Area::new(egui::Id::new("mapping-toast"))
+                    .anchor(egui::Align2::RIGHT_BOTTOM, [-24.0, -72.0])
+                    .order(egui::Order::Foreground)
+                    .interactable(false)
+                    .show(ctx, |ui| {
+                        Atlas::card().show(ui, |ui| {
+                            ui.strong("Mapping completed");
+                            ui.label(&summary);
+                            if warnings > 0 {
+                                ui.label(format!("{warnings} notices in Details"));
+                            }
+                        });
+                    });
+                ctx.request_repaint_after(remaining);
+                false
+            }
+            update::MappingNotification::Modal => {
+                let mut close = false;
+                egui::Modal::new(egui::Id::new("mapping-completed"))
+                    .frame(Atlas::card())
+                    .show(ctx, |ui| {
+                        ui.set_min_width(350.0);
+                        ui.heading("Mapping completed");
+                        ui.add_space(10.0);
+                        ui.label(&summary);
+                        if warnings > 0 {
+                            ui.label(format!("{warnings} notices are available in Details."));
+                        }
+                        ui.add_space(20.0);
+                        ui.vertical_centered(|ui| {
+                            if Atlas::primary(ui, "OK").clicked() {
+                                close = true;
+                            }
+                        });
+                    });
+                close
+            }
+        }
+    }
+}
+
 pub struct Atlas {
+    mapping_status: Option<MappingStatus>,
+    mapping_notice: Option<MappingNotice>,
     vector: crate::vector::Editor,
     tab: usize,
     url: String,
@@ -135,6 +227,8 @@ impl Atlas {
         let home =
             PathBuf::from(std::env::var_os("USERPROFILE").unwrap_or_default()).join("Downloads");
         let mut atlas = Self {
+            mapping_status: None,
+            mapping_notice: None,
             vector: Default::default(),
             tab: 0,
             url: String::new(),
@@ -191,6 +285,8 @@ impl Atlas {
         atlas
     }
     fn start(&mut self) {
+        self.mapping_status = None;
+        self.mapping_notice = None;
         self.cancel = Cancel::default();
         self.busy = true;
         self.progress = 0.0;
@@ -492,6 +588,8 @@ impl Atlas {
         };
         let tx = self.tx.clone();
         let cancel = self.cancel.clone();
+        let stopped = cancel.clone();
+        let collection_map = map.clone();
         std::thread::spawn(move || {
             let result = tokio::runtime::Builder::new_multi_thread()
                 .worker_threads(2)
@@ -502,6 +600,11 @@ impl Atlas {
                     rt.block_on(download::download_map(map, options, cancel, tx.clone()))
                 });
             let _ = tx.send(match result {
+                Ok(failures) if !stopped.stopped() => Event::DownloadFinished {
+                    files: download::downloaded_files(&collection_map, &folder),
+                    folder,
+                    failures,
+                },
                 Ok(failures) => Event::Finished { folder, failures },
                 Err(e) => Event::Failed(e.to_string()),
             });
@@ -1111,10 +1214,39 @@ impl Atlas {
             );
         });
     }
+    fn show_mapping_notice(&mut self, ctx: &egui::Context) {
+        if self
+            .mapping_notice
+            .as_ref()
+            .is_some_and(|notice| notice.show(ctx))
+        {
+            self.mapping_notice = None;
+        }
+    }
     fn settings_ui(&mut self, ui: &mut egui::Ui) {
         ui.heading("Preferences");
         ui.add_space(20.0);
         Self::card().show(ui, |ui| {
+            ui.strong("Mapping completion");
+            let old = self.preferences.mapping_notification;
+            ui.radio_value(
+                &mut self.preferences.mapping_notification,
+                update::MappingNotification::Quick,
+                "Quick popup — disappears after a few seconds",
+            );
+            ui.radio_value(
+                &mut self.preferences.mapping_notification,
+                update::MappingNotification::Modal,
+                "Blocking popup — requires OK to continue",
+            );
+            if old != self.preferences.mapping_notification
+                && let Err(e) = self.preferences.save()
+            {
+                self.error(e);
+            }
+            ui.add_space(10.0);
+            ui.separator();
+            ui.add_space(10.0);
             ui.strong("App updates");
             ui.checkbox(
                 &mut self.preferences.disable_updates,
@@ -1164,8 +1296,35 @@ impl eframe::App for Atlas {
                         self.logs.remove(0);
                     }
                 }
+                Event::MappingProgress {
+                    scanned,
+                    queued,
+                    images,
+                    eta_seconds,
+                    current_url,
+                } => {
+                    self.mapping_status = Some(MappingStatus {
+                        scanned,
+                        queued,
+                        images,
+                        eta_seconds,
+                        received: Instant::now(),
+                        current_url,
+                    });
+                    self.progress = scanned as f32 / (scanned + queued).max(1) as f32;
+                }
                 Event::Mapped(map) => {
                     self.busy = false;
+                    self.mapping_status = None;
+                    if !self.cancel.stopped() {
+                        self.mapping_notice = Some(MappingNotice {
+                            pages: map.pages,
+                            images: map.assets.len(),
+                            notices: map.notices.len(),
+                            mode: self.preferences.mapping_notification,
+                            created: Instant::now(),
+                        });
+                    }
                     self.status = format!(
                         "Found {} images across {} pages",
                         map.assets.len(),
@@ -1194,6 +1353,25 @@ impl eframe::App for Atlas {
                         self.logs.remove(0);
                     }
                 }
+                Event::DownloadFinished {
+                    folder,
+                    files,
+                    failures,
+                } => {
+                    self.busy = false;
+                    let count = files.len();
+                    self.status = format!(
+                        "Downloaded {count} files · {failures} errors · {}",
+                        folder.display()
+                    );
+                    if !files.is_empty() {
+                        self.import_files(files.clone());
+                        if let Err(e) = self.vector.add_files(files) {
+                            self.error(format!("Files are downloaded; editor preview: {e}"));
+                        }
+                        self.tab = 5;
+                    }
+                }
                 Event::Finished { folder, failures } => {
                     self.busy = false;
                     self.status = format!(
@@ -1208,11 +1386,19 @@ impl eframe::App for Atlas {
                 }
                 Event::Failed(s) => {
                     self.busy = false;
+                    self.mapping_status = None;
                     self.error(s);
                 }
                 Event::Update(r) => self.release = Some(r),
             }
         }
+        if let Some(mapping) = &self.mapping_status {
+            self.status = mapping.label();
+        }
+        let mapping_blocked = self
+            .mapping_notice
+            .as_ref()
+            .is_some_and(|n| n.mode == update::MappingNotification::Modal);
         let dropped = ctx.input(|i| {
             i.raw
                 .dropped_files
@@ -1220,7 +1406,7 @@ impl eframe::App for Atlas {
                 .filter_map(|f| f.path.clone())
                 .collect::<Vec<_>>()
         });
-        if !dropped.is_empty() {
+        if !dropped.is_empty() && !mapping_blocked {
             self.import_files(dropped);
             self.tab = 2;
         }
@@ -1231,6 +1417,9 @@ impl eframe::App for Atlas {
                     .inner_margin(egui::Margin::symmetric(28, 18)),
             )
             .show(ctx, |ui| {
+                if mapping_blocked {
+                    ui.disable();
+                }
                 ui.visuals_mut().override_text_color = Some(Color32::from_rgb(238, 242, 245));
                 ui.visuals_mut().widgets.inactive.weak_bg_fill = Color32::from_rgb(44, 50, 58);
                 ui.visuals_mut().widgets.inactive.fg_stroke.color =
@@ -1276,6 +1465,9 @@ impl eframe::App for Atlas {
                     .inner_margin(egui::Margin::symmetric(28, 10)),
             )
             .show(ctx, |ui| {
+                if mapping_blocked {
+                    ui.disable();
+                }
                 ui.horizontal(|ui| {
                     if self.busy {
                         ui.spinner();
@@ -1314,6 +1506,7 @@ impl eframe::App for Atlas {
                     .inner_margin(egui::Margin::symmetric(30, 22)),
             )
             .show(ctx, |ui| {
+                if mapping_blocked{ui.disable();}
                 if matches!(self.tab, 0 | 1 | 4) {
                     ui.horizontal(|ui| {
                         for (tab, label) in [(0, "Website"), (4, "Review images"), (1, "Download")]
@@ -1342,7 +1535,16 @@ impl eframe::App for Atlas {
                     });
                     ui.add_space(12.0);
                 }
-                ui.add_enabled_ui(!self.busy, |ui| match self.tab {
+                if let Some(mapping)=&self.mapping_status{
+                    Self::card().inner_margin(16).show(ui,|ui|{
+                        ui.strong("Mapping your website");
+                        ui.label(mapping.label());
+                        ui.add(egui::ProgressBar::new(self.progress).desired_height(6.0).fill(ACCENT));
+                        ui.add(egui::Label::new(RichText::new(&mapping.current_url).small().weak()).truncate());
+                        ui.weak("Based on measured page response times and the known queue. The estimate updates as more pages are discovered.");
+                    });ui.add_space(14.0);
+                }
+                ui.add_enabled_ui(!self.busy && !mapping_blocked, |ui| match self.tab {
                     0 => {
                         egui::ScrollArea::vertical().show(ui, |ui| self.website(ui));
                     }
@@ -1355,7 +1557,7 @@ impl eframe::App for Atlas {
                     _ => self.settings_ui(ui),
                 });
             });
-        if let Some(release) = self.release.clone() {
+        if !mapping_blocked && let Some(release) = self.release.clone() {
             egui::Window::new("A fresh version is ready")
                 .collapsible(false)
                 .resizable(false)
@@ -1391,10 +1593,99 @@ impl eframe::App for Atlas {
                     });
                 });
         }
+        self.show_mapping_notice(ctx);
         ctx.request_repaint_after(if self.busy {
             Duration::from_millis(100)
         } else {
             Duration::from_secs(2)
         });
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    fn draw_notice(
+        ctx: &egui::Context,
+        notice: &MappingNotice,
+        events: Vec<egui::Event>,
+    ) -> (bool, egui::FullOutput) {
+        let mut dismissed = false;
+        let output = ctx.run(
+            egui::RawInput {
+                screen_rect: Some(egui::Rect::from_min_size(
+                    egui::Pos2::ZERO,
+                    egui::vec2(800.0, 600.0),
+                )),
+                events,
+                ..Default::default()
+            },
+            |ctx| {
+                dismissed = notice.show(ctx);
+            },
+        );
+        (dismissed, output)
+    }
+    fn click(position: egui::Pos2) -> Vec<egui::Event> {
+        vec![
+            egui::Event::PointerMoved(position),
+            egui::Event::PointerButton {
+                pos: position,
+                button: egui::PointerButton::Primary,
+                pressed: true,
+                modifiers: Default::default(),
+            },
+            egui::Event::PointerButton {
+                pos: position,
+                button: egui::PointerButton::Primary,
+                pressed: false,
+                modifiers: Default::default(),
+            },
+        ]
+    }
+    #[test]
+    fn blocking_mapping_notice_waits_for_its_ok_button() {
+        let ctx = egui::Context::default();
+        let notice = MappingNotice {
+            pages: 12,
+            images: 30,
+            notices: 0,
+            mode: update::MappingNotification::Modal,
+            created: Instant::now(),
+        };
+        assert!(!draw_notice(&ctx, &notice, vec![]).0);
+        let (_, output) = draw_notice(&ctx, &notice, vec![]);
+        assert!(ctx.memory(|m| m.top_modal_layer().is_some()));
+        assert!(!draw_notice(&ctx, &notice, click(egui::pos2(5.0, 5.0))).0);
+        fn ok_position(shape: &egui::epaint::Shape) -> Option<egui::Pos2> {
+            match shape {
+                egui::epaint::Shape::Text(text) if text.galley.job.text == "OK" => {
+                    Some(text.pos + text.galley.size() * 0.5)
+                }
+                egui::epaint::Shape::Vec(shapes) => shapes.iter().find_map(ok_position),
+                _ => None,
+            }
+        }
+        let position = output
+            .shapes
+            .iter()
+            .find_map(|shape| ok_position(&shape.shape))
+            .expect("The completion popup must have a visible OK button");
+        assert!(draw_notice(&ctx, &notice, click(position)).0);
+    }
+    #[test]
+    fn quick_mapping_notice_expires_without_blocking() {
+        let ctx = egui::Context::default();
+        let mut notice = MappingNotice {
+            pages: 2,
+            images: 3,
+            notices: 0,
+            mode: update::MappingNotification::Quick,
+            created: Instant::now(),
+        };
+        assert!(!draw_notice(&ctx, &notice, vec![]).0);
+        assert!(ctx.memory(|m| m.top_modal_layer().is_none()));
+        notice.created = Instant::now() - Duration::from_secs(6);
+        assert!(draw_notice(&ctx, &notice, vec![]).0);
     }
 }

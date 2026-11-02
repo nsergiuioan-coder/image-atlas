@@ -468,6 +468,30 @@ async fn download_pass(
     Ok((failures.len(), retryable))
 }
 
+pub fn downloaded_files(map: &SiteMap, folder: &Path) -> Vec<PathBuf> {
+    let index = read_index(&folder.join(".atlas-cache/downloads.json"));
+    let mut seen = std::collections::HashSet::new();
+    map.assets
+        .iter()
+        .filter(|a| a.selected)
+        .filter_map(|asset| {
+            let saved = index.get(&asset.url)?;
+            let mut relative = asset_path(asset);
+            relative.set_extension(&saved.extension);
+            let path = folder.join(relative);
+            if path
+                .metadata()
+                .is_ok_and(|m| m.is_file() && m.len() == saved.bytes)
+                && seen.insert(path.clone())
+            {
+                Some(path)
+            } else {
+                None
+            }
+        })
+        .collect()
+}
+
 #[derive(Debug)]
 struct TransientFailure(String);
 impl std::fmt::Display for TransientFailure {
@@ -624,7 +648,7 @@ mod tests {
         let runtime = tokio::runtime::Runtime::new().unwrap();
         assert_eq!(
             runtime
-                .block_on(download_map(
+                .block_on(download_pass(
                     map,
                     Options {
                         folder: dir.path().into(),
@@ -635,7 +659,7 @@ mod tests {
                     tx
                 ))
                 .unwrap(),
-            0
+            (0, false)
         );
         server.join().unwrap();
         let output = walkdir::WalkDir::new(dir.path().join("Category"))
@@ -691,5 +715,48 @@ mod tests {
         let svg = fs::read(&output).unwrap();
         assert!(resvg::usvg::Tree::from_data(&svg, &Default::default()).is_ok());
         assert!(crate::convert::load(&output).is_ok());
+    }
+    #[test]
+    fn editor_import_contains_only_completed_selected_files() {
+        let dir = tempfile::tempdir().unwrap();
+        let cache = dir.path().join(".atlas-cache");
+        fs::create_dir_all(&cache).unwrap();
+        let asset = Asset {
+            url: "https://example.test/wrong.svg".into(),
+            page: "https://example.test".into(),
+            label: "Product".into(),
+            folders: vec!["Category".into()],
+            selected: true,
+        };
+        let mut missing = asset.clone();
+        missing.url = "https://example.test/missing.svg".into();
+        let mut excluded = asset.clone();
+        excluded.url = "https://example.test/excluded.svg".into();
+        excluded.selected = false;
+        let saved = Saved {
+            file: "cached.jpg".into(),
+            bytes: 3,
+            sha256: "hash".into(),
+            extension: "jpg".into(),
+            width: None,
+            height: None,
+            response_ms: 0,
+        };
+        let index = HashMap::from([
+            (asset.url.clone(), saved.clone()),
+            (missing.url.clone(), saved.clone()),
+            (excluded.url.clone(), saved),
+        ]);
+        checkpoint(&cache.join("downloads.json"), &index).unwrap();
+        let mut relative = asset_path(&asset);
+        relative.set_extension("jpg");
+        let path = dir.path().join(relative);
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        fs::write(&path, b"jpg").unwrap();
+        let map = SiteMap {
+            assets: vec![asset.clone(), asset, missing, excluded],
+            ..Default::default()
+        };
+        assert_eq!(downloaded_files(&map, dir.path()), vec![path]);
     }
 }

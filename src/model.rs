@@ -29,6 +29,18 @@ pub struct SiteMap {
 pub enum Event {
     Log(String),
     Mapped(SiteMap),
+    MappingProgress {
+        scanned: usize,
+        queued: usize,
+        images: usize,
+        eta_seconds: Option<f64>,
+        current_url: String,
+    },
+    DownloadFinished {
+        folder: PathBuf,
+        files: Vec<PathBuf>,
+        failures: usize,
+    },
     Progress {
         done: usize,
         total: usize,

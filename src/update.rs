@@ -3,11 +3,20 @@ use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::{fs, path::PathBuf, time::Duration};
 
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub enum MappingNotification {
+    #[default]
+    Quick,
+    Modal,
+}
+
 #[derive(Default, Serialize, Deserialize)]
 pub struct Preferences {
     pub skip_version: String,
     pub disable_updates: bool,
     pub repository: String,
+    #[serde(default)]
+    pub mapping_notification: MappingNotification,
 }
 impl Preferences {
     fn path() -> PathBuf {
@@ -124,4 +133,19 @@ pub fn install(release: &UpdateRelease) -> Result<()> {
     fs::write(&path, &bytes)?;
     std::process::Command::new(path).spawn()?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn notification_setting_is_backward_compatible_and_persists() {
+        let old = r#"{"skip_version":"","disable_updates":false,"repository":"owner/app"}"#;
+        let mut preferences: Preferences = serde_json::from_str(old).unwrap();
+        assert_eq!(preferences.mapping_notification, MappingNotification::Quick);
+        preferences.mapping_notification = MappingNotification::Modal;
+        let restored: Preferences =
+            serde_json::from_slice(&serde_json::to_vec(&preferences).unwrap()).unwrap();
+        assert_eq!(restored.mapping_notification, MappingNotification::Modal);
+    }
 }

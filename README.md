@@ -10,13 +10,16 @@ The installer runs per user without administrator rights. The portable version r
 
 ## Website images
 
-- Map public pages and sitemaps before starting a download.
+- Map public pages and sitemaps before starting a download, with a time estimate based on measured scan times and the pages still queued. The estimate updates as more pages are discovered.
 - Review image sources, select files, and edit category and subcategory folders.
 - Save maps and reopen them later.
 - Download available originals without converting them. File contents determine the extension, so an SVG remains an SVG and a JPEG is saved as a JPEG.
 - Adapt connection counts to observed throughput and server responses, with an approximate time remaining.
 - Resume saved jobs, reuse completed downloads, and continue partial downloads when the server supports ETag-based resumption.
 - Export a ZIP archive and a CSV manifest containing source URLs and file hashes.
+- Open completed downloads automatically in the Vector editor, with Previous, Next, and a slider to browse the collection. The images are also available in the Batch editor.
+
+Preferences offers two mapping-completion notifications: a quick popup that disappears after five seconds, or a blocking dialog with an OK button beneath the summary. The blocking dialog stays open until OK is selected.
 
 Optional browser rendering supports many JavaScript-based websites and requires an installed copy of Edge or Chrome.
 
@@ -29,6 +32,8 @@ Resize by pixel dimensions or calculate a physical width using DPI. Replace colo
 Export PNG, JPEG, WebP, TIFF, BMP, GIF, ICO, QOI, TGA, AVIF, PDF, or SVG. SVG export offers two options: embedding a raster image or tracing artwork into vector shapes.
 
 ## Vector editor
+
+Browse the downloaded collection without loading every image into memory at once. Edits and undo history are preserved when switching between images.
 
 Select SVG objects on the canvas or in the layer list. Move and resize them, change fill and stroke, adjust their stacking order, or delete them. Add rectangles, ellipses, and text, use undo and redo, then save the result as SVG.
 
