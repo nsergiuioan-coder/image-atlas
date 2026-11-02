@@ -19,7 +19,7 @@
 
 ## Delivery
 
-Windows native executable, per-user installer, MIT license matching Etichette Studio, dependency attributions, source, tests, and release instructions. No GitHub push or public release before the owner's approval. Original code has no comments. Any copied third-party source must preserve its author and license at the top.
+Windows native executable, per-user installer, MIT license, dependency attributions, source, tests, and release instructions. Third-party components retain their required attribution and license notices.
 
 ## Validation
 

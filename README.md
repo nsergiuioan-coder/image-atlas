@@ -1,52 +1,73 @@
 # Image Atlas
 
-A native Windows workbench for mapping website images, collecting originals into useful folders, and preparing local batches. Rust with egui; no webview or bundled browser runtime.
+Image Atlas is a Windows desktop app for collecting website images, organizing them into folders, and preparing image batches. Review what a website exposes before downloading, adjust the folder structure, then edit and export your files from one workspace.
 
-## Use
+## Download
 
-1. Enter the complete website URL in Website map. Enable JavaScript rendering for dynamic sites if needed; Edge or Chrome must already be installed.
-2. Review the map before downloading. Filter entries, select images, edit product names and category paths, or save the map as JSON. Category paths can contain any number of levels separated by `/`.
-3. Choose a destination in Downloads. Leave the connection hint at zero for automatic operation, or enter the connection speed in Mbps. The scheduler adjusts connections using measured throughput and server backpressure. The ETA is approximate and includes observed response delays; differently sized images and retries can change it.
-4. Download selected images. The app keeps original bytes, detects the true extension, retains SVG vectors, resumes ETag-backed partial downloads, and reuses completed originals. The manifest records source URLs and hashes; failures are explicit. ZIP is optional.
-5. In Batch studio, import files, a folder or dropped images. Source dimensions appear automatically. Zero width and height preserve dimensions; setting only one preserves aspect ratio. Physical width uses the selected DPI to calculate pixels. PDF page dimensions also use that DPI.
-6. Browse the batch using Previous/Next or the slider. Scroll to zoom and drag to pan. Switch between Original and Edited. Add independent color rules for separate objects and the background, then use Pick from image. A rule can target edge-connected background, every matching color, or the connected area you click. Tolerance controls matching; feather softens matches near the tolerance boundary. Rules apply in order. Preview changes before exporting.
+Get the Windows installer or portable ZIP from [Releases](https://github.com/nsergiuioan-coder/image-atlas/releases).
 
-Batch exports: PNG, JPEG at quality 95, lossless WebP, TIFF, BMP, GIF, ICO, QOI, TGA, AVIF, PDF, embedded-raster SVG, and traced-vector SVG. SVG tracing is intended for flat artwork and can be slow on photographs. Embedded SVG retains pixels. PDF is export-only. Animated files are flattened to the decoded frame. AVIF export is supported; importing AVIF depends on the decoder features in the build. Raster-only formats flatten transparency onto white where required.
+The installer runs per user without administrator rights. The portable version runs from an extracted folder. Windows 10 or 11, 64-bit, is required. The current release is an unsigned preview.
 
-## What discovery covers
+## Website images
 
-Public linked pages and sitemap entries, breadcrumbs, high-resolution responsive sources, lazy image attributes, image links, OpenGraph metadata, JSON-LD, inline SVG, inline CSS image URLs, and a public storefront catalog adapter. The optional isolated browser renderer handles many JavaScript sites. External CSS assets, images hidden behind logins, CAPTCHAs, scroll-only loading, unlinked originals, private media libraries and site-specific APIs may need an additional adapter. A public website backup cannot include files the website never exposes. Small originals are reported rather than enlarged and labelled high resolution.
+- Map public pages and sitemaps before starting a download.
+- Review image sources, select files, and edit category and subcategory folders.
+- Save maps and reopen them later.
+- Download available originals without converting them. File contents determine the extension, so an SVG remains an SVG and a JPEG is saved as a JPEG.
+- Adapt connection counts to observed throughput and server responses, with an approximate time remaining.
+- Resume saved jobs, reuse completed downloads, and continue partial downloads when the server supports ETag-based resumption.
+- Export a ZIP archive and a CSV manifest containing source URLs and file hashes.
 
-The crawler stays on the starting website for page discovery; image hosts linked by those pages may be external. It does not extract browser credentials. Mapping is sequential to keep server load predictable. Downloads stream to disk and adapt concurrency, with one original reused across category placements. Batch conversion processes one image at a time to avoid holding the batch in RAM. Some encoders and vector tracing need more resources than ordinary downloads.
+Optional browser rendering supports many JavaScript-based websites and requires an installed copy of Edge or Chrome.
 
-## Install and build
+## Batch editor
 
-Use `ImageAtlas-0.1.0-setup.exe` for a per-user installation without administrator rights. The portable ZIP can be extracted anywhere. Windows 10/11 x64 is the packaged target. The initial build is unsigned.
+Import images or a folder, then browse the batch with Previous, Next, or the image slider. Zoom, pan, and compare the original with the edited preview.
 
-Requires a current Rust MSVC toolchain, Python 3 and NSIS to build the installer:
+Resize by pixel dimensions or calculate a physical width using DPI. Replace colors with independent rules for a connected area, the background at the edges, or matching colors throughout the image. Pick colors directly from the preview and restrict a rule to a rectangle to protect nearby artwork. Tolerance and feather controls adjust the match.
+
+Export PNG, JPEG, WebP, TIFF, BMP, GIF, ICO, QOI, TGA, AVIF, PDF, or SVG. SVG export offers two options: embedding a raster image or tracing artwork into vector shapes.
+
+## Vector editor
+
+Select SVG objects on the canvas or in the layer list. Move and resize them, change fill and stroke, adjust their stacking order, or delete them. Add rectangles, ellipses, and text, use undo and redo, then save the result as SVG.
+
+A PNG or JPEG opens as one image object. Tracing can create editable shapes; it does not recover the original document's layers or text.
+
+## Preview limitations
+
+Image discovery depends on what a website makes publicly accessible. Private libraries, access challenges, externally defined CSS images, and some scrolling or site-specific interfaces are not covered. A small source image cannot supply a higher-resolution original.
+
+PDF is export-only. AVIF export is supported, but AVIF import is not enabled in the packaged build. Animated inputs are flattened to the decoded frame. Color selection regions are reused at the same relative position across a batch, so check the preview when layouts differ.
+
+The vector editor does not support CorelDRAW documents, path-node editing, pen tools, or boolean geometry. Automatic recovery from prolonged network outages is experimental.
+
+## Build from source
+
+The application uses Rust and egui. Building the Windows installer also requires Python 3, NSIS, and the Rust MSVC toolchain.
+
+```powershell
+cargo run --release
+```
+
+To run the checks and build the installer and portable package:
 
 ```powershell
 ./scripts/build.ps1 -Nsis 'C:/Program Files (x86)/NSIS/makensis.exe'
 ```
 
-The build runs formatting, release tests and Clippy, generates dependency notices, and produces the installer, portable ZIP and SHA-256 sums in `dist`.
+Build outputs and SHA-256 checksums are written to `dist`.
 
-## Updates and releases
+## Updates
 
-Updates come from GitHub Releases, not directly from arbitrary source commits. Bump `version` in Cargo.toml and regenerate Cargo.lock before pushing an update. The Windows workflow builds and tests each relevant main-branch push, then creates a release only when that version does not already exist. It attaches the installer and checksum file.
+Published GitHub releases supply app updates. Users can install an update, postpone it, skip a version, or turn off automatic checks. Installer downloads are verified against the release checksums.
 
-The application checks `nsergiuioan-coder/image-atlas` by default; change owner/repository in Settings if the final repository name differs. Users choose Update, Later, or Don't remind me about this version, and can disable automatic checks. Update downloads are checked against release SHA-256 sums before launching the installer. Close Image Atlas when the installer asks to replace an existing executable. No public repository or release is created by building locally.
+For maintainers, the Windows workflow builds and tests relevant pushes to `main`. Bumping the package version creates a new release when that version has not already been published.
 
 ## License
 
-Copyright (c) 2026 NIS. MIT, matching Etichette Studio. Dependency authors and licenses are in ATTRIBUZIONI.txt and THIRD-PARTY-LICENSES. Original code contains no comments and no copied third-party implementation.
+Copyright (c) 2026 NIS. Licensed under the [MIT License](LICENSE).
 
-## Vector editor
+Third-party authors and licenses are listed in [ATTRIBUZIONI.txt](ATTRIBUZIONI.txt) and [THIRD-PARTY-LICENSES](THIRD-PARTY-LICENSES).
 
-Open an SVG to select objects on the canvas or in Layers. Drag an object to move it, use Smaller/Larger to resize around its center, change fill and stroke, reorder siblings with Front/Back, delete objects, and undo/redo. Add rectangles, ellipses or text and save a valid SVG. A raster input is embedded as one image object; its pixels do not become separate vector objects. Node editing, pen curves, boolean geometry, CorelDRAW files and full CSS authoring are outside this first version.
-
-The studio preview supports independent color rules with connected-area selection and an optional rectangle restriction. New rules are inactive until a color is picked. Area positions are relative and are reused across the batch, so review each image with the carousel before exporting mixed layouts.
-
-## Interrupted downloads
-
-The current download map and destination are saved before transfer starts. After restarting the app, an unfinished job is offered for resumption. Completed files are reused, and ETag-backed partial files can continue from their saved position. Transient connection and server failures trigger another pass after an increasing cooldown, from 15 seconds up to 5 minutes. Permanent errors remain listed for review. Stop keeps the saved job. The newest recovery changes have been compiled but have not yet had a prolonged network-outage test.
+Vibe coded.
