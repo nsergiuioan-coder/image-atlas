@@ -185,8 +185,8 @@
   "From": "Din",
   "Front": "Faţă",
   "Height": "Înălţime",
-  "Image Atlas {}": "Atlas de imagini {}",
-  "Image Atlas {} · NIS · MIT": "Atlas de imagine {} · NIS · MIT",
+  "Image Atlas {}": "Image Atlas {}",
+  "Image Atlas {} · NIS · MIT": "Image Atlas {} · NIS · MIT",
   "Image size": "Dimensiunea imaginii",
   "Images": "Imagini",
   "Images found: {0}": "Imagini găsite: {0}",
@@ -221,8 +221,6 @@
   "ETA ~{}m {:02}s": "ETA ~{}m {:02}s",
   "{} pages scanned · {} queued · {} images · {eta}": "Pagini {} scanate · {} în coadă · Imagini {} · {eta}",
   "{} pages scanned · {} images found": "{} pagini scanate · {} imagini găsite",
-  "Preview language support": "Previzualizare suport de limbă",
-  "Complex scripts may not display correctly yet.": "Este posibil ca scripturile complexe să nu se afișeze încă corect.",
   "Mapping": "Cartografiere",
   "Batch editor": "Editor de loturi",
   "Website images": "Imagini de site",
@@ -246,5 +244,6 @@
   "Batch": "Lot",
   "A fresh version is ready": "O versiune proaspătă este gata",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "PNG pentru transparență și lucrări de artă compacte; JPEG când este mult mai mic. SVG rămâne vector.",
-  "JPEG flattens transparency onto white.": "JPEG aplatizează transparența pe alb."
+  "JPEG flattens transparency onto white.": "JPEG aplatizează transparența pe alb.",
+  "A considered pace": "Descărcări adaptive"
 }

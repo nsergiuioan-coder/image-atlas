@@ -77,8 +77,8 @@
   "Front": "सामने",
   "Height": "ऊँचाई",
   "Image Atlas edited": "छवि एटलस संपादित",
-  "Image Atlas {}": "छवि एटलस {}",
-  "Image Atlas {} · NIS · MIT": "छवि एटलस {} · एनआईएस · एमआईटी",
+  "Image Atlas {}": "Image Atlas {}",
+  "Image Atlas {} · NIS · MIT": "Image Atlas {} · NIS · MIT",
   "Image dimensions exceed available memory": "छवि आयाम उपलब्ध मेमोरी से अधिक है",
   "Image is not in this collection": "छवि इस संग्रह में नहीं है",
   "Image size": "छवि का आकार",
@@ -221,8 +221,6 @@
   "ETA ~{}m {:02}s": "ईटीए ~{}m {:02}s",
   "{} pages scanned · {} queued · {} images · {eta}": "{} पृष्ठ स्कैन किए गए · {} पंक्तिबद्ध · {} छवियां · {eta}",
   "{} pages scanned · {} images found": "{} पृष्ठ स्कैन किए गए · {} छवियां मिलीं",
-  "Preview language support": "भाषा समर्थन का पूर्वावलोकन करें",
-  "Complex scripts may not display correctly yet.": "हो सकता है कि जटिल स्क्रिप्ट अभी तक ठीक से प्रदर्शित न हों।",
   "Mapping": "मानचित्रण",
   "Batch editor": "बैच संपादक",
   "Website images": "वेबसाइट छवियाँ",
@@ -246,5 +244,6 @@
   "Batch": "बैच",
   "A fresh version is ready": "एक ताज़ा संस्करण तैयार है",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "पारदर्शिता और कॉम्पैक्ट कलाकृति के लिए पीएनजी; JPEG जब बहुत छोटा हो. एसवीजी वेक्टर रहता है.",
-  "JPEG flattens transparency onto white.": "JPEG पारदर्शिता को सफेद रंग में समतल कर देता है।"
+  "JPEG flattens transparency onto white.": "JPEG पारदर्शिता को सफेद रंग में समतल कर देता है।",
+  "A considered pace": "अनुकूल डाउनलोड"
 }

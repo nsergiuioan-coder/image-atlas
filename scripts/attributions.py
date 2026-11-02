@@ -25,5 +25,9 @@ for package in sorted(metadata['packages'], key=lambda p: (p['name'], p['version
         if relative and (source / relative).is_file():
             target.mkdir(exist_ok=True)
             shutil.copy2(source / relative, target / Path(relative).name)
+lines.extend(['Local text-engine adaptations', 'egui / epaint: Emil Ernerfeldt and egui contributors', 'Bidirectional text patch: abdu-benayad', 'Source: https://github.com/emilk/egui/pull/8577', 'Pinned revision: c93e8863e958507056415e2a6dace56e23ba5f3a', 'Integration and corrective changes: NIS', 'License: MIT OR Apache-2.0', 'Local Windows binding compatibility patch: gpu-allocator by Traverse Research', 'See vendor/README.md for modifications.', ''])
+patch_notes = licenses / 'Atlas-local-patches'
+patch_notes.mkdir(exist_ok=True)
+shutil.copy2(root / 'vendor/README.md', patch_notes / 'README.md')
 (root / 'ATTRIBUZIONI.txt').write_text('\n'.join(lines), encoding='utf-8')
 print(f"Attributed {len(metadata['packages']) - 1} dependencies")

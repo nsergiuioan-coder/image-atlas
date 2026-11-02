@@ -77,8 +77,8 @@
   "Front": "جلو",
   "Height": "قد",
   "Image Atlas edited": "اطلس تصویر ویرایش شد",
-  "Image Atlas {}": "تصویر اطلس {}",
-  "Image Atlas {} · NIS · MIT": "تصویر Atlas {} · NIS · MIT",
+  "Image Atlas {}": "Image Atlas {}",
+  "Image Atlas {} · NIS · MIT": "Image Atlas {} · NIS · MIT",
   "Image dimensions exceed available memory": "ابعاد تصویر از حافظه موجود بیشتر است",
   "Image is not in this collection": "تصویر در این مجموعه نیست",
   "Image size": "اندازه تصویر",
@@ -221,8 +221,6 @@
   "ETA ~{}m {:02}s": "ETA ~{}m {:02}s",
   "{} pages scanned · {} queued · {} images · {eta}": "صفحات {} اسکن شده · {} در صف · تصاویر {} · {eta}",
   "{} pages scanned · {} images found": "صفحات {} اسکن شدند · تصاویر {} یافت شد",
-  "Preview language support": "پیش نمایش پشتیبانی از زبان",
-  "Complex scripts may not display correctly yet.": "ممکن است اسکریپت های پیچیده هنوز به درستی نمایش داده نشوند.",
   "Mapping": "نقشه برداری",
   "Batch editor": "ویرایشگر دسته ای",
   "Website images": "تصاویر وب سایت",
@@ -246,5 +244,6 @@
   "Batch": "دسته ای",
   "A fresh version is ready": "یک نسخه جدید آماده است",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "PNG برای شفافیت و آثار هنری فشرده؛ JPEG زمانی که بسیار کوچکتر است. SVG بردار می ماند.",
-  "JPEG flattens transparency onto white.": "JPEG شفافیت را روی سفید صاف می کند."
+  "JPEG flattens transparency onto white.": "JPEG شفافیت را روی سفید صاف می کند.",
+  "A considered pace": "دانلود تطبیقی"
 }

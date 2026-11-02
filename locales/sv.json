@@ -76,8 +76,8 @@
   "Front": "Front",
   "Height": "Höjd",
   "Image Atlas edited": "Bildatlas redigerad",
-  "Image Atlas {}": "Bildatlas {}",
-  "Image Atlas {} · NIS · MIT": "Bildatlas {} · NIS · MIT",
+  "Image Atlas {}": "Image Atlas {}",
+  "Image Atlas {} · NIS · MIT": "Image Atlas {} · NIS · MIT",
   "Image dimensions exceed available memory": "Bilddimensionerna överstiger tillgängligt minne",
   "Image is not in this collection": "Bilden finns inte i denna samling",
   "Image size": "Bildstorlek",
@@ -221,8 +221,6 @@
   "ETA ~{}m {:02}s": "ETA ~{}m {:02}s",
   "{} pages scanned · {} queued · {} images · {eta}": "{} sidor skannade · {} i kö · {} bilder · {eta}",
   "{} pages scanned · {} images found": "{}-sidor skannade · {}-bilder hittades",
-  "Preview language support": "Förhandsgranska språkstöd",
-  "Complex scripts may not display correctly yet.": "Komplexa skript kanske inte visas korrekt ännu.",
   "Mapping": "Kartläggning",
   "Batch editor": "Batch editor",
   "Website images": "Bilder på webbplatsen",
@@ -246,5 +244,6 @@
   "A fresh version is ready": "En fräsch version är klar",
   "A valid SVG containing pixels.": "En giltig SVG-fil med en inbäddad pixelbild.",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "PNG för transparens och enkel grafik; JPEG när filen blir betydligt mindre. SVG förblir vektorgrafik.",
-  "JPEG flattens transparency onto white.": "JPEG ersätter genomskinliga områden med vit bakgrund."
+  "JPEG flattens transparency onto white.": "JPEG ersätter genomskinliga områden med vit bakgrund.",
+  "A considered pace": "Anpassade hämtningar"
 }

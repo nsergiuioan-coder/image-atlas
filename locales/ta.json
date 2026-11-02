@@ -77,8 +77,8 @@
   "Front": "முன்",
   "Height": "உயரம்",
   "Image Atlas edited": "பட அட்லஸ் திருத்தப்பட்டது",
-  "Image Atlas {}": "படம் அட்லஸ் {}",
-  "Image Atlas {} · NIS · MIT": "படம் அட்லஸ் {} · NIS · MIT",
+  "Image Atlas {}": "Image Atlas {}",
+  "Image Atlas {} · NIS · MIT": "Image Atlas {} · NIS · MIT",
   "Image dimensions exceed available memory": "படத்தின் பரிமாணங்கள் கிடைக்கக்கூடிய நினைவகத்தை விட அதிகமாக உள்ளது",
   "Image is not in this collection": "படம் இந்தத் தொகுப்பில் இல்லை",
   "Image size": "படத்தின் அளவு",
@@ -221,8 +221,6 @@
   "ETA ~{}m {:02}s": "ETA ~{}m {:02}கள்",
   "{} pages scanned · {} queued · {} images · {eta}": "{} பக்கங்கள் ஸ்கேன் செய்யப்பட்டன · {} வரிசைப்படுத்தப்பட்டது · {} படங்கள் · {eta}",
   "{} pages scanned · {} images found": "{} பக்கங்கள் ஸ்கேன் செய்யப்பட்டன · {} படங்கள் கண்டறியப்பட்டன",
-  "Preview language support": "மொழி ஆதரவு முன்னோட்டம்",
-  "Complex scripts may not display correctly yet.": "சிக்கலான ஸ்கிரிப்டுகள் இன்னும் சரியாகக் காட்டப்படாமல் இருக்கலாம்.",
   "Mapping": "மேப்பிங்",
   "Batch editor": "தொகுதி ஆசிரியர்",
   "Website images": "இணையதள படங்கள்",
@@ -246,5 +244,6 @@
   "Batch": "தொகுதி",
   "A fresh version is ready": "புதிய பதிப்பு தயாராக உள்ளது",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "வெளிப்படைத்தன்மை மற்றும் சிறிய கலைப்படைப்புக்கான PNG; JPEG மிகவும் சிறியதாக இருக்கும் போது. SVG வெக்டராக இருக்கும்.",
-  "JPEG flattens transparency onto white.": "JPEG வெளிப்படைத்தன்மையை வெள்ளை நிறத்தில் சமன் செய்கிறது."
+  "JPEG flattens transparency onto white.": "JPEG வெளிப்படைத்தன்மையை வெள்ளை நிறத்தில் சமன் செய்கிறது.",
+  "A considered pace": "தகவமைப்பு பதிவிறக்கம்"
 }

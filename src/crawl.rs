@@ -4,7 +4,7 @@ use crossbeam_channel::Sender;
 use scraper::{ElementRef, Html, Selector};
 use serde_json::Value;
 use std::{
-    collections::{HashSet, VecDeque},
+    collections::{HashMap, HashSet, VecDeque},
     path::PathBuf,
     process::{Command, Stdio},
     time::Duration,
@@ -587,6 +587,41 @@ impl MappingEstimate {
     }
 }
 
+struct MappingConnections {
+    target: usize,
+    limit: usize,
+    healthy: usize,
+}
+
+impl MappingConnections {
+    fn new(limit: usize) -> Self {
+        Self {
+            target: limit.min(2),
+            limit,
+            healthy: 0,
+        }
+    }
+    fn observe(&mut self, success: bool, congested: bool) {
+        if congested {
+            self.target = (self.target / 2).max(1);
+            self.healthy = 0;
+        } else if success {
+            self.healthy += 1;
+            if self.healthy >= 8 {
+                self.target = (self.target + 1).min(self.limit);
+                self.healthy = 0;
+            }
+        }
+    }
+}
+
+fn retry_delay(value: Option<&str>) -> Duration {
+    value
+        .and_then(|value| value.parse::<u64>().ok())
+        .map(Duration::from_secs)
+        .unwrap_or(Duration::from_secs(5))
+}
+
 pub fn map_site(options: CrawlOptions, cancel: Cancel, events: Sender<Event>) -> Result<SiteMap> {
     map_site_at(options, cancel, events, &checkpoint_path())
 }
@@ -604,6 +639,7 @@ fn map_site_at(
         "Only HTTP and HTTPS websites are supported"
     );
     let client = reqwest::blocking::Client::builder()
+        .connect_timeout(Duration::from_secs(10))
         .timeout(Duration::from_secs(40))
         .user_agent("ImageAtlas/0.1 site-owner image mapper")
         .build()?;
@@ -650,55 +686,166 @@ fn map_site_at(
         seen: &'a HashSet<String>,
         scanned: usize,
     }
-    let persist =
-        |queue: &VecDeque<(Url, Vec<String>)>, seen: &HashSet<String>, scanned, map: &SiteMap| {
-            save_checkpoint(
-                checkpoint,
-                &Snapshot {
-                    options: &options,
-                    map,
-                    queue: queue
-                        .iter()
-                        .map(|(url, path)| (url.as_str(), path))
-                        .collect(),
-                    seen,
-                    scanned,
-                },
-            )
-            .context("Could not save mapping recovery progress")
-        };
-    persist(&queue, &seen, scanned, &map)?;
-    while !queue.is_empty() {
+    let mut in_flight = HashMap::<String, Vec<String>>::new();
+    let persist = |queue: &VecDeque<(Url, Vec<String>)>,
+                   in_flight: &HashMap<String, Vec<String>>,
+                   seen: &HashSet<String>,
+                   scanned,
+                   map: &SiteMap| {
+        save_checkpoint(
+            checkpoint,
+            &Snapshot {
+                options: &options,
+                map,
+                queue: queue
+                    .iter()
+                    .map(|(url, path)| (url.as_str(), path))
+                    .chain(in_flight.iter().map(|(url, path)| (url.as_str(), path)))
+                    .collect(),
+                seen,
+                scanned,
+            },
+        )
+        .context("Could not save mapping recovery progress")
+    };
+    persist(&queue, &in_flight, &seen, scanned, &map)?;
+    let limit = if options.render {
+        1
+    } else {
+        std::thread::available_parallelism()
+            .map_or(4, |n| n.get())
+            .clamp(2, 8)
+    };
+    let (jobs, pending) = crossbeam_channel::bounded::<(Url, Vec<String>)>(limit);
+    let (completed, results) = crossbeam_channel::unbounded();
+    for _ in 0..limit {
+        let pending = pending.clone();
+        let completed = completed.clone();
+        let client = client.clone();
+        let render_pages = options.render;
+        std::thread::spawn(move || {
+            while let Ok((url, folders)) = pending.recv() {
+                let started = std::time::Instant::now();
+                let mut retryable = false;
+                let mut retry_after = Duration::ZERO;
+                let source: Result<String> = if render_pages && !url.path().ends_with(".xml") {
+                    render(&url)
+                } else {
+                    client
+                        .get(url.clone())
+                        .send()
+                        .map_err(anyhow::Error::from)
+                        .and_then(|response| {
+                            let status = response.status();
+                            retryable = status == reqwest::StatusCode::TOO_MANY_REQUESTS
+                                || status.is_server_error();
+                            if retryable {
+                                retry_after = retry_delay(
+                                    response
+                                        .headers()
+                                        .get(reqwest::header::RETRY_AFTER)
+                                        .and_then(|v| v.to_str().ok()),
+                                );
+                            }
+                            response.error_for_status()?.text().map_err(Into::into)
+                        })
+                };
+                if let Err(error) = &source {
+                    retryable |= error
+                        .downcast_ref::<reqwest::Error>()
+                        .is_some_and(|e| e.is_timeout() || e.is_connect());
+                }
+                let page = source.map(|source| parse_page(&source, &url, &folders));
+                if completed
+                    .send((
+                        url,
+                        folders,
+                        page,
+                        retryable,
+                        retry_after,
+                        started.elapsed(),
+                    ))
+                    .is_err()
+                {
+                    break;
+                }
+            }
+        });
+    }
+    drop(completed);
+    drop(pending);
+    let mut scheduling = MappingConnections::new(limit);
+    let mut attempts = HashMap::<String, usize>::new();
+    let mut pause_until = std::time::Instant::now();
+    let mut last_completion = std::time::Instant::now();
+    let report = |scanned, pending, images, estimate: &MappingEstimate, current_url: String| {
+        let _ = events.send(Event::MappingProgress {
+            scanned,
+            queued: pending,
+            images,
+            eta_seconds: estimate.remaining(pending),
+            current_url,
+        });
+    };
+    report(
+        scanned,
+        queue.len(),
+        map.assets.len(),
+        &estimate,
+        base.to_string(),
+    );
+    while !queue.is_empty() || !in_flight.is_empty() {
         if cancel.stopped() {
             map.notices
                 .push("Mapping stopped by user; the partial map is available for review".into());
             break;
         }
-        let (url, folders) = queue.pop_front().unwrap();
-        if !seen.insert(url.to_string()) {
-            continue;
+        while in_flight.len() < scheduling.target
+            && !queue.is_empty()
+            && std::time::Instant::now() >= pause_until
+        {
+            let (url, folders) = queue.pop_front().unwrap();
+            if seen.contains(url.as_str()) {
+                continue;
+            }
+            in_flight.insert(url.to_string(), folders.clone());
+            jobs.send((url, folders))
+                .context("Mapping workers stopped")?;
         }
-        let request_started = std::time::Instant::now();
-        let _ = events.send(Event::MappingProgress {
-            scanned,
-            queued: queue.len() + 1,
-            images: map.assets.len(),
-            eta_seconds: estimate.remaining(queue.len() + 1),
-            current_url: url.to_string(),
-        });
-        let source = if options.render && !url.path().ends_with(".xml") {
-            render(&url)
-        } else {
-            client
-                .get(url.clone())
-                .send()
-                .and_then(|r| r.error_for_status())
-                .and_then(|r| r.text())
-                .map_err(Into::into)
-        };
-        match source {
-            Ok(source) => {
-                let page = parse_page(&source, &url, &folders);
+        if queue.is_empty() && in_flight.is_empty() {
+            break;
+        }
+        let (url, folders, page, retryable, retry_after, _elapsed) =
+            match results.recv_timeout(Duration::from_millis(100)) {
+                Ok(result) => result,
+                Err(crossbeam_channel::RecvTimeoutError::Timeout) => continue,
+                Err(_) => anyhow::bail!("Mapping workers stopped before completing the queue"),
+            };
+        in_flight.remove(url.as_str());
+        let successful = page.is_ok();
+        scheduling.observe(successful, retryable);
+        if retryable {
+            let attempt = attempts.entry(url.to_string()).or_default();
+            *attempt += 1;
+            if *attempt < 3 {
+                queue.push_back((url.clone(), folders));
+                let delay = retry_after.max(Duration::from_secs(2u64.pow(*attempt as u32)));
+                pause_until = std::time::Instant::now() + delay.min(Duration::from_secs(86400));
+                let _ = events.send(Event::Log(format!("The server is responding slowly. Retrying {} after {} seconds; other pages can finish.", url, delay.as_secs())));
+                persist(&queue, &in_flight, &seen, scanned, &map)?;
+                report(
+                    scanned,
+                    queue.len() + in_flight.len(),
+                    map.assets.len(),
+                    &estimate,
+                    url.to_string(),
+                );
+                continue;
+            }
+        }
+        seen.insert(url.to_string());
+        match page {
+            Ok(page) => {
                 map.pages += 1;
                 for asset in page.assets {
                     let key = (
@@ -716,20 +863,23 @@ fn map_site_at(
                     }
                 }
             }
-            Err(e) => map.notices.push(format!("{}: {}", url, e)),
+            Err(error) => map.notices.push(format!("{}: {}", url, error)),
         }
         scanned += 1;
-        persist(&queue, &seen, scanned, &map)?;
-        estimate.observe(request_started.elapsed().as_secs_f64());
-        let _ = events.send(Event::MappingProgress {
+        estimate.observe(last_completion.elapsed().as_secs_f64());
+        last_completion = std::time::Instant::now();
+        persist(&queue, &in_flight, &seen, scanned, &map)?;
+        report(
             scanned,
-            queued: queue.len(),
-            images: map.assets.len(),
-            eta_seconds: estimate.remaining(queue.len()),
-            current_url: url.to_string(),
-        });
+            queue.len() + in_flight.len(),
+            map.assets.len(),
+            &estimate,
+            url.to_string(),
+        );
     }
-    if queue.is_empty() {
+    drop(jobs);
+    persist(&queue, &in_flight, &seen, scanned, &map)?;
+    if queue.is_empty() && in_flight.is_empty() {
         std::fs::remove_file(checkpoint).context("Could not clear completed mapping recovery")?;
     }
     Ok(map)
@@ -738,6 +888,95 @@ fn map_site_at(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn mapping_reduces_pressure_and_recovers_connections_after_healthy_pages() {
+        let mut policy = MappingConnections::new(8);
+        for _ in 0..16 {
+            policy.observe(true, false);
+        }
+        assert_eq!(policy.target, 4);
+        policy.observe(false, true);
+        assert_eq!(policy.target, 2);
+        policy.observe(false, true);
+        assert_eq!(policy.target, 1);
+        for _ in 0..8 {
+            policy.observe(true, false);
+        }
+        assert_eq!(policy.target, 2);
+        assert_eq!(retry_delay(Some("30")), Duration::from_secs(30));
+    }
+    #[test]
+    fn slow_page_does_not_block_another_page_and_cancellation_saves_in_flight_work() {
+        use std::{
+            io::{Read, Write},
+            net::TcpListener,
+        };
+        let server = TcpListener::bind("127.0.0.1:0").unwrap();
+        let website = format!("http://{}/", server.local_addr().unwrap());
+        let worker = std::thread::spawn(move || {
+            let mut threads = Vec::new();
+            for _ in 0..3 {
+                let (mut socket, _) = server.accept().unwrap();
+                threads.push(std::thread::spawn(move || {
+                    let mut request = [0; 4096];
+                    let n = socket.read(&mut request).unwrap();
+                    let request = String::from_utf8_lossy(&request[..n]);
+                    let body = if request.starts_with("GET / ") {
+                        "<h1>Home</h1><a href='/slow'>Slow</a><a href='/fast'>Fast</a>"
+                    } else {
+                        if request.contains("/slow ") {
+                            std::thread::sleep(Duration::from_millis(350));
+                        }
+                        "<h1>Product</h1><img src='/original.svg'>"
+                    };
+                    let _ = write!(
+                        socket,
+                        "HTTP/1.1 200 OK\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",
+                        body.len()
+                    );
+                }));
+            }
+            for thread in threads {
+                thread.join().unwrap();
+            }
+        });
+        let folder = tempfile::tempdir().unwrap();
+        let path = folder.path().join("mapping.json");
+        let (tx, rx) = crossbeam_channel::unbounded();
+        let cancel = Cancel::default();
+        let signal = cancel.clone();
+        let observe = std::thread::spawn(move || {
+            while let Ok(event) = rx.recv() {
+                if let Event::MappingProgress {
+                    scanned: 2,
+                    current_url,
+                    ..
+                } = event
+                {
+                    assert!(current_url.ends_with("/fast"));
+                    signal.stop();
+                    break;
+                }
+            }
+        });
+        let map = map_site_at(
+            CrawlOptions {
+                website,
+                render: false,
+                sitemap: false,
+            },
+            cancel,
+            tx,
+            &path,
+        )
+        .unwrap();
+        observe.join().unwrap();
+        worker.join().unwrap();
+        assert_eq!(map.pages, 2);
+        let checkpoint = read_checkpoint(&path).unwrap();
+        assert_eq!(checkpoint.queue.len(), 1);
+        assert!(checkpoint.queue[0].0.ends_with("/slow"));
+    }
     #[test]
     fn mapping_resumes_pending_page_without_refetching_completed_pages() {
         use std::{

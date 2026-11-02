@@ -77,8 +77,8 @@
   "Front": "Передняя часть",
   "Height": "Высота",
   "Image Atlas edited": "Отредактирован Атлас изображений",
-  "Image Atlas {}": "Атлас изображений {}",
-  "Image Atlas {} · NIS · MIT": "Изображение Atlas {} · NIS · MIT",
+  "Image Atlas {}": "Image Atlas {}",
+  "Image Atlas {} · NIS · MIT": "Image Atlas {} · NIS · MIT",
   "Image dimensions exceed available memory": "Размеры изображения превышают доступную память",
   "Image is not in this collection": "Изображение отсутствует в этой коллекции",
   "Image size": "Размер изображения",
@@ -221,8 +221,6 @@
   "ETA ~{}m {:02}s": "Расчетное время прибытия ~{}m {:02}s",
   "{} pages scanned · {} queued · {} images · {eta}": "Страницы {} отсканированы · {} поставлены в очередь · Изображения {} · {eta}",
   "{} pages scanned · {} images found": "Страницы {} отсканированы · Найдены изображения {}",
-  "Preview language support": "Предварительная языковая поддержка",
-  "Complex scripts may not display correctly yet.": "Сложные скрипты могут пока отображаться некорректно.",
   "Mapping": "Картирование",
   "Batch editor": "Пакетный редактор",
   "Website images": "Изображения веб-сайта",
@@ -246,5 +244,6 @@
   "Batch": "Партия",
   "A fresh version is ready": "Свежая версия готова",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "PNG для прозрачности и компактности изображений; JPEG, когда он намного меньше. SVG остается векторным.",
-  "JPEG flattens transparency onto white.": "JPEG выравнивает прозрачность по белому."
+  "JPEG flattens transparency onto white.": "JPEG выравнивает прозрачность по белому.",
+  "A considered pace": "Адаптивная загрузка"
 }

@@ -2,7 +2,7 @@ name: Windows release
 on:
   push:
     branches: [main]
-    paths: [Cargo.toml, Cargo.lock, src/**, locales/**, packaging/**, scripts/**, .github/workflows/**]
+    paths: [Cargo.toml, Cargo.lock, src/**, vendor/**, locales/**, packaging/**, scripts/**, .github/workflows/**]
   workflow_dispatch:
 permissions:
   contents: write

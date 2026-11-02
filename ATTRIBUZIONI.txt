@@ -3,32 +3,22 @@ Image Atlas third-party dependencies
 Original app: Copyright (c) 2026 NIS, MIT
 Dependency authors and licenses follow.
 
-ab_glyph-0.2.32
-Authors: Alex Butler <alexheretic@gmail.com>
-License: Apache-2.0
-Source: https://github.com/alexheretic/ab-glyph
-
-ab_glyph_rasterizer-0.1.10
-Authors: Alex Butler <alexheretic@gmail.com>
-License: Apache-2.0
-Source: https://github.com/alexheretic/ab-glyph
-
-accesskit-0.21.1
+accesskit-0.25.2
 Authors: The AccessKit contributors
 License: MIT OR Apache-2.0
 Source: https://github.com/AccessKit/accesskit
 
-accesskit_consumer-0.31.0
+accesskit_consumer-0.39.2
 Authors: The AccessKit contributors
 License: MIT OR Apache-2.0
 Source: https://github.com/AccessKit/accesskit
 
-accesskit_windows-0.29.2
+accesskit_windows-0.35.2
 Authors: The AccessKit contributors
 License: MIT OR Apache-2.0
 Source: https://github.com/AccessKit/accesskit
 
-accesskit_winit-0.29.2
+accesskit_winit-0.34.2
 Authors: The AccessKit contributors
 License: Apache-2.0
 Source: https://github.com/AccessKit/accesskit
@@ -58,6 +48,11 @@ Authors: Tom Kaitchuck <Tom.Kaitchuck@gmail.com>
 License: MIT OR Apache-2.0
 Source: https://github.com/tkaitchuck/ahash
 
+aho-corasick-1.1.5
+Authors: Andrew Gallant <jamslam@gmail.com>
+License: Unlicense OR MIT
+Source: https://github.com/BurntSushi/aho-corasick
+
 aligned-0.4.3
 Authors: 
 License: MIT OR Apache-2.0
@@ -77,6 +72,46 @@ alloc-stdlib-0.3.0
 Authors: Daniel Reiter Horn <danielrh@dropbox.com>
 License: BSD-3-Clause
 Source: https://github.com/dropbox/rust-alloc-no-stdlib
+
+alloca-0.4.0
+Authors: Adel Prokurov <adel.prokurov@gmail.com>; StackOverflowExcept1on
+License: MIT
+Source: https://github.com/playXE/alloca-rs
+
+allocator-api2-0.2.21
+Authors: Zakarum <zaq.dev@icloud.com>
+License: MIT OR Apache-2.0
+Source: https://github.com/zakarumych/allocator-api2
+
+anes-0.1.6
+Authors: Robert Vojta <rvojta@me.com>
+License: MIT OR Apache-2.0
+Source: https://github.com/zrzka/anes-rs
+
+anstream-1.0.0
+Authors: 
+License: MIT OR Apache-2.0
+Source: https://github.com/rust-cli/anstyle.git
+
+anstyle-1.0.14
+Authors: 
+License: MIT OR Apache-2.0
+Source: https://github.com/rust-cli/anstyle.git
+
+anstyle-parse-1.0.0
+Authors: 
+License: MIT OR Apache-2.0
+Source: https://github.com/rust-cli/anstyle.git
+
+anstyle-query-1.1.5
+Authors: 
+License: MIT OR Apache-2.0
+Source: https://github.com/rust-cli/anstyle.git
+
+anstyle-wincon-3.0.11
+Authors: 
+License: MIT OR Apache-2.0
+Source: https://github.com/rust-cli/anstyle.git
 
 anyhow-1.0.104
 Authors: David Tolnay <dtolnay@gmail.com>
@@ -158,7 +193,7 @@ Authors: Marshall Pierce <marshall@mpierce.org>
 License: MIT OR Apache-2.0
 Source: https://github.com/marshallpierce/rust-base64
 
-bit-set-0.8.0
+bit-set-0.10.0
 Authors: Alexis Beingessner <a.beingessner@gmail.com>
 License: Apache-2.0 OR MIT
 Source: https://github.com/contain-rs/bit-set
@@ -168,7 +203,7 @@ Authors: Alexis Beingessner <a.beingessner@gmail.com>
 License: MIT/Apache-2.0
 Source: https://github.com/contain-rs/bit-vec
 
-bit-vec-0.8.0
+bit-vec-0.9.1
 Authors: Alexis Beingessner <a.beingessner@gmail.com>
 License: Apache-2.0 OR MIT
 Source: https://github.com/contain-rs/bit-vec
@@ -207,6 +242,11 @@ brotli-decompressor-6.2.0
 Authors: Daniel Reiter Horn <danielrh@dropbox.com>; The Brotli Authors
 License: BSD-3-Clause/MIT
 Source: https://github.com/dropbox/rust-brotli-decompressor
+
+bstr-1.13.1
+Authors: Andrew Gallant <jamslam@gmail.com>
+License: MIT OR Apache-2.0
+Source: https://github.com/BurntSushi/bstr
 
 built-0.8.1
 Authors: Lukas Lueg <lukas.lueg@gmail.com>
@@ -248,10 +288,20 @@ Authors: Carl Lerche <me@carllerche.com>; Sean McArthur <sean@seanmonstar.com>
 License: MIT
 Source: https://github.com/tokio-rs/bytes
 
+cast-0.3.0
+Authors: Jorge Aparicio <jorge@japaric.io>
+License: MIT OR Apache-2.0
+Source: https://github.com/japaric/cast.rs
+
 cbc-0.1.2
 Authors: RustCrypto Developers
 License: MIT OR Apache-2.0
 Source: https://github.com/RustCrypto/block-modes
+
+cc-1.10.0
+Authors: 
+License: MIT OR Apache-2.0
+Source: https://github.com/rust-lang/cc-rs
 
 cfg-if-1.0.5
 Authors: Alex Crichton <alex@alexcrichton.com>
@@ -263,6 +313,21 @@ Authors: Zicklag <zicklag@katharostech.com>
 License: MIT
 Source: https://github.com/katharostech/cfg_aliases
 
+ciborium-0.2.2
+Authors: Nathaniel McCallum <npmccallum@profian.com>
+License: Apache-2.0
+Source: https://github.com/enarx/ciborium
+
+ciborium-io-0.2.2
+Authors: Nathaniel McCallum <npmccallum@profian.com>
+License: Apache-2.0
+Source: https://github.com/enarx/ciborium
+
+ciborium-ll-0.2.2
+Authors: Nathaniel McCallum <npmccallum@profian.com>
+License: Apache-2.0
+Source: https://github.com/enarx/ciborium
+
 cipher-0.4.4
 Authors: RustCrypto Developers
 License: MIT OR Apache-2.0
@@ -273,20 +338,45 @@ Authors: Kevin K. <kbknapp@gmail.com>
 License: MIT
 Source: https://github.com/clap-rs/clap
 
+clap-4.6.7
+Authors: 
+License: MIT OR Apache-2.0
+Source: https://github.com/clap-rs/clap
+
+clap_builder-4.6.7
+Authors: 
+License: MIT OR Apache-2.0
+Source: https://github.com/clap-rs/clap
+
+clap_lex-1.1.1
+Authors: 
+License: MIT OR Apache-2.0
+Source: https://github.com/clap-rs/clap
+
 clipboard-win-5.4.3
 Authors: Douman <douman@gmx.se>
 License: BSL-1.0
 Source: https://github.com/DoumanAsh/clipboard-win
 
-codespan-reporting-0.12.0
+codespan-reporting-0.13.1
 Authors: Brendan Zabarauskas <bjzaba@yahoo.com.au>
 License: Apache-2.0
 Source: https://github.com/brendanzab/codespan
+
+color-0.3.3
+Authors: 
+License: Apache-2.0 OR MIT
+Source: https://github.com/linebender/color
 
 color_quant-1.1.0
 Authors: nwin <nwin@users.noreply.github.com>
 License: MIT
 Source: https://github.com/image-rs/color_quant.git
+
+colorchoice-1.0.5
+Authors: 
+License: MIT OR Apache-2.0
+Source: https://github.com/rust-cli/anstyle.git
 
 compression-codecs-0.4.46
 Authors: Wim Looman <wim@nemo157.com>; Allen Bui <fairingrey@gmail.com>
@@ -297,6 +387,11 @@ compression-core-0.4.34
 Authors: Wim Looman <wim@nemo157.com>; Allen Bui <fairingrey@gmail.com>
 License: MIT OR Apache-2.0
 Source: https://github.com/Nullus157/async-compression
+
+console-0.16.6
+Authors: 
+License: MIT
+Source: https://github.com/console-rs/console
 
 core_detect-1.0.0
 Authors: Thom Chiovoloni <chiovolonit@gmail.com>
@@ -317,6 +412,16 @@ crc32fast-1.5.3
 Authors: Sam Rijs <srijs@airpost.net>; Alex Crichton <alex@alexcrichton.com>
 License: MIT OR Apache-2.0
 Source: https://github.com/srijs/rust-crc32fast
+
+criterion-0.8.2
+Authors: Jorge Aparicio <japaricious@gmail.com>; Brook Heisler <brookheisler@gmail.com>
+License: Apache-2.0 OR MIT
+Source: https://github.com/criterion-rs/criterion.rs
+
+criterion-plot-0.8.2
+Authors: Jorge Aparicio <japaricious@gmail.com>; Brook Heisler <brookheisler@gmail.com>
+License: Apache-2.0 OR MIT
+Source: https://github.com/criterion-rs/criterion.rs
 
 crossbeam-channel-0.5.17
 Authors: 
@@ -368,6 +473,21 @@ Authors: oyvindln <oyvindln@users.noreply.github.com>
 License: MIT/Apache-2.0
 Source: https://github.com/image-rs/deflate-rs
 
+defmt-1.1.1
+Authors: The Knurling-rs developers
+License: MIT OR Apache-2.0
+Source: https://github.com/knurling-rs/defmt
+
+defmt-macros-1.1.1
+Authors: The Knurling-rs developers
+License: MIT OR Apache-2.0
+Source: https://github.com/knurling-rs/defmt
+
+defmt-parser-1.0.0
+Authors: The Knurling-rs developers
+License: MIT OR Apache-2.0
+Source: https://github.com/knurling-rs/defmt
+
 derive_more-2.1.1
 Authors: Jelte Fennema <github-tech@jeltef.nl>
 License: MIT
@@ -413,12 +533,12 @@ Authors: RustCrypto Developers; magic-akari
 License: MIT
 Source: https://github.com/magic-akari/ecb
 
-ecolor-0.33.3
+ecolor-0.37.0
 Authors: Emil Ernerfeldt <emil.ernerfeldt@gmail.com>; Andreas Reich <reichandreas@gmx.de>
 License: MIT OR Apache-2.0
 Source: https://github.com/emilk/egui
 
-eframe-0.33.3
+eframe-0.37.0
 Authors: Emil Ernerfeldt <emil.ernerfeldt@gmail.com>
 License: MIT OR Apache-2.0
 Source: https://github.com/emilk/egui/tree/main/crates/eframe
@@ -428,47 +548,72 @@ Authors: June McEnroe <june@causal.agency>; Carlo Federico Vescovo <vescovocarlo
 License: ISC
 Source: https://github.com/rust-scraper/ego-tree
 
-egui-0.33.3
+egui-0.37.0
 Authors: Emil Ernerfeldt <emil.ernerfeldt@gmail.com>
 License: MIT OR Apache-2.0
 Source: https://github.com/emilk/egui
 
-egui-wgpu-0.33.3
+egui-wgpu-0.37.0
 Authors: Nils Hasenbanck <nils@hasenbanck.de>; embotech <opensource@embotech.com>; Emil Ernerfeldt <emil.ernerfeldt@gmail.com>
 License: MIT OR Apache-2.0
 Source: https://github.com/emilk/egui/tree/main/crates/egui-wgpu
 
-egui-winit-0.33.3
+egui-winit-0.37.0
 Authors: Emil Ernerfeldt <emil.ernerfeldt@gmail.com>
 License: MIT OR Apache-2.0
 Source: https://github.com/emilk/egui/tree/main/crates/egui-winit
 
-egui_glow-0.33.3
+egui_glow-0.37.0
 Authors: Emil Ernerfeldt <emil.ernerfeldt@gmail.com>
 License: MIT OR Apache-2.0
 Source: https://github.com/emilk/egui/tree/main/crates/egui_glow
+
+egui_kittest-0.37.0
+Authors: Lucas Meurer <hi@lucasmerlin.me>; Emil Ernerfeldt <emil.ernerfeldt@gmail.com>
+License: MIT OR Apache-2.0
+Source: https://github.com/emilk/egui
+
+egui_system_font_provider-0.37.0
+Authors: Emil Ernerfeldt <emil.ernerfeldt@gmail.com>
+License: MIT OR Apache-2.0
+Source: https://github.com/emilk/egui/tree/main/crates/egui_system_font_provider
 
 either-1.19.0
 Authors: 
 License: MIT OR Apache-2.0
 Source: https://github.com/rayon-rs/either
 
-emath-0.33.3
+emath-0.37.0
 Authors: Emil Ernerfeldt <emil.ernerfeldt@gmail.com>
 License: MIT OR Apache-2.0
 Source: https://github.com/emilk/egui/tree/main/crates/emath
+
+encode_unicode-1.0.0
+Authors: Torbjørn Birch Moltu <t.b.moltu@lyse.net>
+License: Apache-2.0 OR MIT
+Source: https://github.com/tormol/encode_unicode
 
 encoding_rs-0.8.44
 Authors: Henri Sivonen <hsivonen@hsivonen.fi>
 License: (Apache-2.0 OR MIT) AND BSD-3-Clause
 Source: https://github.com/hsivonen/encoding_rs
 
-epaint-0.33.3
+env_filter-2.0.0
+Authors: 
+License: MIT OR Apache-2.0
+Source: https://github.com/rust-cli/env_logger
+
+env_logger-0.11.11
+Authors: 
+License: MIT OR Apache-2.0
+Source: https://github.com/rust-cli/env_logger
+
+epaint-0.37.0
 Authors: Emil Ernerfeldt <emil.ernerfeldt@gmail.com>
 License: MIT OR Apache-2.0
 Source: https://github.com/emilk/egui/tree/main/crates/epaint
 
-epaint_default_fonts-0.33.3
+epaint_default_fonts-0.37.0
 Authors: Emil Ernerfeldt <emil.ernerfeldt@gmail.com>
 License: (MIT OR Apache-2.0) AND OFL-1.1 AND Ubuntu-font-1.0
 Source: https://github.com/emilk/egui/tree/main/crates/epaint_default_fonts
@@ -513,6 +658,16 @@ Authors: The image-rs Developers
 License: MIT OR Apache-2.0
 Source: https://github.com/image-rs/fdeflate
 
+fearless_simd-0.4.1
+Authors: Raph Levien <raph.levien@gmail.com>
+License: Apache-2.0 OR MIT
+Source: https://github.com/linebender/fearless_simd
+
+find-msvc-tools-0.1.15
+Authors: 
+License: MIT OR Apache-2.0
+Source: https://github.com/rust-lang/cc-rs
+
 flate2-1.1.10
 Authors: Alex Crichton <alex@alexcrichton.com>; Josh Triplett <josh@joshtriplett.org>
 License: MIT OR Apache-2.0
@@ -528,20 +683,25 @@ Authors: Mike Dilger <mike@mikedilger.com>
 License: MIT
 Source: https://github.com/mikedilger/float-cmp
 
-foldhash-0.1.5
-Authors: Orson Peters <orsonpeters@gmail.com>
-License: Zlib
-Source: https://github.com/orlp/foldhash
-
 foldhash-0.2.0
 Authors: Orson Peters <orsonpeters@gmail.com>
 License: Zlib
 Source: https://github.com/orlp/foldhash
 
+font-types-0.12.7
+Authors: 
+License: MIT OR Apache-2.0
+Source: https://github.com/googlefonts/fontations
+
 fontdb-0.23.0
 Authors: Yevhenii Reizner <razrfalcon@gmail.com>
 License: MIT
 Source: https://github.com/RazrFalcon/fontdb
+
+fontique-0.11.1
+Authors: 
+License: Apache-2.0 OR MIT
+Source: https://github.com/linebender/parley
 
 form_urlencoded-1.2.2
 Authors: The rust-url developers
@@ -633,7 +793,12 @@ Authors: Brendan Zabarauskas <bjzaba@yahoo.com.au>; Corey Richardson; Arseny Kap
 License: Apache-2.0
 Source: https://github.com/brendanzab/gl-rs/
 
-glow-0.16.0
+glifo-0.3.0
+Authors: 
+License: Apache-2.0 OR MIT
+Source: https://github.com/linebender/vello
+
+glow-0.17.0
 Authors: Joshua Groves <josh@joshgroves.com>; Dzmitry Malyshau <kvarkus@gmail.com>
 License: MIT OR Apache-2.0 OR Zlib
 Source: https://github.com/grovesNL/glow
@@ -658,40 +823,25 @@ Authors: Kirill Chibisov <contact@kchibisov.com>
 License: Apache-2.0
 Source: https://github.com/rust-windowing/glutin
 
-gpu-alloc-0.6.2
-Authors: Zakarum <roman@barykin.me>
-License: MIT OR Apache-2.0
-Source: https://github.com/zakarumych/gpu-alloc
-
-gpu-alloc-types-0.3.1
-Authors: Zakarum <roman@barykin.me>
-License: MIT OR Apache-2.0
-Source: https://github.com/zakarumych/gpu-alloc
-
-gpu-allocator-0.27.0
+gpu-allocator-0.28.0
 Authors: Traverse Research <opensource@traverseresearch.nl>
 License: MIT OR Apache-2.0
 Source: https://github.com/Traverse-Research/gpu-allocator
 
-gpu-descriptor-0.3.2
-Authors: Zakarum <zakarumych@ya.ru>
-License: MIT OR Apache-2.0
-Source: https://github.com/zakarumych/gpu-descriptor
-
-gpu-descriptor-types-0.2.0
-Authors: Zakarum <zakarumych@ya.ru>
-License: MIT OR Apache-2.0
-Source: https://github.com/zakarumych/gpu-descriptor
+guillotiere-0.7.0
+Authors: Nicolas Silva <nical@fastmail.com>
+License: MIT/Apache-2.0
+Source: https://github.com/nical/guillotiere
 
 half-2.7.1
 Authors: Kathryn Long <squeeself@gmail.com>
 License: MIT OR Apache-2.0
 Source: https://github.com/VoidStarKat/half-rs
 
-hashbrown-0.15.5
-Authors: Amanieu d'Antras <amanieu@gmail.com>
-License: MIT OR Apache-2.0
-Source: https://github.com/rust-lang/hashbrown
+harfrust-0.12.0
+Authors: 
+License: MIT
+Source: https://github.com/harfbuzz/harfrust
 
 hashbrown-0.16.1
 Authors: Amanieu d'Antras <amanieu@gmail.com>
@@ -702,11 +852,6 @@ hashbrown-0.17.1
 Authors: 
 License: MIT OR Apache-2.0
 Source: https://github.com/rust-lang/hashbrown
-
-hexf-parse-0.2.1
-Authors: Kang Seonghoon <public+rust@mearie.org>
-License: CC0-1.0
-Source: https://github.com/lifthrasiir/hexf
 
 html5ever-0.35.0
 Authors: The html5ever Project Developers
@@ -833,7 +978,22 @@ Authors: Kris Price <kris@krisprice.nz>
 License: MIT OR Apache-2.0
 Source: https://github.com/krisprice/ipnet
 
+is_terminal_polyfill-1.70.2
+Authors: 
+License: MIT OR Apache-2.0
+Source: https://github.com/polyfill-rs/is_terminal_polyfill
+
+itertools-0.13.0
+Authors: bluss
+License: MIT OR Apache-2.0
+Source: https://github.com/rust-itertools/itertools
+
 itertools-0.14.0
+Authors: bluss
+License: MIT OR Apache-2.0
+Source: https://github.com/rust-itertools/itertools
+
+itertools-0.15.0
 Authors: bluss
 License: MIT OR Apache-2.0
 Source: https://github.com/rust-itertools/itertools
@@ -847,6 +1007,21 @@ itoa-1.0.18
 Authors: David Tolnay <dtolnay@gmail.com>
 License: MIT OR Apache-2.0
 Source: https://github.com/dtolnay/itoa
+
+jiff-0.2.38
+Authors: Andrew Gallant <jamslam@gmail.com>
+License: Unlicense OR MIT
+Source: https://github.com/BurntSushi/jiff
+
+jiff-core-0.1.1
+Authors: Andrew Gallant <jamslam@gmail.com>
+License: Unlicense OR MIT
+Source: https://github.com/BurntSushi/jiff
+
+jobserver-0.1.35
+Authors: Alex Crichton <alex@alexcrichton.com>
+License: MIT OR Apache-2.0
+Source: https://github.com/rust-lang/jobserver-rs
 
 jpeg-decoder-0.1.22
 Authors: Ulf Nilsson <kaksmet@gmail.com>
@@ -863,8 +1038,18 @@ Authors: Brendan Zabarauskas <bjzaba@yahoo.com.au>; Corey Richardson; Arseny Kap
 License: Apache-2.0
 Source: https://github.com/brendanzab/gl-rs/
 
+kittest-0.5.0
+Authors: Lucas Meurer; rerun.io <opensource@rerun.io>
+License: MIT OR Apache-2.0
+Source: https://github.com/rerun-io/kittest
+
 kurbo-0.11.3
 Authors: Raph Levien <raph.levien@gmail.com>
+License: Apache-2.0 OR MIT
+Source: https://github.com/linebender/kurbo
+
+kurbo-0.13.1
+Authors: 
 License: Apache-2.0 OR MIT
 Source: https://github.com/linebender/kurbo
 
@@ -882,6 +1067,16 @@ libm-0.2.16
 Authors: Alex Crichton <alex@alexcrichton.com>; Amanieu d'Antras <amanieu@gmail.com>; Jorge Aparicio <japaricious@gmail.com>; Trevor Gross <tg@trevorgross.com>
 License: MIT
 Source: https://github.com/rust-lang/compiler-builtins
+
+libmimalloc-sys-0.1.49
+Authors: Octavian Oncescu <octavonce@gmail.com>
+License: MIT
+Source: https://github.com/purpleprotocol/mimalloc_rust/tree/master/libmimalloc-sys
+
+linebender_resource_handle-0.1.1
+Authors: 
+License: Apache-2.0 OR MIT
+Source: https://github.com/linebender/raw_resource_handle
 
 litemap-0.8.3
 Authors: The ICU4X Project Developers
@@ -948,10 +1143,10 @@ Authors: Dan Burkert <dan@danburkert.com>; Yevhenii Reizner <razrfalcon@gmail.co
 License: MIT OR Apache-2.0
 Source: https://github.com/RazrFalcon/memmap2-rs
 
-memoffset-0.9.1
-Authors: Gilad Naaman <gilad.naaman@gmail.com>
+mimalloc-0.1.52
+Authors: Octavian Oncescu <octavonce@gmail.com>; Vincent Rouillé <vincent@speedy37.fr>; Thom Chiovoloni <chiovolonit@gmail.com>
 License: MIT
-Source: https://github.com/Gilnaa/memoffset
+Source: https://github.com/purpleprotocol/mimalloc_rust
 
 miniz_oxide-0.3.7
 Authors: Frommi <daniil.liferenko@gmail.com>; oyvindln <oyvindln@users.noreply.github.com>
@@ -988,7 +1183,12 @@ Authors: Henri Sivonen <hsivonen@hsivonen.fi>
 License: Apache-2.0 OR MIT
 Source: https://github.com/hsivonen/multiversion_no_op
 
-naga-27.0.3
+naga-30.0.1
+Authors: gfx-rs developers
+License: MIT OR Apache-2.0
+Source: https://github.com/gfx-rs/wgpu
+
+naga-types-30.0.1
 Authors: gfx-rs developers
 License: MIT OR Apache-2.0
 Source: https://github.com/gfx-rs/wgpu
@@ -1068,15 +1268,25 @@ Authors: Aleksey Kladov <aleksey.kladov@gmail.com>
 License: MIT OR Apache-2.0
 Source: https://github.com/matklad/once_cell
 
+once_cell_polyfill-1.70.2
+Authors: 
+License: MIT OR Apache-2.0
+Source: https://github.com/polyfill-rs/once_cell_polyfill
+
+oorandom-11.1.5
+Authors: Simon Heath <icefox@dreamquest.io>
+License: MIT
+Source: https://hg.sr.ht/~icefox/oorandom
+
 ordered-float-5.5.1
 Authors: Jonathan Reem <jonathan.reem@gmail.com>; Matt Brubeck <mbrubeck@limpet.net>
 License: MIT
 Source: https://github.com/reem/rust-ordered-float
 
-owned_ttf_parser-0.25.1
-Authors: Alex Butler <alexheretic@gmail.com>
-License: Apache-2.0
-Source: https://github.com/alexheretic/owned-ttf-parser
+page_size-0.6.0
+Authors: Philip Woods <elzairthesorcerer@gmail.com>
+License: MIT/Apache-2.0
+Source: https://github.com/Elzair/page_size_rs
 
 parking_lot-0.12.5
 Authors: Amanieu d'Antras <amanieu@gmail.com>
@@ -1088,6 +1298,11 @@ Authors: Amanieu d'Antras <amanieu@gmail.com>
 License: MIT OR Apache-2.0
 Source: https://github.com/Amanieu/parking_lot
 
+parlance-0.1.1
+Authors: 
+License: Apache-2.0 OR MIT
+Source: https://github.com/linebender/parley
+
 paste-1.0.15
 Authors: David Tolnay <dtolnay@gmail.com>
 License: MIT OR Apache-2.0
@@ -1097,6 +1312,11 @@ pastey-0.1.1
 Authors: Aditya Kumar <git@adityais.dev>; David Tolnay <dtolnay@gmail.com>
 License: MIT OR Apache-2.0
 Source: https://github.com/as1100k/pastey
+
+peniko-0.6.1
+Authors: 
+License: Apache-2.0 OR MIT
+Source: https://github.com/linebender/peniko
 
 percent-encoding-2.3.2
 Authors: The rust-url developers
@@ -1158,10 +1378,20 @@ Authors: The image-rs Developers
 License: MIT OR Apache-2.0
 Source: https://github.com/image-rs/image-png
 
-pollster-0.4.0
-Authors: Joshua Barretto <joshua.s.barretto@gmail.com>
+poll-promise-0.3.0
+Authors: Embark <opensource@embark-studios.com>
+License: MIT OR Apache-2.0
+Source: https://github.com/EmbarkStudios/poll-promise
+
+pollster-1.0.1
+Authors: Joshua Barretto <joshua@jsbarretto.com>
 License: Apache-2.0/MIT
 Source: https://github.com/zesterer/pollster
+
+polycool-0.4.0
+Authors: 
+License: MIT OR Apache-2.0
+Source: https://github.com/linebender/kurbo
 
 potential_utf-0.1.6
 Authors: The ICU4X Project Developers
@@ -1283,6 +1513,26 @@ Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/rayon-rs/rayon
 
+read-fonts-0.41.0
+Authors: 
+License: MIT OR Apache-2.0
+Source: https://github.com/googlefonts/fontations
+
+regex-1.13.1
+Authors: The Rust Project Developers; Andrew Gallant <jamslam@gmail.com>
+License: MIT OR Apache-2.0
+Source: https://github.com/rust-lang/regex
+
+regex-automata-0.4.18
+Authors: The Rust Project Developers; Andrew Gallant <jamslam@gmail.com>
+License: MIT OR Apache-2.0
+Source: https://github.com/rust-lang/regex
+
+regex-syntax-0.8.11
+Authors: The Rust Project Developers; Andrew Gallant <jamslam@gmail.com>
+License: MIT OR Apache-2.0
+Source: https://github.com/rust-lang/regex
+
 renderdoc-sys-1.1.0
 Authors: Eyal Kalderon <ebkalderon@gmail.com>
 License: MIT OR Apache-2.0
@@ -1378,6 +1628,11 @@ Authors: The Servo Project Developers
 License: MPL-2.0
 Source: https://github.com/servo/stylo
 
+self_cell-1.3.0
+Authors: Lukas Bergdoll <lukas.bergdoll@gmail.com>
+License: Apache-2.0 OR GPL-2.0-only
+Source: https://github.com/Voultapher/self_cell
+
 semver-1.0.28
 Authors: David Tolnay <dtolnay@gmail.com>
 License: MIT OR Apache-2.0
@@ -1403,6 +1658,11 @@ Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/serde-rs/json
 
+serde_spanned-1.1.2
+Authors: 
+License: MIT OR Apache-2.0
+Source: https://github.com/toml-rs/toml
+
 servo_arc-0.4.3
 Authors: The Servo Project Developers
 License: MIT OR Apache-2.0
@@ -1412,6 +1672,11 @@ sha2-0.10.9
 Authors: RustCrypto Developers
 License: MIT OR Apache-2.0
 Source: https://github.com/RustCrypto/hashes
+
+shlex-2.0.1
+Authors: comex <comexk@gmail.com>; Fenhl <fenhl@fenhl.net>; Adrian Taylor <adetaylor@chromium.org>; Alex Touchet <alextouchet@outlook.com>; Daniel Parks <dp+git@oxidized.org>; Garrett Berg <googberg@gmail.com>
+License: MIT OR Apache-2.0
+Source: https://github.com/comex/rust-shlex
 
 simd-adler32-0.3.10
 Authors: Marvin Countryman <me@maar.vin>
@@ -1428,6 +1693,16 @@ Authors: Hans Kratz <hans@appfour.com>
 License: MIT OR Apache-2.0
 Source: https://github.com/rusticstuff/simdutf8
 
+similar-3.2.1
+Authors: Armin Ronacher <armin.ronacher@active-4.com>; Pierre-Étienne Meunier <pe@pijul.org>; Brandon Williams <bwilliams.eng@gmail.com>
+License: Apache-2.0
+Source: https://github.com/mitsuhiko/similar
+
+similar-asserts-2.0.0
+Authors: Armin Ronacher <armin.ronacher@active-4.com>
+License: Apache-2.0
+Source: https://github.com/mitsuhiko/similar-asserts
+
 simplecss-0.2.2
 Authors: 
 License: Apache-2.0 OR MIT
@@ -1437,6 +1712,11 @@ siphasher-1.0.4
 Authors: Frank Denis <github@pureftpd.org>
 License: MIT OR Apache-2.0
 Source: https://github.com/jedisct1/rust-siphash
+
+skrifa-0.44.0
+Authors: 
+License: MIT OR Apache-2.0
+Source: https://github.com/googlefonts/fontations
 
 slab-0.4.12
 Authors: Carl Lerche <me@carllerche.com>
@@ -1463,7 +1743,7 @@ Authors: Alex Crichton <alex@alexcrichton.com>; Thomas de Zeeuw <thomasdezeeuw@g
 License: MIT OR Apache-2.0
 Source: https://github.com/rust-lang/socket2
 
-spirv-0.3.0+sdk-1.3.268.0
+spirv-0.4.0+sdk-1.4.341.0
 Authors: Lei Zhang <antiagainst@gmail.com>
 License: Apache-2.0
 Source: https://github.com/gfx-rs/rspirv
@@ -1528,6 +1808,11 @@ Authors: Nika Layzell <nika@thelayzells.com>
 License: MIT
 Source: https://github.com/mystor/synstructure
 
+sys-locale-0.3.2
+Authors: 1Password
+License: MIT OR Apache-2.0
+Source: https://github.com/1Password/sys-locale
+
 tempfile-3.27.0
 Authors: Steven Allen <steven@stebalien.com>; The Rust Project Developers; Ashley Mannix <ashleymannix@live.com.au>; Jason White <me@jasonwhite.io>
 License: MIT OR Apache-2.0
@@ -1538,22 +1823,17 @@ Authors: Keegan McAllister <mcallister.keegan@gmail.com>; Simon Sapin <simon.sap
 License: MIT/Apache-2.0
 Source: https://github.com/servo/tendril
 
+termcolor-1.4.1
+Authors: Andrew Gallant <jamslam@gmail.com>
+License: Unlicense OR MIT
+Source: https://github.com/BurntSushi/termcolor
+
 textwrap-0.11.0
 Authors: Martin Geisler <martin@geisler.net>
 License: MIT
 Source: https://github.com/mgeisler/textwrap
 
-thiserror-1.0.69
-Authors: David Tolnay <dtolnay@gmail.com>
-License: MIT OR Apache-2.0
-Source: https://github.com/dtolnay/thiserror
-
 thiserror-2.0.21
-Authors: David Tolnay <dtolnay@gmail.com>
-License: MIT OR Apache-2.0
-Source: https://github.com/dtolnay/thiserror
-
-thiserror-impl-1.0.69
 Authors: David Tolnay <dtolnay@gmail.com>
 License: MIT OR Apache-2.0
 Source: https://github.com/dtolnay/thiserror
@@ -1588,6 +1868,11 @@ Authors: The ICU4X Project Developers
 License: Unicode-3.0
 Source: https://github.com/unicode-org/icu4x
 
+tinytemplate-1.2.1
+Authors: Brook Heisler <brookheisler@gmail.com>
+License: Apache-2.0 OR MIT
+Source: https://github.com/bheisler/TinyTemplate
+
 tinyvec-1.13.3
 Authors: Lokathor <zefria@gmail.com>
 License: Zlib OR Apache-2.0 OR MIT
@@ -1607,6 +1892,21 @@ tokio-util-0.7.20
 Authors: Tokio Contributors <team@tokio.rs>
 License: MIT
 Source: https://github.com/tokio-rs/tokio
+
+toml-1.1.8+spec-1.1.0
+Authors: 
+License: MIT OR Apache-2.0
+Source: https://github.com/toml-rs/toml
+
+toml_datetime-1.1.2+spec-1.1.0
+Authors: 
+License: MIT OR Apache-2.0
+Source: https://github.com/toml-rs/toml
+
+toml_parser-1.1.5+spec-1.1.0
+Authors: 
+License: MIT OR Apache-2.0
+Source: https://github.com/toml-rs/toml
 
 tower-0.5.3
 Authors: Tower Maintainers <team@tower-rs.com>
@@ -1678,6 +1978,11 @@ Authors: Yevhenii Reizner <razrfalcon@gmail.com>
 License: MIT/Apache-2.0
 Source: https://github.com/RazrFalcon/unicode-ccc
 
+unicode-general-category-1.1.0
+Authors: YesLogic Pty. Ltd. <info@yeslogic.com>
+License: Apache-2.0
+Source: https://github.com/yeslogic/unicode-general-category
+
 unicode-ident-1.0.27
 Authors: David Tolnay <dtolnay@gmail.com>
 License: (MIT OR Apache-2.0) AND Unicode-3.0
@@ -1738,10 +2043,20 @@ Authors: Henri Sivonen <hsivonen@hsivonen.fi>
 License: Apache-2.0 OR MIT
 Source: https://github.com/hsivonen/utf8_iter
 
+utf8parse-0.2.2
+Authors: Joe Wilm <joe@jwilm.com>; Christian Duerr <contact@christianduerr.com>
+License: Apache-2.0 OR MIT
+Source: https://github.com/alacritty/vte
+
 utf_types-1.0.0
 Authors: Henri Sivonen <hsivonen@hsivonen.fi>
 License: Apache-2.0 OR MIT
 Source: https://github.com/hsivonen/utf_types
+
+uuid-1.29.0
+Authors: Ashley Mannix<ashleymannix@live.com.au>; Dylan DPC<dylan.dpc@gmail.com>; Hunar Roop Kahlon<hunar.roop@gmail.com>
+License: Apache-2.0 OR MIT
+Source: https://github.com/uuid-rs/uuid
 
 v_frame-0.3.9
 Authors: Luca Barbato <lu_zero@gentoo.org>
@@ -1752,6 +2067,16 @@ vec_map-0.8.2
 Authors: Alex Crichton <alex@alexcrichton.com>; Jorge Aparicio <japaricious@gmail.com>; Alexis Beingessner <a.beingessner@gmail.com>; Brian Anderson <>; tbu- <>; Manish Goregaokar <>; Aaron Turon <aturon@mozilla.com>; Adolfo Ochagavía <>; Niko Matsakis <>; Steven Fackler <>; Chase Southwood <csouth3@illinois.edu>; Eduard Burtescu <>; Florian Wilkens <>; Félix Raimundo <>; Tibor Benke <>; Markus Siemens <markus@m-siemens.de>; Josh Branchaud <jbranchaud@gmail.com>; Huon Wilson <dbau.pp@gmail.com>; Corey Farwell <coref@rwell.org>; Aaron Liblong <>; Nick Cameron <nrc@ncameron.org>; Patrick Walton <pcwalton@mimiga.net>; Felix S Klock II <>; Andrew Paseltiner <apaseltiner@gmail.com>; Sean McArthur <sean.monstar@gmail.com>; Vadim Petrochenkov <>
 License: MIT/Apache-2.0
 Source: https://github.com/contain-rs/vec-map
+
+vello_common-0.2.0
+Authors: 
+License: Apache-2.0 OR MIT
+Source: https://github.com/linebender/vello
+
+vello_cpu-0.2.0
+Authors: 
+License: Apache-2.0 OR MIT
+Source: https://github.com/linebender/vello
 
 version_check-0.9.5
 Authors: Sergio Benitez <sb@sergio.bz>
@@ -1818,27 +2143,32 @@ Authors: The image-rs Developers
 License: MIT OR Apache-2.0
 Source: https://github.com/image-rs/weezl
 
-wgpu-27.0.1
+wgpu-30.0.1
 Authors: gfx-rs developers
 License: MIT OR Apache-2.0
 Source: https://github.com/gfx-rs/wgpu
 
-wgpu-core-27.0.3
+wgpu-core-30.0.1
 Authors: gfx-rs developers
 License: MIT OR Apache-2.0
 Source: https://github.com/gfx-rs/wgpu
 
-wgpu-core-deps-windows-linux-android-27.0.0
+wgpu-core-deps-windows-linux-android-30.0.1
 Authors: gfx-rs developers
 License: MIT OR Apache-2.0
 Source: https://github.com/gfx-rs/wgpu
 
-wgpu-hal-27.0.4
+wgpu-hal-30.0.1
 Authors: gfx-rs developers
 License: MIT OR Apache-2.0
 Source: https://github.com/gfx-rs/wgpu
 
-wgpu-types-27.0.1
+wgpu-naga-bridge-30.0.1
+Authors: gfx-rs developers
+License: MIT OR Apache-2.0
+Source: https://github.com/gfx-rs/wgpu
+
+wgpu-types-30.0.1
 Authors: gfx-rs developers
 License: MIT OR Apache-2.0
 Source: https://github.com/gfx-rs/wgpu
@@ -1853,38 +2183,23 @@ Authors: Andrew Gallant <jamslam@gmail.com>
 License: Unlicense OR MIT
 Source: https://github.com/BurntSushi/winapi-util
 
-windows-0.58.0
-Authors: Microsoft
-License: MIT OR Apache-2.0
-Source: https://github.com/microsoft/windows-rs
-
-windows-0.61.3
-Authors: Microsoft
-License: MIT OR Apache-2.0
-Source: https://github.com/microsoft/windows-rs
-
-windows-collections-0.2.0
+windows-0.62.2
 Authors: 
 License: MIT OR Apache-2.0
 Source: https://github.com/microsoft/windows-rs
 
-windows-core-0.58.0
-Authors: Microsoft
-License: MIT OR Apache-2.0
-Source: https://github.com/microsoft/windows-rs
-
-windows-core-0.61.2
-Authors: Microsoft
-License: MIT OR Apache-2.0
-Source: https://github.com/microsoft/windows-rs
-
-windows-future-0.2.1
+windows-collections-0.3.2
 Authors: 
 License: MIT OR Apache-2.0
 Source: https://github.com/microsoft/windows-rs
 
-windows-implement-0.58.0
-Authors: Microsoft
+windows-core-0.62.2
+Authors: 
+License: MIT OR Apache-2.0
+Source: https://github.com/microsoft/windows-rs
+
+windows-future-0.3.2
+Authors: 
 License: MIT OR Apache-2.0
 Source: https://github.com/microsoft/windows-rs
 
@@ -1893,18 +2208,8 @@ Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/microsoft/windows-rs
 
-windows-interface-0.58.0
-Authors: Microsoft
-License: MIT OR Apache-2.0
-Source: https://github.com/microsoft/windows-rs
-
 windows-interface-0.59.3
 Authors: 
-License: MIT OR Apache-2.0
-Source: https://github.com/microsoft/windows-rs
-
-windows-link-0.1.3
-Authors: Microsoft
 License: MIT OR Apache-2.0
 Source: https://github.com/microsoft/windows-rs
 
@@ -1913,7 +2218,7 @@ Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/microsoft/windows-rs
 
-windows-numerics-0.2.0
+windows-numerics-0.3.1
 Authors: 
 License: MIT OR Apache-2.0
 Source: https://github.com/microsoft/windows-rs
@@ -1923,28 +2228,8 @@ Authors:
 License: MIT OR Apache-2.0
 Source: https://github.com/microsoft/windows-rs
 
-windows-result-0.2.0
-Authors: Microsoft
-License: MIT OR Apache-2.0
-Source: https://github.com/microsoft/windows-rs
-
-windows-result-0.3.4
-Authors: Microsoft
-License: MIT OR Apache-2.0
-Source: https://github.com/microsoft/windows-rs
-
 windows-result-0.4.1
 Authors: 
-License: MIT OR Apache-2.0
-Source: https://github.com/microsoft/windows-rs
-
-windows-strings-0.1.0
-Authors: Microsoft
-License: MIT OR Apache-2.0
-Source: https://github.com/microsoft/windows-rs
-
-windows-strings-0.4.2
-Authors: Microsoft
 License: MIT OR Apache-2.0
 Source: https://github.com/microsoft/windows-rs
 
@@ -1968,8 +2253,8 @@ Authors: Microsoft
 License: MIT OR Apache-2.0
 Source: https://github.com/microsoft/windows-rs
 
-windows-threading-0.1.0
-Authors: Microsoft
+windows-threading-0.2.1
+Authors: 
 License: MIT OR Apache-2.0
 Source: https://github.com/microsoft/windows-rs
 
@@ -1982,6 +2267,11 @@ winit-0.30.13
 Authors: The winit contributors; Pierre Krieger <pierre.krieger1708@gmail.com>
 License: Apache-2.0
 Source: https://github.com/rust-windowing/winit
+
+winnow-1.0.4
+Authors: 
+License: MIT
+Source: https://github.com/winnow-rs/winnow
 
 writeable-0.6.4
 Authors: The ICU4X Project Developers
@@ -2097,3 +2387,13 @@ zune-jpeg-0.5.15
 Authors: caleb <etemesicaleb@gmail.com>
 License: MIT OR Apache-2.0 OR Zlib
 Source: https://github.com/etemesi254/zune-image/tree/dev/crates/zune-jpeg
+
+Local text-engine adaptations
+egui / epaint: Emil Ernerfeldt and egui contributors
+Bidirectional text patch: abdu-benayad
+Source: https://github.com/emilk/egui/pull/8577
+Pinned revision: c93e8863e958507056415e2a6dace56e23ba5f3a
+Integration and corrective changes: NIS
+License: MIT OR Apache-2.0
+Local Windows binding compatibility patch: gpu-allocator by Traverse Research
+See vendor/README.md for modifications.

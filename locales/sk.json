@@ -67,7 +67,7 @@
   "Follow Windows language": "Postupujte podľa jazyka Windows",
   "Found {} images across {} pages": "Našli sa obrázky {} na stránkach {}\nOd\nPredná časť\nVýška",
   "Image Atlas edited": "Atlas obrázkov upravený\nAtlas obrázkov ZXQ0QXZ",
-  "Image Atlas {} · NIS · MIT": "Atlas obrázkov {} · NIS · MIT",
+  "Image Atlas {} · NIS · MIT": "Image Atlas {} · NIS · MIT",
   "Image dimensions exceed available memory": "Rozmery obrazu presahujú dostupnú pamäť",
   "Image is not in this collection": "Obrázok sa nenachádza v tejto kolekcii",
   "Image size": "Veľkosť obrázka",
@@ -130,7 +130,7 @@
   "From": "Od",
   "Front": "Predné",
   "Height": "Výška",
-  "Image Atlas {}": "Atlas obrázkov {}",
+  "Image Atlas {}": "Image Atlas {}",
   "Installer checksum missing": "Chýba kontrolný súčet inštalátora",
   "Interface language": "Jazyk rozhrania",
   "Invalid checksum": "Neplatný kontrolný súčet",
@@ -221,8 +221,6 @@
   "ETA ~{}m {:02}s": "ETA ~{}m {:02}s",
   "{} pages scanned · {} queued · {} images · {eta}": "Naskenované strany {} · {} vo fronte · Obrázky {} · {eta}",
   "{} pages scanned · {} images found": "Naskenované strany {} · Našli sa obrázky {}",
-  "Preview language support": "Ukážka jazykovej podpory",
-  "Complex scripts may not display correctly yet.": "Zložité skripty sa ešte nemusia zobrazovať správne.",
   "Mapping": "Mapovanie",
   "Batch editor": "Dávkový editor",
   "Website images": "Obrázky webových stránok",
@@ -246,5 +244,6 @@
   "Batch": "Dávka",
   "A fresh version is ready": "Čerstvá verzia je pripravená",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "PNG pre transparentnosť a kompaktné umelecké diela; JPEG, keď je oveľa menší. SVG zostáva vektor.",
-  "JPEG flattens transparency onto white.": "JPEG zlúči priehľadnosť na bielu."
+  "JPEG flattens transparency onto white.": "JPEG zlúči priehľadnosť na bielu.",
+  "A considered pace": "Adaptívne sťahovanie"
 }

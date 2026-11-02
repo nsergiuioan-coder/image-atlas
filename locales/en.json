@@ -221,8 +221,6 @@
   "ETA ~{}m {:02}s": "ETA ~{}m {:02}s",
   "{} pages scanned · {} queued · {} images · {eta}": "{} pages scanned · {} queued · {} images · {eta}",
   "{} pages scanned · {} images found": "{} pages scanned · {} images found",
-  "Preview language support": "Preview language support",
-  "Complex scripts may not display correctly yet.": "Complex scripts may not display correctly yet.",
   "Mapping": "Mapping",
   "Batch editor": "Batch editor",
   "Website images": "Website images",
@@ -246,5 +244,6 @@
   "Batch": "Batch",
   "A fresh version is ready": "A fresh version is ready",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.",
-  "JPEG flattens transparency onto white.": "JPEG flattens transparency onto white."
+  "JPEG flattens transparency onto white.": "JPEG flattens transparency onto white.",
+  "A considered pace": "Adaptive downloads"
 }

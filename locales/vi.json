@@ -77,8 +77,8 @@
   "Front": "Mặt trận",
   "Height": "Chiều cao",
   "Image Atlas edited": "Bản đồ hình ảnh đã được chỉnh sửa",
-  "Image Atlas {}": "Hình ảnh Atlas {}",
-  "Image Atlas {} · NIS · MIT": "Hình ảnh Atlas {} · NIS · MIT",
+  "Image Atlas {}": "Image Atlas {}",
+  "Image Atlas {} · NIS · MIT": "Image Atlas {} · NIS · MIT",
   "Image dimensions exceed available memory": "Kích thước hình ảnh vượt quá bộ nhớ khả dụng",
   "Image is not in this collection": "Hình ảnh không có trong bộ sưu tập này",
   "Image size": "Kích thước hình ảnh",
@@ -221,8 +221,6 @@
   "ETA ~{}m {:02}s": "ETA ~{}m {:02}s",
   "{} pages scanned · {} queued · {} images · {eta}": "Các trang {} được quét · {} được xếp hàng đợi · Hình ảnh {} · {eta}",
   "{} pages scanned · {} images found": "Đã quét các trang {} · Đã tìm thấy hình ảnh {}",
-  "Preview language support": "Hỗ trợ ngôn ngữ xem trước",
-  "Complex scripts may not display correctly yet.": "Các tập lệnh phức tạp có thể chưa hiển thị chính xác.",
   "Mapping": "Lập bản đồ",
   "Batch editor": "Trình chỉnh sửa hàng loạt",
   "Website images": "Hình ảnh trang web",
@@ -246,5 +244,6 @@
   "A fresh version is ready": "Đã có phiên bản mới",
   "JPEG flattens transparency onto white.": "JPEG thay vùng trong suốt bằng nền trắng.",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "Dùng PNG cho ảnh trong suốt và đồ họa đơn giản; dùng JPEG khi dung lượng nhỏ hơn đáng kể. SVG vẫn là vectơ.",
-  "JPEG quality": "Chất lượng JPEG"
+  "JPEG quality": "Chất lượng JPEG",
+  "A considered pace": "Tải xuống thích ứng"
 }

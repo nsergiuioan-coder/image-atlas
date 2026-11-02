@@ -77,8 +77,8 @@
   "Front": "ด้านหน้า",
   "Height": "ความสูง",
   "Image Atlas edited": "แก้ไขรูปภาพ Atlas แล้ว",
-  "Image Atlas {}": "รูปภาพ Atlas {}",
-  "Image Atlas {} · NIS · MIT": "รูปภาพ Atlas {} · NIS · MIT",
+  "Image Atlas {}": "Image Atlas {}",
+  "Image Atlas {} · NIS · MIT": "Image Atlas {} · NIS · MIT",
   "Image dimensions exceed available memory": "ขนาดภาพเกินหน่วยความจำที่มีอยู่",
   "Image is not in this collection": "รูปภาพไม่ได้อยู่ในคอลเลกชันนี้",
   "Image size": "ขนาดภาพ",
@@ -221,8 +221,6 @@
   "ETA ~{}m {:02}s": "การทางพิเศษแห่งประเทศไทย ~{}m {:02}",
   "{} pages scanned · {} queued · {} images · {eta}": "สแกนหน้า {} แล้ว · {} เข้าคิว · รูปภาพ {} · {eta}",
   "{} pages scanned · {} images found": "สแกนหน้า {} แล้ว · พบรูปภาพ {}",
-  "Preview language support": "ดูตัวอย่างการสนับสนุนภาษา",
-  "Complex scripts may not display correctly yet.": "สคริปต์ที่ซับซ้อนอาจยังแสดงไม่ถูกต้อง",
   "Mapping": "การทำแผนที่",
   "Batch editor": "บรรณาธิการชุด",
   "Website images": "รูปภาพเว็บไซต์",
@@ -246,5 +244,6 @@
   "A fresh version is ready": "เวอร์ชันใหม่พร้อมแล้ว",
   "JPEG flattens transparency onto white.": "JPEG จะรวมส่วนโปร่งใสเข้ากับพื้นหลังสีขาว",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "ใช้ PNG สำหรับภาพโปร่งใสและกราฟิกเรียบง่าย ใช้ JPEG เมื่อไฟล์เล็กกว่ามาก ส่วน SVG ยังคงเป็นเวกเตอร์",
-  "JPEG quality": "คุณภาพ JPEG"
+  "JPEG quality": "คุณภาพ JPEG",
+  "A considered pace": "ดาวน์โหลดแบบปรับตัว"
 }

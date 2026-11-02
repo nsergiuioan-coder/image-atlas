@@ -77,8 +77,8 @@
   "Front": "Depan",
   "Height": "Tinggi",
   "Image Atlas edited": "Atlas Imej disunting",
-  "Image Atlas {}": "Atlas Imej {}",
-  "Image Atlas {} · NIS · MIT": "Atlas Imej {} · NIS · MIT",
+  "Image Atlas {}": "Image Atlas {}",
+  "Image Atlas {} · NIS · MIT": "Image Atlas {} · NIS · MIT",
   "Image dimensions exceed available memory": "Dimensi imej melebihi memori yang tersedia",
   "Image is not in this collection": "Imej tiada dalam koleksi ini",
   "Image size": "Saiz imej",
@@ -221,8 +221,6 @@
   "ETA ~{}m {:02}s": "ETA ~{}m {:02}s",
   "{} pages scanned · {} queued · {} images · {eta}": "Halaman {} diimbas · {} beratur · Imej {} · {eta}",
   "{} pages scanned · {} images found": "Halaman {} diimbas · Imej {} ditemui",
-  "Preview language support": "Pratonton sokongan bahasa",
-  "Complex scripts may not display correctly yet.": "Skrip kompleks mungkin belum dipaparkan dengan betul.",
   "Mapping": "Pemetaan",
   "Batch editor": "Editor kelompok",
   "Website images": "Imej laman web",
@@ -246,5 +244,6 @@
   "Batch": "Kumpulan",
   "A fresh version is ready": "Versi baharu sudah sedia",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "PNG untuk ketelusan dan karya seni padat; JPEG apabila lebih kecil. SVG kekal sebagai vektor.",
-  "JPEG flattens transparency onto white.": "JPEG meratakan ketelusan kepada putih."
+  "JPEG flattens transparency onto white.": "JPEG meratakan ketelusan kepada putih.",
+  "A considered pace": "Muat turun adaptif"
 }

@@ -43,8 +43,8 @@
   "Follow Windows language": "Følg Windows-sproget",
   "Found {} images across {} pages": "Fandt {} billeder på tværs af {} sider\nFra\nForan\nHøjde",
   "Image Atlas edited": "Billedatlas redigeret",
-  "Image Atlas {}": "Billedatlas {}",
-  "Image Atlas {} · NIS · MIT": "Billedatlas {} · NIS · MIT",
+  "Image Atlas {}": "Image Atlas {}",
+  "Image Atlas {} · NIS · MIT": "Image Atlas {} · NIS · MIT",
   "Image dimensions exceed available memory": "Billeddimensioner overstiger tilgængelig hukommelse",
   "Image is not in this collection": "Billedet er ikke i denne samling",
   "Image size": "Billedstørrelse",
@@ -221,8 +221,6 @@
   "ETA ~{}m {:02}s": "ETA ~{}m {:02}s",
   "{} pages scanned · {} queued · {} images · {eta}": "{} sider scannet · {} i kø · {} billeder · {eta}",
   "{} pages scanned · {} images found": "{}-sider scannet · {}-billeder fundet",
-  "Preview language support": "Forhåndsvisning af sprogunderstøttelse",
-  "Complex scripts may not display correctly yet.": "Komplekse scripts vises muligvis ikke korrekt endnu.",
   "Mapping": "Kortlægning",
   "Batch editor": "Batch editor",
   "Website images": "Website billeder",
@@ -246,5 +244,6 @@
   "Batch": "Batch",
   "A fresh version is ready": "En frisk version er klar",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "PNG til gennemsigtighed og kompakt illustration; JPEG, når meget mindre. SVG forbliver vektor.",
-  "JPEG flattens transparency onto white.": "JPEG udjævner gennemsigtighed til hvid."
+  "JPEG flattens transparency onto white.": "JPEG udjævner gennemsigtighed til hvid.",
+  "A considered pace": "Tilpassede downloads"
 }

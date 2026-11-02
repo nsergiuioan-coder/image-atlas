@@ -77,8 +77,8 @@
   "Front": "الجبهة",
   "Height": "الارتفاع",
   "Image Atlas edited": "تم تحرير صورة أطلس",
-  "Image Atlas {}": "أطلس الصور {}",
-  "Image Atlas {} · NIS · MIT": "أطلس الصور {} · NIS · معهد ماساتشوستس للتكنولوجيا",
+  "Image Atlas {}": "Image Atlas {}",
+  "Image Atlas {} · NIS · MIT": "Image Atlas {} · NIS · MIT",
   "Image dimensions exceed available memory": "أبعاد الصورة تتجاوز الذاكرة المتوفرة",
   "Image is not in this collection": "الصورة ليست في هذه المجموعة",
   "Image size": "حجم الصورة",
@@ -221,8 +221,6 @@
   "ETA ~{}m {:02}s": "إيتا ~ {}m {:02}s",
   "{} pages scanned · {} queued · {} images · {eta}": "تم مسح صفحات {} ضوئيًا · تم وضع {} في قائمة الانتظار · صور {} · {eta}",
   "{} pages scanned · {} images found": "تم مسح صفحات {} · تم العثور على صور {}",
-  "Preview language support": "معاينة دعم اللغة",
-  "Complex scripts may not display correctly yet.": "قد لا يتم عرض البرامج النصية المعقدة بشكل صحيح حتى الآن.",
   "Mapping": "رسم الخرائط",
   "Batch editor": "محرر دفعة",
   "Website images": "صور الموقع",
@@ -246,5 +244,6 @@
   "Batch": "حزمة",
   "A fresh version is ready": "نسخة جديدة جاهزة",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "PNG للشفافية والأعمال الفنية المدمجة؛ JPEG عندما يكون أصغر من ذلك بكثير. يظل SVG متجهًا.",
-  "JPEG flattens transparency onto white.": "يقوم JPEG بتسوية الشفافية إلى اللون الأبيض."
+  "JPEG flattens transparency onto white.": "يقوم JPEG بتسوية الشفافية إلى اللون الأبيض.",
+  "A considered pace": "تنزيلات تكيفية"
 }

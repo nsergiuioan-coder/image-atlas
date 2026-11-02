@@ -77,8 +77,8 @@
   "Front": "חזית",
   "Height": "גובה",
   "Image Atlas edited": "תמונה אטלס נערך",
-  "Image Atlas {}": "תמונה אטלס {}",
-  "Image Atlas {} · NIS · MIT": "Image Atlas {} · ש\"ח · MIT",
+  "Image Atlas {}": "Image Atlas {}",
+  "Image Atlas {} · NIS · MIT": "Image Atlas {} · NIS · MIT",
   "Image dimensions exceed available memory": "ממדי התמונה חורגים מהזיכרון הזמין",
   "Image is not in this collection": "התמונה אינה באוסף זה",
   "Image size": "גודל תמונה",
@@ -221,8 +221,6 @@
   "ETA ~{}m {:02}s": "ETA ~{}m {:02}s",
   "{} pages scanned · {} queued · {} images · {eta}": "דפים {} שנסרקו · {} בתור · תמונות {} · {eta}",
   "{} pages scanned · {} images found": "דפי {} נסרקו · נמצאו תמונות {}",
-  "Preview language support": "תצוגה מקדימה של תמיכה בשפה",
-  "Complex scripts may not display correctly yet.": "ייתכן שסקריפטים מורכבים עדיין לא יוצגו כראוי.",
   "Mapping": "מיפוי",
   "Batch editor": "עורך אצווה",
   "Website images": "תמונות באתר",
@@ -246,5 +244,6 @@
   "Batch": "קְבוּצָה",
   "A fresh version is ready": "גרסה טרייה מוכנה",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "PNG לשקיפות ויצירות אמנות קומפקטיות; JPEG כאשר הוא קטן בהרבה. SVG נשאר וקטור.",
-  "JPEG flattens transparency onto white.": "JPEG משטח שקיפות ללבן."
+  "JPEG flattens transparency onto white.": "JPEG משטח שקיפות ללבן.",
+  "A considered pace": "הורדות מסתגלות"
 }

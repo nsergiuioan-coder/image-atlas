@@ -2,3 +2,7 @@
 /dist
 *.part
 /.local
+
+/vendor/**/.cargo-ok
+/vendor/**/.cargo_vcs_info.json
+/vendor/**/Cargo.lock

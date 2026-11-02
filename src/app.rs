@@ -64,7 +64,7 @@ impl MappingNotice {
                     return true;
                 }
                 let remaining = Duration::from_secs(5).saturating_sub(self.created.elapsed());
-                egui::Area::new(egui::Id::new("mapping-toast"))
+                egui::Area::new(egui::Id::unique("mapping-toast"))
                     .anchor(egui::Align2::RIGHT_BOTTOM, [-24.0, -72.0])
                     .order(egui::Order::Foreground)
                     .interactable(false)
@@ -82,7 +82,7 @@ impl MappingNotice {
             }
             update::MappingNotification::Modal => {
                 let mut close = false;
-                egui::Modal::new(egui::Id::new("mapping-completed"))
+                egui::Modal::new(egui::Id::unique("mapping-completed"))
                     .frame(Atlas::card())
                     .show(ctx, |ui| {
                         ui.set_min_width(350.0);
@@ -152,7 +152,7 @@ impl Atlas {
         let preferences = update::Preferences::load();
         crate::i18n::set_language(&preferences.language);
         crate::i18n::configure_fonts(&cc.egui_ctx);
-        let mut style = (*cc.egui_ctx.style()).clone();
+        let mut style = (*cc.egui_ctx.style_of(egui::Theme::Dark)).clone();
         style.visuals = egui::Visuals::dark();
         style.visuals.panel_fill = PAPER;
         style.visuals.window_fill = Color32::from_rgb(31, 37, 45);
@@ -409,7 +409,7 @@ impl Atlas {
                     crate::i18n::text("Review and edit categories before saving."),
                 ),
                 (
-                    "A considered pace",
+                    crate::i18n::text("A considered pace"),
                     crate::i18n::text("Downloads adapt to your connection and the server."),
                 ),
             ]) {
@@ -457,7 +457,7 @@ impl Atlas {
                 self.map.assets.len(),
                 self.map.pages
             ));
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+            ui.with_layout(crate::i18n::trailing_layout(egui::Align::Center), |ui| {
                 if Self::primary(ui, crate::i18n::text("Continue to download")).clicked()
                     && count > 0
                 {
@@ -571,7 +571,7 @@ impl Atlas {
                                         });
                                     }
                                     ui.with_layout(
-                                        egui::Layout::right_to_left(egui::Align::Center),
+                                        crate::i18n::trailing_layout(egui::Align::Center),
                                         |ui| {
                                             if !a.url.starts_with("data:") {
                                                 ui.hyperlink_to(
@@ -781,7 +781,7 @@ impl Atlas {
             {
                 self.original = false;
             }
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+            ui.with_layout(crate::i18n::trailing_layout(egui::Align::Center), |ui| {
                 if ui.button(crate::i18n::text("Fit image")).clicked() {
                     self.zoom = 1.0;
                     self.pan = egui::Vec2::ZERO;
@@ -828,7 +828,7 @@ impl Atlas {
             {
                 let start = end - response.drag_delta();
                 let drag = ctx
-                    .data(|d| d.get_temp::<egui::Pos2>(egui::Id::new("region-start")))
+                    .data(|d| d.get_temp::<egui::Pos2>(egui::Id::unique("region-start")))
                     .unwrap_or(start);
                 let a = (drag - image_rect.min) / image_rect.size();
                 let b = (end - image_rect.min) / image_rect.size();
@@ -846,12 +846,12 @@ impl Atlas {
                 && response.drag_started()
                 && let Some(position) = response.interact_pointer_pos()
             {
-                ctx.data_mut(|d| d.insert_temp(egui::Id::new("region-start"), position));
+                ctx.data_mut(|d| d.insert_temp(egui::Id::unique("region-start"), position));
             }
             if let Some(index) = self.region_rule
                 && response.dragged()
                 && let (Some(start), Some(end)) = (
-                    ctx.data(|d| d.get_temp::<egui::Pos2>(egui::Id::new("region-start"))),
+                    ctx.data(|d| d.get_temp::<egui::Pos2>(egui::Id::unique("region-start"))),
                     response.interact_pointer_pos(),
                 )
             {
@@ -1316,7 +1316,7 @@ impl Atlas {
     fn batch(&mut self, ui: &mut egui::Ui, ctx: &egui::Context) {
         ui.horizontal(|ui| {
             ui.heading(crate::i18n::text("  Batch editor"));
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+            ui.with_layout(crate::i18n::trailing_layout(egui::Align::Center), |ui| {
                 if ui.button(crate::i18n::text("Add images")).clicked()
                     && let Some(paths) = rfd::FileDialog::new().pick_files()
                 {
@@ -1343,10 +1343,10 @@ impl Atlas {
         ));
         ui.add_space(18.0);
         let height = ui.available_height();
-        ui.with_layout(egui::Layout::right_to_left(egui::Align::Min), |ui| {
+        ui.with_layout(crate::i18n::trailing_layout(egui::Align::Min), |ui| {
             ui.allocate_ui_with_layout(
                 egui::vec2(278.0, height),
-                egui::Layout::top_down(egui::Align::LEFT),
+                egui::Layout::top_down(crate::i18n::text_alignment()),
                 |ui| {
                     Self::card().inner_margin(18).show(ui, |ui| {
                         ui.set_width(242.0);
@@ -1401,11 +1401,6 @@ impl Atlas {
                 if let Err(error) = self.preferences.save() {
                     self.error(error);
                 }
-            }
-            if crate::i18n::preview_language() {
-                ui.weak(crate::i18n::text(
-                    "Complex scripts may not display correctly yet.",
-                ));
             }
             ui.add_space(16.0);
             ui.separator();
@@ -1473,7 +1468,8 @@ impl Atlas {
     }
 }
 impl eframe::App for Atlas {
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+    fn ui(&mut self, root: &mut egui::Ui, _frame: &mut eframe::Frame) {
+        let ctx = &root.ctx().clone();
         while let Ok(event) = self.rx.try_recv() {
             match event {
                 Event::Log(s) => {
@@ -1604,20 +1600,22 @@ impl eframe::App for Atlas {
             i.raw
                 .dropped_files
                 .iter()
-                .filter_map(|f| f.path.clone())
+                .map(|f| f.path().to_path_buf())
                 .collect::<Vec<_>>()
         });
         if !dropped.is_empty() && !mapping_blocked {
             self.import_files(dropped);
             self.tab = 2;
         }
-        egui::TopBottomPanel::top("app-bar")
+        let direction = crate::i18n::text_alignment();
+        root.with_layout(egui::Layout::top_down(direction), |root| {
+        egui::Panel::top("app-bar")
             .frame(
                 egui::Frame::new()
                     .fill(Color32::from_rgb(29, 34, 40))
                     .inner_margin(egui::Margin::symmetric(28, 18)),
             )
-            .show(ctx, |ui| {
+            .show(root, |ui| {
                 if mapping_blocked {
                     ui.disable();
                 }
@@ -1655,20 +1653,20 @@ impl eframe::App for Atlas {
                     {
                         self.tab = 2;
                     }
-                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    ui.with_layout(crate::i18n::trailing_layout(egui::Align::Center), |ui| {
                         if ui.button(crate::i18n::text("  Preferences")).clicked() {
                             self.tab = 3;
                         }
                     });
                 });
             });
-        egui::TopBottomPanel::bottom("status")
+        egui::Panel::bottom("status")
             .frame(
                 egui::Frame::new()
                     .fill(Color32::from_rgb(31, 37, 45))
                     .inner_margin(egui::Margin::symmetric(28, 10)),
             )
-            .show(ctx, |ui| {
+            .show(root, |ui| {
                 if mapping_blocked {
                     ui.disable();
                 }
@@ -1681,7 +1679,7 @@ impl eframe::App for Atlas {
                         }
                     }
                     ui.add(egui::Label::new(RichText::new(&self.status).small()).truncate());
-                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    ui.with_layout(crate::i18n::trailing_layout(egui::Align::Center), |ui| {
                         ui.menu_button(crate::i18n::text("Details"), |ui| {
                             egui::ScrollArea::vertical()
                                 .max_height(220.0)
@@ -1709,7 +1707,7 @@ impl eframe::App for Atlas {
                     .fill(PAPER)
                     .inner_margin(egui::Margin::symmetric(30, 22)),
             )
-            .show(ctx, |ui| {
+            .show(root, |ui| {
                 if mapping_blocked{ui.disable();}
                 if matches!(self.tab, 0 | 1 | 4) {
                     ui.horizontal(|ui| {
@@ -1765,6 +1763,7 @@ impl eframe::App for Atlas {
                 });
                 }
             });
+        });
         if !mapping_blocked && let Some(release) = self.release.clone() {
             egui::Window::new(crate::i18n::text("A fresh version is ready"))
                 .collapsible(false)
@@ -1823,7 +1822,7 @@ mod tests {
         events: Vec<egui::Event>,
     ) -> (bool, egui::FullOutput) {
         let mut dismissed = false;
-        let output = ctx.run(
+        let output = ctx.run_pass(
             egui::RawInput {
                 screen_rect: Some(egui::Rect::from_min_size(
                     egui::Pos2::ZERO,
@@ -1837,6 +1836,34 @@ mod tests {
             },
         );
         (dismissed, output)
+    }
+    #[test]
+    #[ignore = "Manual isolated full-window rendering"]
+    fn render_translated_windows() {
+        let folder = PathBuf::from(
+            std::env::var_os("IMAGE_ATLAS_RENDER_FOLDER").expect("Set IMAGE_ATLAS_RENDER_FOLDER"),
+        );
+        assert!(std::env::var_os("IMAGE_ATLAS_ISOLATED_TEST").is_some());
+        std::fs::create_dir_all(&folder).unwrap();
+        for language in ["it", "ar", "hi", "th", "he"] {
+            let mut harness = egui_kittest::Harness::builder()
+                .with_size([1180.0, 800.0])
+                .with_accessibility_check(false)
+                .build_eframe(|cc| Atlas::new(cc));
+            for tab in [0, 3] {
+                let atlas = harness.state_mut();
+                atlas.preferences.language = language.into();
+                atlas.tab = tab;
+                crate::i18n::set_language(language);
+                crate::i18n::configure_fonts(&harness.ctx);
+                harness.run_steps(2);
+                harness
+                    .render()
+                    .unwrap()
+                    .save(folder.join(format!("window-{language}-{tab}.png")))
+                    .unwrap();
+            }
+        }
     }
     fn click(position: egui::Pos2) -> Vec<egui::Event> {
         vec![

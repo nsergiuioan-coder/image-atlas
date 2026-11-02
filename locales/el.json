@@ -77,8 +77,8 @@
   "Front": "Εμπρός",
   "Height": "Ύψος",
   "Image Atlas edited": "Επεξεργασία Άτλαντα εικόνας",
-  "Image Atlas {}": "Εικόνα Atlas {}",
-  "Image Atlas {} · NIS · MIT": "Εικόνα Atlas {} · NIS · MIT",
+  "Image Atlas {}": "Image Atlas {}",
+  "Image Atlas {} · NIS · MIT": "Image Atlas {} · NIS · MIT",
   "Image dimensions exceed available memory": "Οι διαστάσεις της εικόνας υπερβαίνουν τη διαθέσιμη μνήμη",
   "Image is not in this collection": "Η εικόνα δεν υπάρχει σε αυτήν τη συλλογή",
   "Image size": "Μέγεθος εικόνας",
@@ -221,8 +221,6 @@
   "ETA ~{}m {:02}s": "ETA ~{}m {:02}s",
   "{} pages scanned · {} queued · {} images · {eta}": "Σαρώθηκαν σελίδες {} · {} σε ουρά · εικόνες {} · {eta}",
   "{} pages scanned · {} images found": "Σαρώθηκαν σελίδες {} · Βρέθηκαν εικόνες {}",
-  "Preview language support": "Προεπισκόπηση υποστήριξης γλώσσας",
-  "Complex scripts may not display correctly yet.": "Τα σύνθετα σενάρια ενδέχεται να μην εμφανίζονται ακόμη σωστά.",
   "Mapping": "Χαρτογράφηση",
   "Batch editor": "Μαζική επεξεργασία",
   "Website images": "Εικόνες ιστότοπου",
@@ -246,5 +244,6 @@
   "Batch": "Σύνολο παραγωγής",
   "A fresh version is ready": "Μια φρέσκια έκδοση είναι έτοιμη",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "PNG για διαφάνεια και συμπαγή έργα τέχνης. JPEG όταν είναι πολύ μικρότερο. Το SVG παραμένει διάνυσμα.",
-  "JPEG flattens transparency onto white.": "Το JPEG ισοπεδώνει τη διαφάνεια σε λευκό."
+  "JPEG flattens transparency onto white.": "Το JPEG ισοπεδώνει τη διαφάνεια σε λευκό.",
+  "A considered pace": "Προσαρμοζόμενες λήψεις"
 }

@@ -67,8 +67,8 @@
   "Front": "Ön",
   "Height": "Yükseklik",
   "Image Atlas edited": "Resim Atlası düzenlendi",
-  "Image Atlas {}": "Görüntü Atlası {}",
-  "Image Atlas {} · NIS · MIT": "Görüntü Atlası {} · NIS · MIT",
+  "Image Atlas {}": "Image Atlas {}",
+  "Image Atlas {} · NIS · MIT": "Image Atlas {} · NIS · MIT",
   "Image dimensions exceed available memory": "Görüntü boyutları kullanılabilir belleği aşıyor",
   "Image is not in this collection": "Resim bu koleksiyonda değil",
   "Image size": "Görüntü boyutu",
@@ -221,8 +221,6 @@
   "ETA ~{}m {:02}s": "ETA ~{}m {:02}s",
   "{} pages scanned · {} queued · {} images · {eta}": "{} taranan sayfalar · {} sıraya alındı ​​· {} resimler · {eta}",
   "{} pages scanned · {} images found": "{} sayfalar tarandı · {} resimler bulundu",
-  "Preview language support": "Dil desteğini önizleyin",
-  "Complex scripts may not display correctly yet.": "Karmaşık komut dosyaları henüz doğru şekilde görüntülenmeyebilir.",
   "Mapping": "Haritalama",
   "Batch editor": "Toplu düzenleyici",
   "Website images": "Web sitesi resimleri",
@@ -246,5 +244,6 @@
   "A fresh version is ready": "Yeni sürüm hazır",
   "JPEG flattens transparency onto white.": "JPEG, saydam alanları beyaz arka planla birleştirir.",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "Saydamlık ve sade çizimler için PNG; dosya çok daha küçükse JPEG. SVG vektör olarak kalır.",
-  "JPEG quality": "JPEG kalitesi"
+  "JPEG quality": "JPEG kalitesi",
+  "A considered pace": "Uyarlanabilir indirmeler"
 }

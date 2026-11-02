@@ -133,8 +133,8 @@
   "Finished": "Hotovo",
   "Fit": "Fit",
   "Front": "Přední",
-  "Image Atlas {}": "Atlas obrázku {}",
-  "Image Atlas {} · NIS · MIT": "Atlas obrázku {} · NIS · MIT",
+  "Image Atlas {}": "Image Atlas {}",
+  "Image Atlas {} · NIS · MIT": "Image Atlas {} · NIS · MIT",
   "Image dimensions exceed available memory": "Rozměry obrázku přesahují dostupnou paměť",
   "Image is not in this collection": "Obrázek není v této kolekci",
   "Images": "Obrázky",
@@ -221,8 +221,6 @@
   "ETA ~{}m {:02}s": "ETA ~{}m {:02}s",
   "{} pages scanned · {} queued · {} images · {eta}": "Naskenované stránky {} · {} ve frontě · Obrázky {} · {eta}",
   "{} pages scanned · {} images found": "Naskenované stránky {} · Nalezeny obrázky {}",
-  "Preview language support": "Jazyková podpora náhledu",
-  "Complex scripts may not display correctly yet.": "Složité skripty se ještě nemusí zobrazovat správně.",
   "Mapping": "Mapování",
   "Batch editor": "Dávkový editor",
   "Website images": "Obrázky webových stránek",
@@ -246,5 +244,6 @@
   "Batch": "Dávka",
   "A fresh version is ready": "Čerstvá verze je připravena",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "PNG pro průhlednost a kompaktní kresbu; JPEG, když je mnohem menší. SVG zůstává vektor.",
-  "JPEG flattens transparency onto white.": "JPEG sloučí průhlednost na bílou."
+  "JPEG flattens transparency onto white.": "JPEG sloučí průhlednost na bílou.",
+  "A considered pace": "Adaptivní stahování"
 }

@@ -77,8 +77,8 @@
   "Front": "Voorkant",
   "Height": "Hoogte",
   "Image Atlas edited": "Beeldatlas bewerkt",
-  "Image Atlas {}": "Beeldatlas {}",
-  "Image Atlas {} · NIS · MIT": "Beeldatlas {} · NIS · MIT",
+  "Image Atlas {}": "Image Atlas {}",
+  "Image Atlas {} · NIS · MIT": "Image Atlas {} · NIS · MIT",
   "Image dimensions exceed available memory": "De beeldafmetingen overschrijden het beschikbare geheugen",
   "Image is not in this collection": "Afbeelding bevindt zich niet in deze collectie",
   "Image size": "Beeldgrootte",
@@ -221,8 +221,6 @@
   "ETA ~{}m {:02}s": "Verwachte aankomsttijd ~{}m {:02}'s",
   "{} pages scanned · {} queued · {} images · {eta}": "{}-pagina's gescand · {} in wachtrij · {}-afbeeldingen · {eta}",
   "{} pages scanned · {} images found": "{}-pagina's gescand · {}-afbeeldingen gevonden",
-  "Preview language support": "Voorbeeld van taalondersteuning",
-  "Complex scripts may not display correctly yet.": "Complexe scripts worden mogelijk nog niet correct weergegeven.",
   "Mapping": "In kaart brengen",
   "Batch editor": "Batch-editor",
   "Website images": "Website-afbeeldingen",
@@ -246,5 +244,6 @@
   "Batch": "Partij",
   "A fresh version is ready": "Een nieuwe versie is klaar",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "PNG voor transparantie en compacte illustraties; JPEG wanneer veel kleiner. SVG blijft vector.",
-  "JPEG flattens transparency onto white.": "JPEG vlakt de transparantie af op wit."
+  "JPEG flattens transparency onto white.": "JPEG vlakt de transparantie af op wit.",
+  "A considered pace": "Adaptieve downloads"
 }

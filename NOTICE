@@ -4,3 +4,9 @@ Copyright (c) 2026 NIS (nsergiuioan-coder)
 Image Atlas is licensed under the MIT License.
 Third-party components retain their respective licenses and attribution notices.
 See ATTRIBUZIONI.txt and THIRD-PARTY-LICENSES for dependency authors and license texts.
+
+Locally patched egui/epaint: Emil Ernerfeldt and egui contributors.
+Bidirectional text patch: abdu-benayad, https://github.com/emilk/egui/pull/8577
+Atlas integration and corrective changes: NIS.
+Locally patched gpu-allocator: Traverse Research.
+See THIRD-PARTY-LICENSES/Atlas-local-patches/README.md for pinned source revisions and modifications.

@@ -7,7 +7,11 @@ try {
     if ($LASTEXITCODE) { throw 'Formatting check failed' }
     cargo test --locked --release
     if ($LASTEXITCODE) { throw 'Tests failed' }
-    cargo clippy --locked --release -- -D warnings
+    cargo test --locked --release -p epaint --features default_fonts --lib text::
+    if ($LASTEXITCODE) { throw 'Text engine tests failed' }
+    cargo test --locked --release -p egui --lib atlas_selection_tests
+    if ($LASTEXITCODE) { throw 'Bidirectional selection tests failed' }
+    cargo clippy --locked --release -p image-atlas --no-deps -- -D warnings
     if ($LASTEXITCODE) { throw 'Clippy failed' }
     cargo build --locked --release
     if ($LASTEXITCODE) { throw 'Build failed' }
@@ -21,7 +25,7 @@ try {
     New-Item -ItemType Directory -Force $portable | Out-Null
     Copy-Item target/release/image-atlas.exe "$portable/ImageAtlas.exe"
     Copy-Item LICENSE,NOTICE,ATTRIBUZIONI.txt,README.md $portable
-    Copy-Item THIRD-PARTY-LICENSES $portable -Recurse -Force
+    Copy-Item THIRD-PARTY-LICENSES,docs $portable -Recurse -Force
     Compress-Archive -Path "$portable/*" -DestinationPath "dist/ImageAtlas-$version-portable.zip" -Force
     Get-Item "dist/ImageAtlas-$version-setup.exe", "dist/ImageAtlas-$version-portable.zip" | ForEach-Object { '{0}  {1}' -f (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower(), $_.Name } | Set-Content dist/SHA256SUMS.txt
 } finally { Pop-Location }

@@ -77,8 +77,8 @@
   "Front": "前面",
   "Height": "高度",
   "Image Atlas edited": "已編輯的圖像圖集",
-  "Image Atlas {}": "影像圖集{}",
-  "Image Atlas {} · NIS · MIT": "圖像圖集{}·NIS·麻省理工學院",
+  "Image Atlas {}": "Image Atlas {}",
+  "Image Atlas {} · NIS · MIT": "Image Atlas {} · NIS · MIT",
   "Image dimensions exceed available memory": "影像尺寸超出可用記憶體",
   "Image is not in this collection": "影像不在此集合中",
   "Image size": "圖片尺寸",
@@ -221,8 +221,6 @@
   "ETA ~{}m {:02}s": "預計抵達時間 ~{}m {:02}s",
   "{} pages scanned · {} queued · {} images · {eta}": "{} 已掃描頁面 · {} 已排隊 · {} 影像 · {eta}",
   "{} pages scanned · {} images found": "已掃描 {} 頁面 · 找到 {} 影像",
-  "Preview language support": "預覽語言支援",
-  "Complex scripts may not display correctly yet.": "複雜的腳本可能還無法正確顯示。",
   "Mapping": "測繪",
   "Batch editor": "批量編輯器",
   "Website images": "網站圖片",
@@ -246,5 +244,6 @@
   "A fresh version is ready": "新版本已就緒",
   "JPEG flattens transparency onto white.": "JPEG 會將透明區域合併至白色背景。",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "透明影像和簡潔圖形使用 PNG；檔案明顯更小時使用 JPEG。SVG 保持向量格式。",
-  "JPEG quality": "JPEG 品質"
+  "JPEG quality": "JPEG 品質",
+  "A considered pace": "自適應下載"
 }

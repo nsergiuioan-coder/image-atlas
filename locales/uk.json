@@ -77,8 +77,8 @@
   "Front": "Спереду",
   "Height": "Висота",
   "Image Atlas edited": "Відредагований атлас зображень",
-  "Image Atlas {}": "Атлас зображень {}",
-  "Image Atlas {} · NIS · MIT": "Атлас зображень {} · NIS · MIT",
+  "Image Atlas {}": "Image Atlas {}",
+  "Image Atlas {} · NIS · MIT": "Image Atlas {} · NIS · MIT",
   "Image dimensions exceed available memory": "Розміри зображення перевищують доступну пам'ять",
   "Image is not in this collection": "Зображення немає в цій колекції",
   "Image size": "Розмір зображення",
@@ -221,8 +221,6 @@
   "ETA ~{}m {:02}s": "ETA ~{}m {:02}s",
   "{} pages scanned · {} queued · {} images · {eta}": "{} сторінок відскановано · {} у черзі · {} зображення · {eta}",
   "{} pages scanned · {} images found": "Сторінки {} відскановано · Знайдено зображення {}",
-  "Preview language support": "Підтримка попередньої мови",
-  "Complex scripts may not display correctly yet.": "Складні сценарії ще можуть не відображатися належним чином.",
   "Mapping": "Картографування",
   "Batch editor": "Пакетний редактор",
   "Website images": "Зображення сайту",
@@ -246,5 +244,6 @@
   "A fresh version is ready": "Доступна нова версія",
   "JPEG flattens transparency onto white.": "JPEG замінює прозорість білим тлом.",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "PNG для прозорості та простої графіки; JPEG, якщо файл значно менший. SVG залишається векторним.",
-  "JPEG quality": "Якість JPEG"
+  "JPEG quality": "Якість JPEG",
+  "A considered pace": "Адаптивне завантаження"
 }

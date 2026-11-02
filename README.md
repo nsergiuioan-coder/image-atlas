@@ -10,7 +10,7 @@ The installer runs per user without administrator rights. The portable version r
 
 ## Website images
 
-- Map public pages and sitemaps before starting a download, with a time estimate based on measured scan times and the pages still queued. The estimate updates as more pages are discovered.
+- Map public pages and sitemaps with adaptive concurrent requests before starting a download, with a time estimate based on measured scan times and the pages still queued. The estimate updates as more pages are discovered.
 - Review image sources, select files, and edit category and subcategory folders.
 - Save maps and reopen them later.
 - Recover interrupted mapping automatically when Atlas reopens. Progress is saved after each processed page; a page interrupted by a crash is tried again.
@@ -23,11 +23,13 @@ The installer runs per user without administrator rights. The portable version r
 
 Preferences offers two mapping-completion notifications: a quick popup that disappears after five seconds, or a blocking dialog with an OK button beneath the summary. The blocking dialog stays open until OK is selected.
 
+Slow requests can finish independently of other pages. Transient failures are retried, connection pressure drops on server throttling, and recovery checkpoints include requests still in flight. [Resource measurements](docs/performance.md) describe the tested speed and memory tradeoffs.
+
 Optional browser rendering supports many JavaScript-based websites and requires an installed copy of Edge or Chrome.
 
 ## Languages and recovery
 
-Choose the interface language in Preferences, or follow the Windows display language. Translations are included with the app and work offline. Italian, English and other European languages, Chinese, Japanese, Korean, Indonesian, Malay and Vietnamese are available. Arabic, Persian, Urdu, Hebrew, Hindi, Bengali, Tamil, Telugu and Thai are preview translations; their text shaping and layout still need further work. Translations have not all been reviewed by native speakers. Source image names, URLs and folder names are kept as supplied.
+Choose the interface language in Preferences, or follow the Windows display language. Translations are included with the app and work offline. Italian, English and other European languages, Chinese, Japanese, Korean, Indonesian, Malay and Vietnamese are available. Arabic, Persian, Urdu, Hebrew, Hindi, Bengali, Tamil, Telugu and Thai use the text-shaping engine and system font fallback. Right-to-left languages mirror interface alignment and use bidirectional text layout for labels, mixed text and numbers, cursor movement, and selections. Translations have not all been reviewed by native speakers. Source image names, URLs and folder names are kept as supplied. Installed system fonts are discovered on demand, including scripts used in file and layer names.
 
 Mapping progress is saved after each processed page. Reopening Atlas resumes the pending queue, including any page interrupted by a crash. Unexpected app exits trigger up to five restart attempts with increasing delays. A normal close leaves the mapping saved without restarting. A small download journal records completed originals so a crash does not require fetching them again. Saved progress is stored locally under `%LOCALAPPDATA%\ImageAtlas`.
 

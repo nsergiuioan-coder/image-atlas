@@ -76,8 +76,8 @@
   "Front": "সামনে",
   "Height": "উচ্চতা",
   "Image Atlas edited": "ইমেজ এটলাস সম্পাদিত",
-  "Image Atlas {}": "ছবি অ্যাটলাস {}",
-  "Image Atlas {} · NIS · MIT": "ছবি Atlas {} · NIS · MIT",
+  "Image Atlas {}": "Image Atlas {}",
+  "Image Atlas {} · NIS · MIT": "Image Atlas {} · NIS · MIT",
   "Image dimensions exceed available memory": "ছবির মাত্রা উপলব্ধ মেমরি অতিক্রম",
   "Image is not in this collection": "ছবিটি এই সংগ্রহে নেই",
   "Image size": "ছবির আকার",
@@ -221,8 +221,6 @@
   "ETA ~{}m {:02}s": "ETA ~{}m {:02}s",
   "{} pages scanned · {} queued · {} images · {eta}": "{} পৃষ্ঠাগুলি স্ক্যান করা হয়েছে · {} সারিবদ্ধ · {} ছবি · {eta}",
   "{} pages scanned · {} images found": "{} পৃষ্ঠাগুলি স্ক্যান করা হয়েছে · {} ছবিগুলি পাওয়া গেছে৷",
-  "Preview language support": "ভাষা সমর্থন পূর্বরূপ",
-  "Complex scripts may not display correctly yet.": "জটিল স্ক্রিপ্ট এখনও সঠিকভাবে প্রদর্শন নাও হতে পারে.",
   "Mapping": "ম্যাপিং",
   "Batch editor": "ব্যাচ সম্পাদক",
   "Website images": "ওয়েবসাইটের ছবি",
@@ -246,5 +244,6 @@
   "Batch": "ব্যাচ",
   "A fresh version is ready": "একটি তাজা সংস্করণ প্রস্তুত",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "স্বচ্ছতা এবং কমপ্যাক্ট আর্টওয়ার্কের জন্য PNG; JPEG যখন অনেক ছোট। SVG ভেক্টর থাকে।",
-  "JPEG flattens transparency onto white.": "JPEG স্বচ্ছতাকে সাদাতে সমতল করে।"
+  "JPEG flattens transparency onto white.": "JPEG স্বচ্ছতাকে সাদাতে সমতল করে।",
+  "A considered pace": "অভিযোজিত ডাউনলোড"
 }

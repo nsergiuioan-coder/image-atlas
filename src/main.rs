@@ -5,6 +5,8 @@ mod crawl;
 mod download;
 mod i18n;
 mod model;
+#[cfg(test)]
+mod profiling;
 mod recovery;
 mod update;
 mod vector;
@@ -35,10 +37,10 @@ fn main() -> eframe::Result<()> {
             } else {
                 eframe::wgpu::Backends::PRIMARY
             },
-            ..Default::default()
+            ..eframe::wgpu::InstanceDescriptor::new_without_display_handle()
         },
         power_preference: eframe::wgpu::PowerPreference::LowPower,
-        ..Default::default()
+        ..eframe::egui_wgpu::WgpuSetupCreateNew::without_display_handle()
     };
     let default_descriptor = setup.device_descriptor.clone();
     setup.device_descriptor = std::sync::Arc::new(move |adapter| {
@@ -50,7 +52,7 @@ fn main() -> eframe::Result<()> {
         renderer: eframe::Renderer::Wgpu,
         wgpu_options: eframe::egui_wgpu::WgpuConfiguration {
             wgpu_setup: setup.into(),
-            desired_maximum_frame_latency: Some(1),
+            surface: eframe::egui_wgpu::SurfaceConfig::LOW_LATENCY,
             ..Default::default()
         },
         viewport: eframe::egui::ViewportBuilder::default()

@@ -77,8 +77,8 @@
   "Front": "Frente",
   "Height": "Altura",
   "Image Atlas edited": "Atlas de imagem editado",
-  "Image Atlas {}": "Atlas de imagem {}",
-  "Image Atlas {} · NIS · MIT": "Atlas de imagem {} · NIS · MIT",
+  "Image Atlas {}": "Image Atlas {}",
+  "Image Atlas {} · NIS · MIT": "Image Atlas {} · NIS · MIT",
   "Image dimensions exceed available memory": "As dimensões da imagem excedem a memória disponível",
   "Image is not in this collection": "A imagem não está nesta coleção",
   "Image size": "Tamanho da imagem",
@@ -221,8 +221,6 @@
   "ETA ~{}m {:02}s": "Hora prevista de chegada ~{}m {:02}s",
   "{} pages scanned · {} queued · {} images · {eta}": "Páginas {} digitalizadas · {} na fila · Imagens {} · {eta}",
   "{} pages scanned · {} images found": "Páginas {} digitalizadas · Imagens {} encontradas",
-  "Preview language support": "Visualizar suporte a idiomas",
-  "Complex scripts may not display correctly yet.": "Scripts complexos podem ainda não ser exibidos corretamente.",
   "Mapping": "Mapeamento",
   "Batch editor": "Editor de lote",
   "Website images": "Imagens do site",
@@ -246,5 +244,6 @@
   "Batch": "Lote",
   "A fresh version is ready": "Uma nova versão está pronta",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "PNG para transparência e arte compacta; JPEG quando muito menor. SVG permanece vetorial.",
-  "JPEG flattens transparency onto white.": "JPEG nivela a transparência no branco."
+  "JPEG flattens transparency onto white.": "JPEG nivela a transparência no branco.",
+  "A considered pace": "Downloads adaptativos"
 }

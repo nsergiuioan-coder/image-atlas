@@ -75,8 +75,8 @@
   "Front": "Foran",
   "Height": "Høyde",
   "Image Atlas edited": "Bildeatlas redigert",
-  "Image Atlas {}": "Bildeatlas {}",
-  "Image Atlas {} · NIS · MIT": "Bildeatlas {} · NIS · MIT",
+  "Image Atlas {}": "Image Atlas {}",
+  "Image Atlas {} · NIS · MIT": "Image Atlas {} · NIS · MIT",
   "Image dimensions exceed available memory": "Bildedimensjonene overskrider tilgjengelig minne",
   "Image is not in this collection": "Bildet er ikke i denne samlingen",
   "Image size": "Bildestørrelse",
@@ -221,8 +221,6 @@
   "ETA ~{}m {:02}s": "ETA ~{}m {:02}s",
   "{} pages scanned · {} queued · {} images · {eta}": "{} sider skannet · {} i kø · {} bilder · {eta}",
   "{} pages scanned · {} images found": "{}-sider skannet · {}-bilder funnet",
-  "Preview language support": "Forhåndsvisning av språkstøtte",
-  "Complex scripts may not display correctly yet.": "Det kan hende at komplekse skript ikke vises riktig ennå.",
   "Mapping": "Kartlegging",
   "Batch editor": "Batch editor",
   "Website images": "Nettsidebilder",
@@ -246,5 +244,6 @@
   "Batch": "Batch",
   "A fresh version is ready": "En fersk versjon er klar",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "PNG for åpenhet og kompakt kunstverk; JPEG når mye mindre. SVG forblir vektor.",
-  "JPEG flattens transparency onto white.": "JPEG flater gjennomsiktighet til hvitt."
+  "JPEG flattens transparency onto white.": "JPEG flater gjennomsiktighet til hvitt.",
+  "A considered pace": "Tilpassede nedlastinger"
 }

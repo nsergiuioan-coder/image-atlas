@@ -221,8 +221,6 @@
   "ETA ~{}m {:02}s": "ETA ~{}m {:02}s",
   "{} pages scanned · {} queued · {} images · {eta}": "{} oldalak beolvasva · {} sorba van állítva · {} képek · {eta}",
   "{} pages scanned · {} images found": "{} oldalak beolvasva · {} képek találhatók",
-  "Preview language support": "Előnézeti nyelvi támogatás",
-  "Complex scripts may not display correctly yet.": "Előfordulhat, hogy az összetett szkriptek még nem jelennek meg megfelelően.",
   "Mapping": "Térképezés",
   "Batch editor": "Kötegelt szerkesztő",
   "Website images": "Weboldal képek",
@@ -246,5 +244,6 @@
   "Batch": "Batch",
   "A fresh version is ready": "Elkészült a friss verzió",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "PNG az átláthatóságért és a kompakt grafikákért; JPEG, ha sokkal kisebb. Az SVG vektor marad.",
-  "JPEG flattens transparency onto white.": "A JPEG fehérre lapítja az átlátszóságot."
+  "JPEG flattens transparency onto white.": "A JPEG fehérre lapítja az átlátszóságot.",
+  "A considered pace": "Alkalmazkodó letöltések"
 }

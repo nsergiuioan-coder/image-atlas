@@ -77,8 +77,8 @@
   "Front": "ముందు",
   "Height": "ఎత్తు",
   "Image Atlas edited": "చిత్రం అట్లాస్ సవరించబడింది",
-  "Image Atlas {}": "చిత్రం అట్లాస్ {}",
-  "Image Atlas {} · NIS · MIT": "చిత్రం అట్లాస్ {} · NIS · MIT",
+  "Image Atlas {}": "Image Atlas {}",
+  "Image Atlas {} · NIS · MIT": "Image Atlas {} · NIS · MIT",
   "Image dimensions exceed available memory": "ఇమేజ్ కొలతలు అందుబాటులో ఉన్న మెమరీని మించిపోయాయి",
   "Image is not in this collection": "చిత్రం ఈ సేకరణలో లేదు",
   "Image size": "చిత్ర పరిమాణం",
@@ -221,8 +221,6 @@
   "ETA ~{}m {:02}s": "ETA ~{}m {:02}లు",
   "{} pages scanned · {} queued · {} images · {eta}": "{} పేజీలు స్కాన్ చేయబడ్డాయి · {} క్యూలో ఉన్నాయి · {} చిత్రాలు · {eta}",
   "{} pages scanned · {} images found": "{} పేజీలు స్కాన్ చేయబడ్డాయి · {} చిత్రాలు కనుగొనబడ్డాయి",
-  "Preview language support": "ప్రివ్యూ భాష మద్దతు",
-  "Complex scripts may not display correctly yet.": "కాంప్లెక్స్ స్క్రిప్ట్‌లు ఇంకా సరిగ్గా ప్రదర్శించబడకపోవచ్చు.",
   "Mapping": "మ్యాపింగ్",
   "Batch editor": "బ్యాచ్ ఎడిటర్",
   "Website images": "వెబ్‌సైట్ చిత్రాలు",
@@ -246,5 +244,6 @@
   "Batch": "బ్యాచ్",
   "A fresh version is ready": "తాజా వెర్షన్ సిద్ధంగా ఉంది",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "పారదర్శకత మరియు కాంపాక్ట్ ఆర్ట్‌వర్క్ కోసం PNG; JPEG చాలా చిన్నగా ఉన్నప్పుడు. SVG వెక్టర్‌గా ఉంటుంది.",
-  "JPEG flattens transparency onto white.": "JPEG తెలుపు రంగులో పారదర్శకతను చదును చేస్తుంది."
+  "JPEG flattens transparency onto white.": "JPEG తెలుపు రంగులో పారదర్శకతను చదును చేస్తుంది.",
+  "A considered pace": "అనుకూల డౌన్‌లోడ్‌లు"
 }

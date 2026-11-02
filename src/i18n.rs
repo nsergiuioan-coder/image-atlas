@@ -156,7 +156,7 @@ static CATALOGS: [Catalog; 36] = [
     },
     Catalog {
         code: "th",
-        name: "Thai (preview)",
+        name: "Thai",
         source: include_str!("../locales/th.json"),
         strings: OnceLock::new(),
     },
@@ -186,49 +186,49 @@ static CATALOGS: [Catalog; 36] = [
     },
     Catalog {
         code: "hi",
-        name: "Hindi (preview)",
+        name: "Hindi",
         source: include_str!("../locales/hi.json"),
         strings: OnceLock::new(),
     },
     Catalog {
         code: "bn",
-        name: "Bengali (preview)",
+        name: "Bengali",
         source: include_str!("../locales/bn.json"),
         strings: OnceLock::new(),
     },
     Catalog {
         code: "ta",
-        name: "Tamil (preview)",
+        name: "Tamil",
         source: include_str!("../locales/ta.json"),
         strings: OnceLock::new(),
     },
     Catalog {
         code: "te",
-        name: "Telugu (preview)",
+        name: "Telugu",
         source: include_str!("../locales/te.json"),
         strings: OnceLock::new(),
     },
     Catalog {
         code: "ar",
-        name: "Arabic (preview)",
+        name: "Arabic",
         source: include_str!("../locales/ar.json"),
         strings: OnceLock::new(),
     },
     Catalog {
         code: "fa",
-        name: "Persian (preview)",
+        name: "Persian",
         source: include_str!("../locales/fa.json"),
         strings: OnceLock::new(),
     },
     Catalog {
         code: "ur",
-        name: "Urdu (preview)",
+        name: "Urdu",
         source: include_str!("../locales/ur.json"),
         strings: OnceLock::new(),
     },
     Catalog {
         code: "he",
-        name: "Hebrew (preview)",
+        name: "Hebrew",
         source: include_str!("../locales/he.json"),
         strings: OnceLock::new(),
     },
@@ -370,11 +370,24 @@ fn substitute(source: &str, translated: &str, rendered: &str) -> String {
 }
 
 pub fn formatted(source: &str, rendered: String) -> String {
-    substitute(source, text(source), &rendered)
+    let translated = text(source);
+    if source == translated {
+        rendered
+    } else {
+        substitute(source, translated, &rendered)
+    }
 }
 
 pub fn configure_fonts(ctx: &egui::Context) {
-    let locale = CATALOGS[ACTIVE.load(Ordering::Relaxed)].code;
+    configure_locale_fonts(ctx, CATALOGS[ACTIVE.load(Ordering::Relaxed)].code);
+}
+
+pub(crate) fn configure_locale_fonts(ctx: &egui::Context, locale: &str) {
+    static PROVIDER: OnceLock<std::sync::Arc<egui_system_font_provider::SystemFontProvider>> =
+        OnceLock::new();
+    let provider = PROVIDER
+        .get_or_init(|| std::sync::Arc::new(egui_system_font_provider::SystemFontProvider::new()));
+    ctx.set_font_providers(vec![provider.clone()]);
     let mut fonts = egui::FontDefinitions::default();
     let fallback = match locale {
         "zh-CN" => Some("msyh.ttc"),
@@ -416,10 +429,26 @@ pub fn configure_fonts(ctx: &egui::Context) {
     ctx.set_fonts(fonts);
 }
 
-pub fn preview_language() -> bool {
+pub fn trailing_layout(align: egui::Align) -> egui::Layout {
+    if is_rtl() {
+        egui::Layout::left_to_right(align)
+    } else {
+        egui::Layout::right_to_left(align)
+    }
+}
+
+pub fn text_alignment() -> egui::Align {
+    if is_rtl() {
+        egui::Align::RIGHT
+    } else {
+        egui::Align::LEFT
+    }
+}
+
+pub fn is_rtl() -> bool {
     matches!(
         CATALOGS[ACTIVE.load(Ordering::Relaxed)].code,
-        "ar" | "fa" | "ur" | "he" | "hi" | "bn" | "ta" | "te" | "th"
+        "ar" | "fa" | "ur" | "he"
     )
 }
 
@@ -433,6 +462,140 @@ macro_rules! tr {
 #[cfg(test)]
 mod tests {
     use super::*;
+    fn layout_sample(ctx: &egui::Context, text: &str, width: f32) -> std::sync::Arc<egui::Galley> {
+        let mut result = None;
+        let _ = ctx.run_pass(egui::RawInput::default(), |ctx| {
+            result = Some(ctx.fonts_mut(|fonts| {
+                fonts.layout(
+                    text.into(),
+                    egui::FontId::proportional(20.0),
+                    egui::Color32::WHITE,
+                    width,
+                )
+            }));
+        });
+        result.unwrap()
+    }
+    #[test]
+    #[cfg(windows)]
+    fn rtl_text_field_accepts_mixed_text_and_edits_at_the_visual_cursor() {
+        let ctx = egui::Context::default();
+        configure_locale_fonts(&ctx, "ar");
+        let mut text = String::new();
+        let mut render = |events, focus| {
+            let _ = ctx.run_ui(
+                egui::RawInput {
+                    screen_rect: Some(egui::Rect::from_min_size(
+                        egui::Pos2::ZERO,
+                        egui::vec2(800.0, 200.0),
+                    )),
+                    events,
+                    ..Default::default()
+                },
+                |ui| {
+                    let response =
+                        ui.add(egui::TextEdit::singleline(&mut text).id_salt("mixed-text-test"));
+                    if focus {
+                        response.request_focus();
+                    }
+                },
+            );
+        };
+        render(Vec::new(), true);
+        render(vec![egui::Event::Text("ملف PDF".into())], false);
+        render(
+            vec![
+                egui::Event::Key {
+                    key: egui::Key::ArrowLeft,
+                    physical_key: None,
+                    pressed: true,
+                    repeat: false,
+                    modifiers: Default::default(),
+                },
+                egui::Event::Text("x".into()),
+            ],
+            false,
+        );
+        assert_eq!(text, "ملف PDxF");
+    }
+    #[test]
+    #[cfg(windows)]
+    fn every_catalog_renders_with_real_fonts_without_missing_glyphs() {
+        for catalog in &CATALOGS {
+            let ctx = egui::Context::default();
+            configure_locale_fonts(&ctx, catalog.code);
+            ctx.set_missing_glyph_policy(egui::epaint::text::MissingGlyphPolicy::Panic);
+            let values: HashMap<String, String> = serde_json::from_str(catalog.source).unwrap();
+            for value in values.values() {
+                let sample: String = parts(value)
+                    .into_iter()
+                    .map(|(literal, token)| literal + if token.is_some() { "123" } else { "" })
+                    .collect();
+                let galley = layout_sample(&ctx, &sample, 400.0);
+                assert_eq!(
+                    galley.end().index.0,
+                    sample.chars().count(),
+                    "{}: {}",
+                    catalog.code,
+                    sample
+                );
+                let actual: String = galley.rows.iter().map(|row| row.text()).collect();
+                assert_eq!(actual, sample.replace('\n', ""), "{}", catalog.code);
+            }
+        }
+    }
+    #[test]
+    #[cfg(windows)]
+    fn mixed_rtl_text_preserves_digits_marks_logical_characters_and_end_cursor() {
+        let ctx = egui::Context::default();
+        configure_locale_fonts(&ctx, "ar");
+        for text in [
+            "ملف PDF",
+            "بِسْمِ",
+            "صفحة 12 من 340",
+            "Open ملف now",
+            "שלום 123 עולם",
+            "لا",
+            "مرحبا بالعالم",
+            "தமிழ்",
+            "क्षेत्र",
+            "বাংলা",
+            "తెలుగు",
+            "ภาษาไทย",
+        ] {
+            let galley = layout_sample(&ctx, text, f32::INFINITY);
+            assert_eq!(galley.rows[0].text(), text);
+            assert_eq!(galley.end().index.0, text.chars().count());
+            assert!(galley.mesh_bounds.is_finite());
+        }
+        let galley = layout_sample(&ctx, "ملف PDF", f32::INFINITY);
+        let row = &galley.rows[0];
+        let last = row.glyphs.last().unwrap();
+        assert!(!last.is_rtl());
+        assert!(
+            (row.x_offset(egui::epaint::text::CharIndex(row.glyphs.len())) - last.max_x()).abs()
+                < 0.1
+        );
+        let galley = layout_sample(&ctx, "אב 123", f32::INFINITY);
+        let row = &galley.rows[0];
+        let x = |chr| {
+            row.glyphs
+                .iter()
+                .find(|glyph| glyph.chr == chr)
+                .unwrap()
+                .pos
+                .x
+        };
+        assert!(x('1') < x('2') && x('2') < x('3'));
+        assert!(x('ב') < x('א'));
+        assert!(x('3') < x('ב'));
+        let mut cursor = egui::epaint::text::cursor::CCursor::new(0);
+        for _ in 0..row.glyphs.len() {
+            let next = galley.cursor_left_one_character(&cursor);
+            assert!(galley.pos_from_cursor(next).min.x <= galley.pos_from_cursor(cursor).min.x);
+            cursor = next;
+        }
+    }
     #[test]
     fn locale_matching_covers_regional_variants() {
         assert_eq!(CATALOGS[resolve("it-IT")].code, "it");

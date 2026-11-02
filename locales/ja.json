@@ -72,8 +72,8 @@
   "Front": "フロント",
   "Height": "高さ",
   "Image Atlas edited": "画像アトラス編集",
-  "Image Atlas {}": "画像アトラス {}",
-  "Image Atlas {} · NIS · MIT": "画像アトラス {} · NIS · MIT\n画像の寸法が利用可能なメモリを超えている",
+  "Image Atlas {}": "Image Atlas {}",
+  "Image Atlas {} · NIS · MIT": "Image Atlas {} · NIS · MIT",
   "Image is not in this collection": "画像はこのコレクションにありません\n【0082】 画像サイズ\nImageAtlas/0.1オリジナルイメージのバックアップ",
   "Images": "画像",
   "Images found: {0}": "見つかった画像: {0}",
@@ -221,8 +221,6 @@
   "ETA ~{}m {:02}s": "ETA ~{}m {:02}s",
   "{} pages scanned · {} queued · {} images · {eta}": "{} ページがスキャンされました · {} キューされました · {} 画像 · {eta}",
   "{} pages scanned · {} images found": "{} ページがスキャンされました · {} 画像が見つかりました",
-  "Preview language support": "プレビュー言語のサポート",
-  "Complex scripts may not display correctly yet.": "複雑なスクリプトはまだ正しく表示されない可能性があります。",
   "Mapping": "マッピング",
   "Batch editor": "バッチエディタ",
   "Website images": "ウェブサイトの画像",
@@ -246,5 +244,6 @@
   "Batch": "バッチ",
   "A fresh version is ready": "新しいバージョンが完成しました",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "透明性とコンパクトなアートワークの PNG。はるかに小さい場合は JPEG。 SVG はベクターのままです。",
-  "JPEG flattens transparency onto white.": "JPEG は透明度を白に平坦化します。"
+  "JPEG flattens transparency onto white.": "JPEG は透明度を白に平坦化します。",
+  "A considered pace": "自動調整ダウンロード"
 }

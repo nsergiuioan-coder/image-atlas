@@ -74,8 +74,8 @@
   "Front": "سامنے",
   "Height": "اونچائی",
   "Image Atlas edited": "تصویری اٹلس میں ترمیم کی گئی۔",
-  "Image Atlas {}": "تصویر اٹلس {}",
-  "Image Atlas {} · NIS · MIT": "تصویر اٹلس {} · NIS · MIT",
+  "Image Atlas {}": "Image Atlas {}",
+  "Image Atlas {} · NIS · MIT": "Image Atlas {} · NIS · MIT",
   "Image dimensions exceed available memory": "تصویر کے طول و عرض دستیاب میموری سے زیادہ ہیں۔",
   "Image is not in this collection": "تصویر اس مجموعہ میں نہیں ہے۔",
   "Image size": "تصویر کا سائز",
@@ -221,8 +221,6 @@
   "ETA ~{}m {:02}s": "ETA ~{}m {:02}s",
   "{} pages scanned · {} queued · {} images · {eta}": "{} صفحات اسکین کیے گئے · {} قطار میں لگے ہوئے · {} تصاویر · {eta}",
   "{} pages scanned · {} images found": "{} صفحات اسکین کیے گئے · {} تصاویر ملیں۔",
-  "Preview language support": "پیش نظارہ زبان کی حمایت",
-  "Complex scripts may not display correctly yet.": "ہو سکتا ہے پیچیدہ اسکرپٹ ابھی تک صحیح طریقے سے ظاہر نہ ہوں۔",
   "Mapping": "نقشہ سازی",
   "Batch editor": "بیچ ایڈیٹر",
   "Website images": "ویب سائٹ کی تصاویر",
@@ -246,5 +244,6 @@
   "A fresh version is ready": "نیا ورژن تیار ہے",
   "JPEG flattens transparency onto white.": "JPEG شفاف حصوں کو سفید پس منظر میں بدل دیتا ہے۔",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "شفاف تصاویر اور سادہ گرافکس کے لیے PNG؛ حجم نمایاں طور پر کم ہو تو JPEG۔ SVG ویکٹر ہی رہتا ہے۔",
-  "JPEG quality": "JPEG معیار"
+  "JPEG quality": "JPEG معیار",
+  "A considered pace": "خودکار موافقت کے ساتھ ڈاؤن لوڈ"
 }

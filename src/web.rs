@@ -346,7 +346,7 @@ fn compact_svg(source: &[u8]) -> Result<Vec<u8>> {
             }
             Event::Text(text)
                 if !preserve.last().copied().unwrap_or(false)
-                    && text.as_ref().iter().all(|c| c.is_ascii_whitespace()) =>
+                    && text.iter().all(|c| c.is_ascii_whitespace()) =>
             {
                 continue;
             }

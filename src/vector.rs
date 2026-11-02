@@ -625,7 +625,7 @@ impl Editor {
             {
                 self.web_dialog = true;
             }
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+            ui.with_layout(crate::i18n::trailing_layout(egui::Align::Center), |ui| {
                 if ui
                     .add_enabled(
                         !self.redo.is_empty(),
@@ -722,7 +722,7 @@ impl Editor {
         ui.horizontal_top(|ui| {
             ui.allocate_ui_with_layout(
                 egui::vec2(230.0, height),
-                egui::Layout::top_down(egui::Align::LEFT),
+                egui::Layout::top_down(crate::i18n::text_alignment()),
                 |ui| {
                     ui.strong(crate::i18n::text("Layers"));
                     egui::ScrollArea::vertical()

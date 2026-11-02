@@ -221,8 +221,6 @@
   "ETA ~{}m {:02}s": "ETA ~{}m {:02}s",
   "{} pages scanned · {} queued · {} images · {eta}": "{} sivut skannatut · {} jonossa · {} kuvat · {eta}",
   "{} pages scanned · {} images found": "{}-sivut skannatut · {}-kuvia löytyi",
-  "Preview language support": "Esikatsele kielen tuki",
-  "Complex scripts may not display correctly yet.": "Monimutkaiset skriptit eivät ehkä vielä näy oikein.",
   "Mapping": "Kartoitus",
   "Batch editor": "Eräeditori",
   "Website images": "Verkkosivuston kuvat",
@@ -246,5 +244,6 @@
   "Batch": "Erä",
   "A fresh version is ready": "Tuore versio on valmis",
   "PNG for transparency and compact artwork; JPEG when much smaller. SVG stays vector.": "PNG läpinäkyvyyttä ja kompaktia kuvitusta varten; JPEG, kun paljon pienempi. SVG pysyy vektorina.",
-  "JPEG flattens transparency onto white.": "JPEG tasoittaa läpinäkyvyyden valkoiseksi."
+  "JPEG flattens transparency onto white.": "JPEG tasoittaa läpinäkyvyyden valkoiseksi.",
+  "A considered pace": "Mukautuvat lataukset"
 }
