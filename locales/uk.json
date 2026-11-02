@@ -207,7 +207,6 @@
   "Website options": "Варіанти веб-сайту",
   "Width": "Ширина",
   "You can stop and resume later. Completed originals are reused automatically.": "Ви можете зупинити та продовжити пізніше. Готові оригінали повторно використовуються автоматично.",
-  "You're up to date. No newer release is available.": "Ви в курсі подій. Новіших випусків немає.",
   "Your folder structure": "Ваша структура папок",
   "Your text": "Ваш текст",
   "You’ll review everything before downloading.": "Перегляньте все перед завантаженням.",
@@ -251,5 +250,7 @@
   "Wait for the current task to finish before restarting.": "Перед перезапуском дочекайтеся завершення поточного завдання.",
   "Restart and update": "Перезапустити й оновити",
   "Update the existing copy in this folder.": "Оновити наявну копію в цій папці.",
-  "Save your work and close Atlas before updating.": "Перед оновленням збережіть роботу й закрийте Atlas."
+  "Save your work and close Atlas before updating.": "Перед оновленням збережіть роботу й закрийте Atlas.",
+  "GitHub ({repository}): {latest} · This app: {current} · Checked: {time}": "GitHub ({repository}): {latest} · Ця програма: {current} · Перевірено: {time}",
+  "Update check failed: {error}": "Не вдалося перевірити оновлення: {error}"
 }

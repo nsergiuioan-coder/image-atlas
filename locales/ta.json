@@ -207,7 +207,6 @@
   "Website options": "இணையதள விருப்பங்கள்",
   "Width": "அகலம்",
   "You can stop and resume later. Completed originals are reused automatically.": "நீங்கள் நிறுத்திவிட்டு பிறகு தொடரலாம். முடிக்கப்பட்ட அசல்கள் தானாகவே மீண்டும் பயன்படுத்தப்படும்.",
-  "You're up to date. No newer release is available.": "நீங்கள் புதுப்பித்த நிலையில் உள்ளீர்கள். புதிய வெளியீடு எதுவும் கிடைக்கவில்லை.",
   "Your folder structure": "உங்கள் கோப்புறை அமைப்பு",
   "Your text": "உங்கள் உரை",
   "You’ll review everything before downloading.": "பதிவிறக்கும் முன் அனைத்தையும் மதிப்பாய்வு செய்வீர்கள்.",
@@ -251,5 +250,7 @@
   "Wait for the current task to finish before restarting.": "மீண்டும் தொடங்கும் முன் தற்போதைய பணி முடியும் வரை காத்திருக்கவும்.",
   "Restart and update": "மீண்டும் தொடங்கிப் புதுப்பி",
   "Update the existing copy in this folder.": "இந்தக் கோப்புறையில் உள்ள நகலைப் புதுப்பிக்கவும்.",
-  "Save your work and close Atlas before updating.": "புதுப்பிக்கும் முன் உங்கள் வேலையைச் சேமித்து Atlas ஐ மூடவும்."
+  "Save your work and close Atlas before updating.": "புதுப்பிக்கும் முன் உங்கள் வேலையைச் சேமித்து Atlas ஐ மூடவும்.",
+  "GitHub ({repository}): {latest} · This app: {current} · Checked: {time}": "GitHub ({repository}): {latest} · இந்தச் செயலி: {current} · சரிபார்த்த நேரம்: {time}",
+  "Update check failed: {error}": "புதுப்பிப்பைச் சரிபார்க்க முடியவில்லை: {error}"
 }

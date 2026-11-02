@@ -207,7 +207,6 @@
   "Website options": "Επιλογές ιστότοπου",
   "Width": "Πλάτος",
   "You can stop and resume later. Completed originals are reused automatically.": "Μπορείτε να σταματήσετε και να συνεχίσετε αργότερα. Τα ολοκληρωμένα πρωτότυπα επαναχρησιμοποιούνται αυτόματα.",
-  "You're up to date. No newer release is available.": "Είστε ενημερωμένοι. Δεν υπάρχει νεότερη έκδοση.",
   "Your folder structure": "Η δομή του φακέλου σας",
   "Your text": "Το κείμενό σας",
   "You’ll review everything before downloading.": "Θα ελέγξετε τα πάντα πριν από τη λήψη.",
@@ -251,5 +250,7 @@
   "Wait for the current task to finish before restarting.": "Περιμένετε να ολοκληρωθεί η τρέχουσα εργασία πριν από την επανεκκίνηση.",
   "Restart and update": "Επανεκκίνηση και ενημέρωση",
   "Update the existing copy in this folder.": "Ενημερώστε το υπάρχον αντίγραφο σε αυτόν τον φάκελο.",
-  "Save your work and close Atlas before updating.": "Αποθηκεύστε την εργασία σας και κλείστε το Atlas πριν από την ενημέρωση."
+  "Save your work and close Atlas before updating.": "Αποθηκεύστε την εργασία σας και κλείστε το Atlas πριν από την ενημέρωση.",
+  "GitHub ({repository}): {latest} · This app: {current} · Checked: {time}": "GitHub ({repository}): {latest} · Αυτή η εφαρμογή: {current} · Έλεγχος: {time}",
+  "Update check failed: {error}": "Ο έλεγχος ενημερώσεων απέτυχε: {error}"
 }

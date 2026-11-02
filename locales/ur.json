@@ -190,7 +190,6 @@
   "Website options": "ویب سائٹ کے اختیارات",
   "Width": "چوڑائی",
   "You can stop and resume later. Completed originals are reused automatically.": "آپ رک سکتے ہیں اور بعد میں دوبارہ شروع کر سکتے ہیں۔ مکمل شدہ اصل خود بخود دوبارہ استعمال ہوتے ہیں۔",
-  "You're up to date. No newer release is available.": "آپ اپ ٹو ڈیٹ ہیں۔ کوئی نئی ریلیز دستیاب نہیں ہے۔",
   "Your folder structure": "آپ کے فولڈر کا ڈھانچہ",
   "Your text": "آپ کا متن",
   "You’ll review everything before downloading.": "آپ ڈاؤن لوڈ کرنے سے پہلے ہر چیز کا جائزہ لیں گے۔",
@@ -251,5 +250,7 @@
   "Wait for the current task to finish before restarting.": "دوبارہ شروع کرنے سے پہلے موجودہ کام مکمل ہونے کا انتظار کریں۔",
   "Restart and update": "دوبارہ شروع کر کے اپ ڈیٹ کریں",
   "Update the existing copy in this folder.": "اس فولڈر میں موجود کاپی اپ ڈیٹ کریں۔",
-  "Save your work and close Atlas before updating.": "اپ ڈیٹ سے پہلے اپنا کام محفوظ کریں اور Atlas بند کریں۔"
+  "Save your work and close Atlas before updating.": "اپ ڈیٹ سے پہلے اپنا کام محفوظ کریں اور Atlas بند کریں۔",
+  "GitHub ({repository}): {latest} · This app: {current} · Checked: {time}": "GitHub ({repository}): {latest} · یہ ایپ: {current} · جانچ کا وقت: {time}",
+  "Update check failed: {error}": "اپ ڈیٹ کی جانچ ناکام ہوئی: {error}"
 }

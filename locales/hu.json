@@ -147,7 +147,6 @@
   "Website map": "Weboldal térkép",
   "Website options": "Weboldal opciók\nSzélesség",
   "You can stop and resume later. Completed originals are reused automatically.": "Később leállíthatja és folytathatja. A kész eredetik automatikusan újrafelhasználásra kerülnek.",
-  "You're up to date. No newer release is available.": "Naprakész vagy. Újabb kiadás nem érhető el.",
   "Your folder structure": "Az Ön mappaszerkezete",
   "Your text": "Az Ön szövege",
   "You’ll review everything before downloading.": "Letöltés előtt mindent átnéz.",
@@ -251,5 +250,7 @@
   "Wait for the current task to finish before restarting.": "Az újraindítás előtt várja meg az aktuális feladat befejezését.",
   "Restart and update": "Újraindítás és frissítés",
   "Update the existing copy in this folder.": "A mappában lévő példány frissítése.",
-  "Save your work and close Atlas before updating.": "A frissítés előtt mentse munkáját és zárja be az Atlast."
+  "Save your work and close Atlas before updating.": "A frissítés előtt mentse munkáját és zárja be az Atlast.",
+  "GitHub ({repository}): {latest} · This app: {current} · Checked: {time}": "GitHub ({repository}): {latest} · Ez az alkalmazás: {current} · Ellenőrizve: {time}",
+  "Update check failed: {error}": "A frissítések keresése sikertelen: {error}"
 }

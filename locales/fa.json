@@ -207,7 +207,6 @@
   "Website options": "گزینه های وب سایت",
   "Width": "عرض",
   "You can stop and resume later. Completed originals are reused automatically.": "می‌توانید توقف کرده و بعداً از سر بگیرید. نسخه‌های اصلی تکمیل‌شده به‌طور خودکار دوباره استفاده می‌شوند.",
-  "You're up to date. No newer release is available.": "شما به روز هستید. نسخه جدیدتری در دسترس نیست.",
   "Your folder structure": "ساختار پوشه شما",
   "Your text": "متن شما",
   "You’ll review everything before downloading.": "قبل از دانلود همه چیز را مرور خواهید کرد.",
@@ -251,5 +250,7 @@
   "Wait for the current task to finish before restarting.": "پیش از راه‌اندازی مجدد، منتظر پایان کار فعلی بمانید.",
   "Restart and update": "راه‌اندازی مجدد و به‌روزرسانی",
   "Update the existing copy in this folder.": "نسخهٔ موجود در این پوشه را به‌روزرسانی کنید.",
-  "Save your work and close Atlas before updating.": "پیش از به‌روزرسانی، کار خود را ذخیره کنید و Atlas را ببندید."
+  "Save your work and close Atlas before updating.": "پیش از به‌روزرسانی، کار خود را ذخیره کنید و Atlas را ببندید.",
+  "GitHub ({repository}): {latest} · This app: {current} · Checked: {time}": "GitHub ({repository}): {latest} · این برنامه: {current} · زمان بررسی: {time}",
+  "Update check failed: {error}": "بررسی به‌روزرسانی ناموفق بود: {error}"
 }

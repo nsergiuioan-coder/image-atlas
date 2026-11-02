@@ -361,23 +361,19 @@ impl Atlas {
             return;
         }
         self.update_checking = true;
+        self.update_check_status.clear();
         self.last_update_check = Instant::now();
         let repository = self.preferences.repository.clone();
-        let skip = self.preferences.skip_version.clone();
         let tx = self.tx.clone();
         let repaint = ctx.clone();
         std::thread::spawn(move || {
-            let error = match update::check(&repository) {
-                Ok(Some(release)) => {
-                    if manual || release.version != skip {
-                        let _ = tx.send(Event::Update(release));
-                    }
-                    None
-                }
-                Ok(None) => None,
-                Err(error) => Some(error.to_string()),
-            };
-            let _ = tx.send(Event::UpdateCheckFinished(error, manual));
+            let result = update::latest(&repository).map_err(|error| error.to_string());
+            let _ = tx.send(Event::UpdateCheckFinished {
+                repository,
+                result,
+                manual,
+                checked_at: update::checked_time(),
+            });
             repaint.request_repaint();
         });
     }
@@ -1830,21 +1826,46 @@ impl eframe::App for Atlas {
                     self.mapping_status = None;
                     self.error(s);
                 }
-                Event::Update(r) => self.release = Some(r),
-                Event::UpdateCheckFinished(error, manual) => {
+                Event::UpdateCheckFinished {
+                    repository,
+                    result,
+                    manual,
+                    checked_at,
+                } => {
                     self.update_checking = false;
-                    self.update_check_status = error.clone().unwrap_or_else(|| {
-                        if self.release.is_some() {
-                            crate::i18n::text("A fresh version is ready").into()
-                        } else {
-                            crate::i18n::text("You're up to date. No newer release is available.")
-                                .into()
+                    if repository != self.preferences.repository {
+                        self.update_check_status.clear();
+                        continue;
+                    }
+                    match result {
+                        Ok(Some(release)) => {
+                            self.update_check_status = update::check_summary(
+                                &repository,
+                                &release.version,
+                                env!("CARGO_PKG_VERSION"),
+                                &checked_at,
+                            );
+                            self.release = None;
+                            if update::newer_than(&release.version, env!("CARGO_PKG_VERSION"))
+                                .unwrap_or(false)
+                                && (manual || release.version != self.preferences.skip_version)
+                            {
+                                self.release = Some(release);
+                            }
                         }
-                    });
-                    if let Some(error) = error {
-                        self.logs.push(error.clone());
-                        if manual {
-                            self.status = error;
+                        result => {
+                            let detail = match result {
+                                Err(error) => error,
+                                _ => format!("GitHub: {repository} · HTTP 404"),
+                            };
+                            self.update_check_status = {
+                                let error = detail;
+                                crate::tr!("Update check failed: {error}")
+                            };
+                            self.logs.push(self.update_check_status.clone());
+                            if manual {
+                                self.status = self.update_check_status.clone();
+                            }
                         }
                     }
                 }

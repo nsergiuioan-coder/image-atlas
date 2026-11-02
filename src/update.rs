@@ -43,12 +43,34 @@ impl Preferences {
         Ok(())
     }
 }
-pub fn check(repository: &str) -> Result<Option<UpdateRelease>> {
-    Ok(latest(repository)?.filter(|release| {
-        semver::Version::parse(&release.version).is_ok_and(|version| {
-            version > semver::Version::parse(env!("CARGO_PKG_VERSION")).expect("Package version")
-        })
-    }))
+pub fn newer_than(version: &str, current: &str) -> Result<bool> {
+    Ok(semver::Version::parse(version)? > semver::Version::parse(current)?)
+}
+
+pub fn check_summary(repository: &str, latest: &str, current: &str, time: &str) -> String {
+    crate::tr!("GitHub ({repository}): {latest} · This app: {current} · Checked: {time}")
+}
+
+pub fn checked_time() -> String {
+    #[cfg(windows)]
+    {
+        let mut time = windows_sys::Win32::Foundation::SYSTEMTIME::default();
+        unsafe { windows_sys::Win32::System::SystemInformation::GetLocalTime(&mut time) };
+        format!(
+            "{:04}-{:02}-{:02} {:02}:{:02}:{:02}",
+            time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute, time.wSecond
+        )
+    }
+    #[cfg(not(windows))]
+    {
+        format!(
+            "{} UTC",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_secs()
+        )
+    }
 }
 
 pub fn latest(repository: &str) -> Result<Option<UpdateRelease>> {
@@ -64,10 +86,15 @@ pub fn latest(repository: &str) -> Result<Option<UpdateRelease>> {
         .timeout(Duration::from_secs(20))
         .user_agent("ImageAtlas")
         .build()?;
+    let checked = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)?
+        .as_millis();
     let response = client
         .get(format!(
-            "https://api.github.com/repos/{repository}/releases/latest"
+            "https://api.github.com/repos/{repository}/releases/latest?checked={checked}"
         ))
+        .header(reqwest::header::ACCEPT, "application/vnd.github+json")
+        .header(reqwest::header::CACHE_CONTROL, "no-cache")
         .send()?;
     if response.status() == 404 {
         return Ok(None);
@@ -97,7 +124,12 @@ pub fn latest(repository: &str) -> Result<Option<UpdateRelease>> {
         archive.starts_with("https://github.com/") && sums.starts_with("https://github.com/"),
         "Unexpected update source"
     );
-    let text = client.get(sums).send()?.error_for_status()?.text()?;
+    let text = client
+        .get(sums)
+        .header(reqwest::header::CACHE_CONTROL, "no-cache")
+        .send()?
+        .error_for_status()?
+        .text()?;
     let filename = archive.rsplit('/').next().unwrap_or("");
     let checksum = text
         .lines()
@@ -804,6 +836,32 @@ pub fn cleanup_completed() {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn update_versions_use_semver_and_reject_invalid_results() {
+        assert!(newer_than("0.1.6", "0.1.5").unwrap());
+        assert!(newer_than("0.1.10", "0.1.9").unwrap());
+        assert!(!newer_than("0.1.6", "0.1.6").unwrap());
+        assert!(!newer_than("0.1.5", "0.1.6").unwrap());
+        assert!(newer_than("", "0.1.6").is_err());
+    }
+
+    #[test]
+    fn check_result_names_both_versions_source_and_time() {
+        let summary = check_summary("NIS/atlas", "0.1.6", "0.1.5", "2026-11-02 13:00:00");
+        for value in ["NIS/atlas", "0.1.6", "0.1.5", "2026-11-02 13:00:00"] {
+            assert!(summary.contains(value));
+        }
+        assert!(!summary.contains("You're up to date"));
+    }
+
+    #[test]
+    #[ignore = "Manual live GitHub release check"]
+    fn live_release_check() {
+        let release = latest("nsergiuioan-coder/image-atlas").unwrap().unwrap();
+        assert!(semver::Version::parse(&release.version).is_ok());
+        assert_eq!(release.checksum.len(), 64);
+        eprintln!("GitHub release: {} · {}", release.version, checked_time());
+    }
     fn package_fixture() -> (tempfile::TempDir, Plan) {
         let root = tempfile::tempdir().unwrap();
         let target = root.path().join("Atlas folder");

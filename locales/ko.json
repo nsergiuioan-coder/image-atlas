@@ -207,7 +207,6 @@
   "Website options": "웹사이트 옵션",
   "Width": "너비",
   "You can stop and resume later. Completed originals are reused automatically.": "중지하고 나중에 다시 시작할 수 있습니다. 완성된 원본은 자동으로 재사용됩니다.",
-  "You're up to date. No newer release is available.": "최신 상태입니다. 최신 릴리스가 없습니다.",
   "Your folder structure": "폴더 구조",
   "Your text": "당신의 텍스트",
   "You’ll review everything before downloading.": "다운로드하기 전에 모든 내용을 검토하게 됩니다.",
@@ -251,5 +250,7 @@
   "Wait for the current task to finish before restarting.": "현재 작업이 끝난 후 다시 시작하세요.",
   "Restart and update": "다시 시작하고 업데이트",
   "Update the existing copy in this folder.": "이 폴더에 있는 기존 사본을 업데이트합니다.",
-  "Save your work and close Atlas before updating.": "업데이트하기 전에 작업을 저장하고 Atlas를 닫으세요."
+  "Save your work and close Atlas before updating.": "업데이트하기 전에 작업을 저장하고 Atlas를 닫으세요.",
+  "GitHub ({repository}): {latest} · This app: {current} · Checked: {time}": "GitHub ({repository}): {latest} · 이 앱: {current} · 확인 시각: {time}",
+  "Update check failed: {error}": "업데이트 확인 실패: {error}"
 }

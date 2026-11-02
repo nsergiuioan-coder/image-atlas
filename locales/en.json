@@ -207,7 +207,6 @@
   "Website options": "Website options",
   "Width": "Width",
   "You can stop and resume later. Completed originals are reused automatically.": "You can stop and resume later. Completed originals are reused automatically.",
-  "You're up to date. No newer release is available.": "You're up to date. No newer release is available.",
   "Your folder structure": "Your folder structure",
   "Your text": "Your text",
   "You’ll review everything before downloading.": "You’ll review everything before downloading.",
@@ -251,5 +250,7 @@
   "Wait for the current task to finish before restarting.": "Wait for the current task to finish before restarting.",
   "Restart and update": "Restart and update",
   "Update the existing copy in this folder.": "Update the existing copy in this folder.",
-  "Save your work and close Atlas before updating.": "Save your work and close Atlas before updating."
+  "Save your work and close Atlas before updating.": "Save your work and close Atlas before updating.",
+  "GitHub ({repository}): {latest} · This app: {current} · Checked: {time}": "GitHub ({repository}): {latest} · This app: {current} · Checked: {time}",
+  "Update check failed: {error}": "Update check failed: {error}"
 }

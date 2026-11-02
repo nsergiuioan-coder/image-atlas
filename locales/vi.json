@@ -207,7 +207,6 @@
   "Website options": "Tùy chọn trang web",
   "Width": "Chiều rộng",
   "You can stop and resume later. Completed originals are reused automatically.": "Bạn có thể dừng và tiếp tục sau. Bản gốc đã hoàn thành sẽ được sử dụng lại tự động.",
-  "You're up to date. No newer release is available.": "Bạn đã cập nhật rồi. Không có bản phát hành mới hơn có sẵn.",
   "Your folder structure": "Cấu trúc thư mục của bạn",
   "Your text": "Văn bản của bạn",
   "You’ll review everything before downloading.": "Bạn sẽ xem lại mọi thứ trước khi tải xuống.",
@@ -251,5 +250,7 @@
   "Wait for the current task to finish before restarting.": "Đợi tác vụ hiện tại hoàn tất trước khi khởi động lại.",
   "Restart and update": "Khởi động lại và cập nhật",
   "Update the existing copy in this folder.": "Cập nhật bản hiện có trong thư mục này.",
-  "Save your work and close Atlas before updating.": "Lưu công việc và đóng Atlas trước khi cập nhật."
+  "Save your work and close Atlas before updating.": "Lưu công việc và đóng Atlas trước khi cập nhật.",
+  "GitHub ({repository}): {latest} · This app: {current} · Checked: {time}": "GitHub ({repository}): {latest} · Ứng dụng này: {current} · Đã kiểm tra: {time}",
+  "Update check failed: {error}": "Không thể kiểm tra bản cập nhật: {error}"
 }

@@ -207,7 +207,6 @@
   "Website options": "Pilihan tapak web",
   "Width": "Lebar",
   "You can stop and resume later. Completed originals are reused automatically.": "Anda boleh berhenti dan menyambung semula kemudian. Asal yang lengkap digunakan semula secara automatik.",
-  "You're up to date. No newer release is available.": "Anda terkini. Tiada keluaran baharu tersedia.",
   "Your folder structure": "Struktur folder anda",
   "Your text": "Teks anda",
   "You’ll review everything before downloading.": "Anda akan menyemak semuanya sebelum memuat turun.",
@@ -251,5 +250,7 @@
   "Wait for the current task to finish before restarting.": "Tunggu tugasan semasa selesai sebelum memulakan semula.",
   "Restart and update": "Mulakan semula dan kemas kini",
   "Update the existing copy in this folder.": "Kemas kini salinan sedia ada dalam folder ini.",
-  "Save your work and close Atlas before updating.": "Simpan kerja anda dan tutup Atlas sebelum mengemas kini."
+  "Save your work and close Atlas before updating.": "Simpan kerja anda dan tutup Atlas sebelum mengemas kini.",
+  "GitHub ({repository}): {latest} · This app: {current} · Checked: {time}": "GitHub ({repository}): {latest} · Aplikasi ini: {current} · Disemak: {time}",
+  "Update check failed: {error}": "Semakan kemas kini gagal: {error}"
 }

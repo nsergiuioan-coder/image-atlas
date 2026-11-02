@@ -207,7 +207,6 @@
   "Website options": "Opsi situs web",
   "Width": "Lebar",
   "You can stop and resume later. Completed originals are reused automatically.": "Anda dapat berhenti dan melanjutkannya nanti. Dokumen asli yang sudah selesai digunakan kembali secara otomatis.",
-  "You're up to date. No newer release is available.": "Anda terkini. Tidak ada rilis terbaru yang tersedia.",
   "Your folder structure": "Struktur folder Anda",
   "Your text": "Teksmu",
   "You’ll review everything before downloading.": "Anda akan meninjau semuanya sebelum mengunduh.",
@@ -251,5 +250,7 @@
   "Wait for the current task to finish before restarting.": "Tunggu tugas saat ini selesai sebelum memulai ulang.",
   "Restart and update": "Mulai ulang dan perbarui",
   "Update the existing copy in this folder.": "Perbarui salinan yang ada di folder ini.",
-  "Save your work and close Atlas before updating.": "Simpan pekerjaan Anda dan tutup Atlas sebelum memperbarui."
+  "Save your work and close Atlas before updating.": "Simpan pekerjaan Anda dan tutup Atlas sebelum memperbarui.",
+  "GitHub ({repository}): {latest} · This app: {current} · Checked: {time}": "GitHub ({repository}): {latest} · Aplikasi ini: {current} · Diperiksa: {time}",
+  "Update check failed: {error}": "Pemeriksaan pembaruan gagal: {error}"
 }

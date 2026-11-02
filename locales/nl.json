@@ -207,7 +207,6 @@
   "Website options": "Website-opties",
   "Width": "Breedte",
   "You can stop and resume later. Completed originals are reused automatically.": "U kunt stoppen en later verdergaan. Voltooide originelen worden automatisch hergebruikt.",
-  "You're up to date. No newer release is available.": "Je bent op de hoogte. Er is geen nieuwere release beschikbaar.",
   "Your folder structure": "Uw mappenstructuur",
   "Your text": "Jouw tekst",
   "You’ll review everything before downloading.": "Je controleert alles voordat je gaat downloaden.",
@@ -251,5 +250,7 @@
   "Wait for the current task to finish before restarting.": "Wacht tot de huidige taak klaar is voordat je opnieuw start.",
   "Restart and update": "Opnieuw starten en bijwerken",
   "Update the existing copy in this folder.": "Werk de bestaande kopie in deze map bij.",
-  "Save your work and close Atlas before updating.": "Sla je werk op en sluit Atlas voordat je bijwerkt."
+  "Save your work and close Atlas before updating.": "Sla je werk op en sluit Atlas voordat je bijwerkt.",
+  "GitHub ({repository}): {latest} · This app: {current} · Checked: {time}": "GitHub ({repository}): {latest} · Deze app: {current} · Gecontroleerd: {time}",
+  "Update check failed: {error}": "Controleren op updates mislukt: {error}"
 }

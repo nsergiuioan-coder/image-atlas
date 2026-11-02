@@ -69,8 +69,12 @@ pub enum Event {
         after: u64,
     },
     Failed(String),
-    Update(UpdateRelease),
-    UpdateCheckFinished(Option<String>, bool),
+    UpdateCheckFinished {
+        repository: String,
+        result: Result<Option<UpdateRelease>, String>,
+        manual: bool,
+        checked_at: String,
+    },
     UpdateProgress {
         bytes: u64,
         total: Option<u64>,

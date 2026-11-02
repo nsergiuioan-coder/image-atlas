@@ -207,7 +207,6 @@
   "Website options": "אפשרויות אתר",
   "Width": "רוחב",
   "You can stop and resume later. Completed originals are reused automatically.": "אתה יכול לעצור ולהמשיך מאוחר יותר. במסמכי מקור שהושלמו נעשה שימוש חוזר אוטומטי.",
-  "You're up to date. No newer release is available.": "אתה מעודכן. אין גרסה חדשה יותר זמינה.",
   "Your folder structure": "מבנה התיקיות שלך",
   "Your text": "הטקסט שלך",
   "You’ll review everything before downloading.": "אתה תבדוק הכל לפני ההורדה.",
@@ -251,5 +250,7 @@
   "Wait for the current task to finish before restarting.": "יש להמתין לסיום המשימה הנוכחית לפני ההפעלה מחדש.",
   "Restart and update": "הפעלה מחדש ועדכון",
   "Update the existing copy in this folder.": "עדכון העותק הקיים בתיקייה זו.",
-  "Save your work and close Atlas before updating.": "יש לשמור את העבודה ולסגור את Atlas לפני העדכון."
+  "Save your work and close Atlas before updating.": "יש לשמור את העבודה ולסגור את Atlas לפני העדכון.",
+  "GitHub ({repository}): {latest} · This app: {current} · Checked: {time}": "GitHub ({repository}): {latest} · יישום זה: {current} · נבדק: {time}",
+  "Update check failed: {error}": "בדיקת העדכונים נכשלה: {error}"
 }

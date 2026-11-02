@@ -112,7 +112,6 @@
   "Select an object on the canvas or in Layers.": "Vyberte objekt na plátne alebo vo vrstvách.\nVyberte a potiahnite objekty. Podržte priestor na posúvanie. Posuňte zobrazenie na priblíženie.\nSelekcia\nServer je nedostupný. Opakovaný pokus o neúspešné súbory za ZXQ0QXZ sekúnd; dokončené sťahovanie je bezpečné.\nNastavenia sa zmenili. Obnovte optimalizovaný náhľad.\nPreskočte túto verziu\nPreskočené ZXQ0QXZ: ZXQ1QXZ\nMenšie\nMenšie, bežné obrazové súbory. Vaše originály zostanú nedotknuté.\nZjemnite farebnú zhodu\nStop\nZastaviť export\nZastavené. Dokončené súbory sú v bezpečí\nMŕtvica\nTechnické detaily\nText\nServer vrátil odpoveď bez obrazu\nTento súbor nie je dokument SVG\nTo\nTolerancia",
   "Turn off automatic update checks": "Vypnite automatickú kontrolu aktualizácií\nSpäť\nNeočakávaný rozsah obnovenia\nNeočakávaný zdroj aktualizácie\nNepodporovaný výstupný formát\nAktualizujte teraz\nPoužiť vykresľovanie prehliadača pre dynamickú webovú stránku\nPoužiť fyzickú šírku\nVektorový editor\nVektorové sledovanie funguje najlepšie na plochej kresbe.\nZobraziť zdroj\nČakanie na server; prepočítava sa ETA…\nExport optimalizovaný pre web\nWebP — bezstratový\nWebová stránka\nAdresa webovej stránky\nKnižnica obrázkov webových stránok\nMapa webovej stránky\nMožnosti webovej stránky\nŠírka",
   "You can stop and resume later. Completed originals are reused automatically.": "Môžete zastaviť a pokračovať neskôr. Dokončené originály sa automaticky znova použijú.",
-  "You're up to date. No newer release is available.": "Si aktuálny. Nie je k dispozícii žiadne novšie vydanie.\nVaša štruktúra priečinkov",
   "Your text": "Váš text",
   "You’ll review everything before downloading.": "Pred stiahnutím si všetko skontrolujete.",
   "[aria-label*=readcrumb] a, .breadcrumb a, .breadcrumbs a, [itemprop=itemListElement] [itemprop=name]": "[aria-label*=readcrumb] a, .breadcrumb a, .breadcrumbs a, [itemprop=itemListElement] [itemprop=name]\nOznámenia ZXQ0QXZ sú dostupné v časti Podrobnosti.\nOznamy ZXQ0QXZ v časti Podrobnosti",
@@ -251,5 +250,7 @@
   "Wait for the current task to finish before restarting.": "Pred reštartovaním počkajte na dokončenie aktuálnej úlohy.",
   "Restart and update": "Reštartovať a aktualizovať",
   "Update the existing copy in this folder.": "Aktualizujte existujúcu kópiu v tomto priečinku.",
-  "Save your work and close Atlas before updating.": "Pred aktualizáciou uložte prácu a zatvorte Atlas."
+  "Save your work and close Atlas before updating.": "Pred aktualizáciou uložte prácu a zatvorte Atlas.",
+  "GitHub ({repository}): {latest} · This app: {current} · Checked: {time}": "GitHub ({repository}): {latest} · Táto aplikácia: {current} · Skontrolované: {time}",
+  "Update check failed: {error}": "Kontrola aktualizácií zlyhala: {error}"
 }

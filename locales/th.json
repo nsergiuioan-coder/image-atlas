@@ -207,7 +207,6 @@
   "Website options": "ตัวเลือกเว็บไซต์",
   "Width": "ความกว้าง",
   "You can stop and resume later. Completed originals are reused automatically.": "คุณสามารถหยุดและดำเนินการต่อในภายหลังได้ ต้นฉบับที่เสร็จแล้วจะถูกนำมาใช้ซ้ำโดยอัตโนมัติ",
-  "You're up to date. No newer release is available.": "คุณทันสมัยแล้ว ไม่มีรุ่นใหม่กว่านี้",
   "Your folder structure": "โครงสร้างโฟลเดอร์ของคุณ",
   "Your text": "ข้อความของคุณ",
   "You’ll review everything before downloading.": "คุณจะต้องตรวจสอบทุกอย่างก่อนที่จะดาวน์โหลด",
@@ -251,5 +250,7 @@
   "Wait for the current task to finish before restarting.": "รอให้งานปัจจุบันเสร็จก่อนเริ่มใหม่",
   "Restart and update": "เริ่มใหม่และอัปเดต",
   "Update the existing copy in this folder.": "อัปเดตสำเนาที่มีอยู่ในโฟลเดอร์นี้",
-  "Save your work and close Atlas before updating.": "บันทึกงานและปิด Atlas ก่อนอัปเดต"
+  "Save your work and close Atlas before updating.": "บันทึกงานและปิด Atlas ก่อนอัปเดต",
+  "GitHub ({repository}): {latest} · This app: {current} · Checked: {time}": "GitHub ({repository}): {latest} · แอปนี้: {current} · ตรวจสอบเมื่อ: {time}",
+  "Update check failed: {error}": "ตรวจสอบการอัปเดตไม่สำเร็จ: {error}"
 }

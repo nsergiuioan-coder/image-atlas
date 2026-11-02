@@ -207,7 +207,6 @@
   "Website options": "خيارات موقع الويب",
   "Width": "العرض",
   "You can stop and resume later. Completed originals are reused automatically.": "يمكنك التوقف والاستئناف لاحقًا. تتم إعادة استخدام النسخ الأصلية المكتملة تلقائيًا.",
-  "You're up to date. No newer release is available.": "أنت على اطلاع دائم. لا يتوفر إصدار أحدث.",
   "Your folder structure": "بنية المجلد الخاص بك",
   "Your text": "النص الخاص بك",
   "You’ll review everything before downloading.": "ستقوم بمراجعة كل شيء قبل التنزيل.",
@@ -251,5 +250,7 @@
   "Wait for the current task to finish before restarting.": "انتظر انتهاء المهمة الحالية قبل إعادة التشغيل.",
   "Restart and update": "إعادة التشغيل والتحديث",
   "Update the existing copy in this folder.": "حدّث النسخة الموجودة في هذا المجلد.",
-  "Save your work and close Atlas before updating.": "احفظ عملك وأغلق Atlas قبل التحديث."
+  "Save your work and close Atlas before updating.": "احفظ عملك وأغلق Atlas قبل التحديث.",
+  "GitHub ({repository}): {latest} · This app: {current} · Checked: {time}": "GitHub ({repository}): {latest} · هذا التطبيق: {current} · وقت التحقق: {time}",
+  "Update check failed: {error}": "فشل التحقق من التحديثات: {error}"
 }

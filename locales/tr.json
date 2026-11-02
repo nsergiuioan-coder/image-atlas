@@ -190,7 +190,6 @@
   "Website options": "Web sitesi seçenekleri",
   "Width": "Genişlik",
   "You can stop and resume later. Completed originals are reused automatically.": "Daha sonra durdurabilir ve devam ettirebilirsiniz. Tamamlanan orijinaller otomatik olarak yeniden kullanılır.",
-  "You're up to date. No newer release is available.": "Güncelsiniz. Daha yeni bir sürüm mevcut değil.",
   "Your folder structure": "Klasör yapınız",
   "Your text": "Metniniz",
   "You’ll review everything before downloading.": "İndirmeden önce her şeyi inceleyeceksiniz.",
@@ -251,5 +250,7 @@
   "Wait for the current task to finish before restarting.": "Yeniden başlatmadan önce geçerli görevin tamamlanmasını bekleyin.",
   "Restart and update": "Yeniden başlat ve güncelle",
   "Update the existing copy in this folder.": "Bu klasördeki mevcut kopyayı güncelleyin.",
-  "Save your work and close Atlas before updating.": "Güncellemeden önce çalışmanızı kaydedip Atlas’ı kapatın."
+  "Save your work and close Atlas before updating.": "Güncellemeden önce çalışmanızı kaydedip Atlas’ı kapatın.",
+  "GitHub ({repository}): {latest} · This app: {current} · Checked: {time}": "GitHub ({repository}): {latest} · Bu uygulama: {current} · Kontrol zamanı: {time}",
+  "Update check failed: {error}": "Güncelleme kontrolü başarısız: {error}"
 }

@@ -191,7 +191,6 @@
   "Website map": "Verkkosivustokartta",
   "Website options": "Verkkosivuston vaihtoehdot\nLeveys",
   "You can stop and resume later. Completed originals are reused automatically.": "Voit lopettaa ja jatkaa myöhemmin. Valmiit alkuperäiset käytetään uudelleen automaattisesti.",
-  "You're up to date. No newer release is available.": "Olet ajan tasalla. Uudempaa julkaisua ei ole saatavilla.",
   "Your folder structure": "Kansiorakenne",
   "Your text": "Tekstisi",
   "You’ll review everything before downloading.": "Tarkistat kaiken ennen lataamista.",
@@ -251,5 +250,7 @@
   "Wait for the current task to finish before restarting.": "Odota nykyisen tehtävän valmistumista ennen uudelleenkäynnistystä.",
   "Restart and update": "Käynnistä uudelleen ja päivitä",
   "Update the existing copy in this folder.": "Päivitä tämän kansion olemassa oleva kopio.",
-  "Save your work and close Atlas before updating.": "Tallenna työsi ja sulje Atlas ennen päivitystä."
+  "Save your work and close Atlas before updating.": "Tallenna työsi ja sulje Atlas ennen päivitystä.",
+  "GitHub ({repository}): {latest} · This app: {current} · Checked: {time}": "GitHub ({repository}): {latest} · Tämä sovellus: {current} · Tarkistettu: {time}",
+  "Update check failed: {error}": "Päivitysten tarkistus epäonnistui: {error}"
 }

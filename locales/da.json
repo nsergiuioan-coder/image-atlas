@@ -153,7 +153,6 @@
   "Website options": "Hjemmeside muligheder",
   "Width": "Bredde",
   "You can stop and resume later. Completed originals are reused automatically.": "Du kan stoppe og genoptage senere. Færdige originaler genbruges automatisk.",
-  "You're up to date. No newer release is available.": "Du er opdateret. Ingen nyere udgivelse er tilgængelig.",
   "Your folder structure": "Din mappestruktur",
   "Your text": "Din tekst",
   "You’ll review everything before downloading.": "Du vil gennemgå alt, før du downloader.",
@@ -251,5 +250,7 @@
   "Wait for the current task to finish before restarting.": "Vent på, at den aktuelle opgave er færdig, før du genstarter.",
   "Restart and update": "Genstart og opdater",
   "Update the existing copy in this folder.": "Opdater den eksisterende kopi i denne mappe.",
-  "Save your work and close Atlas before updating.": "Gem dit arbejde og luk Atlas før opdateringen."
+  "Save your work and close Atlas before updating.": "Gem dit arbejde og luk Atlas før opdateringen.",
+  "GitHub ({repository}): {latest} · This app: {current} · Checked: {time}": "GitHub ({repository}): {latest} · Denne app: {current} · Kontrolleret: {time}",
+  "Update check failed: {error}": "Søgning efter opdateringer mislykkedes: {error}"
 }

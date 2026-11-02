@@ -207,7 +207,6 @@
   "Website options": "Opções de site",
   "Width": "Largura",
   "You can stop and resume later. Completed originals are reused automatically.": "Você pode parar e retomar mais tarde. Os originais concluídos são reutilizados automaticamente.",
-  "You're up to date. No newer release is available.": "Você está em dia. Nenhuma versão mais recente está disponível.",
   "Your folder structure": "Sua estrutura de pastas",
   "Your text": "Seu texto",
   "You’ll review everything before downloading.": "Você revisará tudo antes de fazer o download.",
@@ -251,5 +250,7 @@
   "Wait for the current task to finish before restarting.": "Aguarde a conclusão da tarefa atual antes de reiniciar.",
   "Restart and update": "Reiniciar e atualizar",
   "Update the existing copy in this folder.": "Atualize a cópia existente nesta pasta.",
-  "Save your work and close Atlas before updating.": "Salve seu trabalho e feche o Atlas antes de atualizar."
+  "Save your work and close Atlas before updating.": "Salve seu trabalho e feche o Atlas antes de atualizar.",
+  "GitHub ({repository}): {latest} · This app: {current} · Checked: {time}": "GitHub ({repository}): {latest} · Este aplicativo: {current} · Verificado em: {time}",
+  "Update check failed: {error}": "Falha ao verificar atualizações: {error}"
 }

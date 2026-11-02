@@ -153,7 +153,6 @@
   "Website map": "Harta site-ului web",
   "Website options": "Opțiuni pentru site-ul web\nLăţimea",
   "You can stop and resume later. Completed originals are reused automatically.": "Puteți opri și relua mai târziu. Originalele completate sunt reutilizate automat.",
-  "You're up to date. No newer release is available.": "Ești la curent. Nu este disponibilă nicio versiune mai nouă.",
   "Your folder structure": "Structura dvs. de foldere",
   "Your text": "Textul dvs",
   "You’ll review everything before downloading.": "Veți examina totul înainte de a descărca.",
@@ -251,5 +250,7 @@
   "Wait for the current task to finish before restarting.": "Așteaptă finalizarea sarcinii curente înainte de repornire.",
   "Restart and update": "Repornește și actualizează",
   "Update the existing copy in this folder.": "Actualizează copia existentă în acest folder.",
-  "Save your work and close Atlas before updating.": "Salvează lucrul și închide Atlas înainte de actualizare."
+  "Save your work and close Atlas before updating.": "Salvează lucrul și închide Atlas înainte de actualizare.",
+  "GitHub ({repository}): {latest} · This app: {current} · Checked: {time}": "GitHub ({repository}): {latest} · Versiunea în uz: {current} · Verificat la: {time}",
+  "Update check failed: {error}": "Nu s-au putut verifica actualizările: {error}"
 }

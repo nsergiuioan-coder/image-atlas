@@ -207,7 +207,6 @@
   "Website options": "వెబ్‌సైట్ ఎంపికలు",
   "Width": "వెడల్పు",
   "You can stop and resume later. Completed originals are reused automatically.": "మీరు ఆపి, తర్వాత కొనసాగించవచ్చు. పూర్తి చేసిన అసలైనవి స్వయంచాలకంగా తిరిగి ఉపయోగించబడతాయి.",
-  "You're up to date. No newer release is available.": "మీరు తాజాగా ఉన్నారు. కొత్త విడుదల అందుబాటులో లేదు.",
   "Your folder structure": "మీ ఫోల్డర్ నిర్మాణం",
   "Your text": "మీ వచనం",
   "You’ll review everything before downloading.": "మీరు డౌన్‌లోడ్ చేయడానికి ముందు ప్రతిదాన్ని సమీక్షిస్తారు.",
@@ -251,5 +250,7 @@
   "Wait for the current task to finish before restarting.": "పునఃప్రారంభించే ముందు ప్రస్తుత పని పూర్తయ్యే వరకు వేచి ఉండండి.",
   "Restart and update": "పునఃప్రారంభించి నవీకరించు",
   "Update the existing copy in this folder.": "ఈ ఫోల్డర్‌లో ఉన్న కాపీని నవీకరించండి.",
-  "Save your work and close Atlas before updating.": "నవీకరించే ముందు మీ పనిని సేవ్ చేసి Atlas మూసివేయండి."
+  "Save your work and close Atlas before updating.": "నవీకరించే ముందు మీ పనిని సేవ్ చేసి Atlas మూసివేయండి.",
+  "GitHub ({repository}): {latest} · This app: {current} · Checked: {time}": "GitHub ({repository}): {latest} · ఈ యాప్: {current} · తనిఖీ సమయం: {time}",
+  "Update check failed: {error}": "నవీకరణ తనిఖీ విఫలమైంది: {error}"
 }

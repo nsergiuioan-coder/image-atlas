@@ -216,7 +216,6 @@
   "Vector tracing works best on flat artwork.": "ベクター トレースは、フラットなアートワークで最適に機能します。",
   "Waiting for the server; recalculating ETA…": "サーバーを待っています。 ETAを再計算中…",
   "You can stop and resume later. Completed originals are reused automatically.": "停止して後で再開することもできます。完成したオリジナルは自動的に再利用されます。",
-  "You're up to date. No newer release is available.": "最新情報をご確認いただけます。新しいリリースはありません。",
   "  Website images": " ウェブサイトの画像",
   "ETA ~{}m {:02}s": "ETA ~{}m {:02}s",
   "{} pages scanned · {} queued · {} images · {eta}": "{} ページがスキャンされました · {} キューされました · {} 画像 · {eta}",
@@ -251,5 +250,7 @@
   "Wait for the current task to finish before restarting.": "現在の処理が完了してから再起動してください。",
   "Restart and update": "再起動して更新",
   "Update the existing copy in this folder.": "このフォルダーにある既存のコピーを更新します。",
-  "Save your work and close Atlas before updating.": "更新する前に作業を保存して Atlas を閉じてください。"
+  "Save your work and close Atlas before updating.": "更新する前に作業を保存して Atlas を閉じてください。",
+  "GitHub ({repository}): {latest} · This app: {current} · Checked: {time}": "GitHub ({repository}): {latest} · このアプリ: {current} · 確認日時: {time}",
+  "Update check failed: {error}": "更新を確認できませんでした: {error}"
 }

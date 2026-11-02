@@ -205,7 +205,6 @@
   "Website options": "网站选项",
   "Width": "宽度",
   "You can stop and resume later. Completed originals are reused automatically.": "您可以停止并稍后继续。完成的原件会自动重复使用。",
-  "You're up to date. No newer release is available.": "你是最新的。没有可用的新版本。",
   "Your folder structure": "您的文件夹结构",
   "Your text": "你的文字",
   "You’ll review everything before downloading.": "您将在下载之前检查所有内容。",
@@ -251,5 +250,7 @@
   "Wait for the current task to finish before restarting.": "请等待当前任务完成后再重启。",
   "Restart and update": "重启并更新",
   "Update the existing copy in this folder.": "更新此文件夹中的现有副本。",
-  "Save your work and close Atlas before updating.": "更新前请保存工作并关闭 Atlas。"
+  "Save your work and close Atlas before updating.": "更新前请保存工作并关闭 Atlas。",
+  "GitHub ({repository}): {latest} · This app: {current} · Checked: {time}": "GitHub ({repository}): {latest} · 当前应用: {current} · 检查时间: {time}",
+  "Update check failed: {error}": "更新检查失败: {error}"
 }

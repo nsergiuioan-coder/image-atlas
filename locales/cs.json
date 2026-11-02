@@ -90,7 +90,6 @@
   "Update now": "Aktualizujte nyní\nPoužijte vykreslování prohlížeče pro dynamickou webovou stránku\nPoužijte fyzickou šířku\nVektorový editor\nVektorové trasování funguje nejlépe na plochých uměleckých dílech.\nZobrazit zdroj\nČekání na server; přepočítávám ETA…\nExport optimalizovaný pro web\nWebP — bezeztrátový\nWebové stránky\nAdresa webové stránky\nKnihovna obrázků webových stránek\nMapa webových stránek",
   "Website options": "Možnosti webových stránek\nŠířka",
   "You can stop and resume later. Completed originals are reused automatically.": "Můžete zastavit a pokračovat později. Dokončené originály jsou automaticky znovu použity.",
-  "You're up to date. No newer release is available.": "Jste aktuální. Žádná novější verze není k dispozici.",
   "Your folder structure": "Struktura vaší složky",
   "Your text": "Váš text",
   "You’ll review everything before downloading.": "Před stažením si vše zkontrolujete.",
@@ -251,5 +250,7 @@
   "Wait for the current task to finish before restarting.": "Před restartováním počkejte na dokončení aktuální úlohy.",
   "Restart and update": "Restartovat a aktualizovat",
   "Update the existing copy in this folder.": "Aktualizujte stávající kopii v této složce.",
-  "Save your work and close Atlas before updating.": "Před aktualizací uložte práci a zavřete Atlas."
+  "Save your work and close Atlas before updating.": "Před aktualizací uložte práci a zavřete Atlas.",
+  "GitHub ({repository}): {latest} · This app: {current} · Checked: {time}": "GitHub ({repository}): {latest} · Tato aplikace: {current} · Zkontrolováno: {time}",
+  "Update check failed: {error}": "Kontrola aktualizací selhala: {error}"
 }
