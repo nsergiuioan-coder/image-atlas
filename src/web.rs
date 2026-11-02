@@ -432,21 +432,9 @@ pub fn encode(source: &Source, options: &Options) -> Result<Encoded> {
 }
 pub fn save(encoded: Encoded, source: &Path, folder: &Path) -> Result<Saved> {
     fs::create_dir_all(folder)?;
-    let stem = crate::model::safe_segment(
-        source
-            .file_stem()
-            .and_then(|s| s.to_str())
-            .unwrap_or("image"),
-    );
-    let mut path = folder.join(format!("{stem}.{}", encoded.extension));
-    let mut number = 2;
-    while path.exists() {
-        path = folder.join(format!("{stem}-{number}.{}", encoded.extension));
-        number += 1;
-    }
     let temp = tempfile::NamedTempFile::new_in(folder)?;
     fs::write(temp.path(), &encoded.bytes)?;
-    temp.persist_noclobber(&path).map_err(|e| e.error)?;
+    let path = crate::exports::save(temp.path(), source, folder, &encoded.extension)?;
     Ok(Saved {
         path,
         before: encoded.input_bytes,

@@ -4,6 +4,7 @@ mod bootstrap;
 mod convert;
 mod crawl;
 mod download;
+mod exports;
 mod i18n;
 mod imports;
 mod model;

@@ -15,7 +15,14 @@ pub fn scan(
     for root in roots {
         let entries = walkdir::WalkDir::new(root)
             .into_iter()
-            .filter_entry(|entry| entry.file_name() != ".atlas-cache");
+            .filter_entry(|entry| {
+                entry.file_name() != ".atlas-cache"
+                    && entry.file_name() != ".atlas-exports"
+                    && !entry
+                        .file_name()
+                        .to_string_lossy()
+                        .starts_with(".atlas-export-")
+            });
         for entry in entries {
             if cancel.stopped() {
                 let _ = events.send(Event::ImportFinished);

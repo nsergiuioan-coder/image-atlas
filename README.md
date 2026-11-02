@@ -110,3 +110,9 @@ Vibe coded.
 Signs and logos use SVG tracing. Existing SVG inputs keep their vector data. Preview the result with the draggable before/after divider and browse images with the slider before exporting. Tracing and AI enhancement can change shapes or small lettering; neither can reliably reconstruct unreadable text. Originals are never overwritten. Completed outputs are recorded with hashes; repeating an interrupted batch reuses valid completed files. Failed files can be retried separately.
 
 In the Batch editor, enable **Template** (Dima in Italian) to add a margin around each image or choose a fixed width and height in millimetres. Set the margin, fill, outline, corner radius, and DPI. The preview and batch save use the same settings. Fixed templates fit the whole image inside the available area without cropping it. PNG, JPEG, WebP, SVG, and PDF exports include the visible template; PNG, JPEG and WebP carry resolution metadata, while SVG and PDF store physical dimensions. Programs that ignore resolution metadata may display raster dimensions only. Web optimization may reduce pixel dimensions; the resolution metadata is adjusted to retain the intended physical size.
+
+## Repeated exports
+
+Saving again to the same destination updates the output previously created by Atlas for that source image and format. It does not append a numbered copy for every color edit. Export receipts and file hashes keep different source images separate, even when they share a filename. Your original inputs and unrelated existing files are preserved. Files changed outside Atlas are reported instead of overwritten. Older outputs created before this tracking existed are not automatically deleted.
+
+Dima controls accept both decimal commas and decimal points with up to three decimal places. For example, 246,944 and 246.944 both specify 246.944 mm.

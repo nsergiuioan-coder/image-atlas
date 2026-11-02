@@ -334,18 +334,10 @@ pub fn export(source: &Path, folder: &Path, settings: &Settings) -> Result<PathB
     } else {
         &settings.format
     };
-    let stem = crate::model::safe_segment(
-        source
-            .file_stem()
-            .and_then(|s| s.to_str())
-            .unwrap_or("image"),
-    );
-    let mut output = folder.join(format!("{stem}.{extension}"));
-    let mut i = 2;
-    while output.exists() {
-        output = folder.join(format!("{stem}-{i}.{extension}"));
-        i += 1;
-    }
+    let stage = tempfile::Builder::new()
+        .prefix(".atlas-export-")
+        .tempdir_in(folder)?;
+    let output = stage.path().join(format!("image.{extension}"));
     match settings.format.as_str() {
         "pdf" => pdf(&image, &output, settings.dpi)?,
         "svg trace" => {
@@ -403,12 +395,89 @@ pub fn export(source: &Path, folder: &Path, settings: &Settings) -> Result<PathB
         )?;
         fs::write(&output, bytes)?;
     }
-    Ok(output)
+    crate::exports::save(&output, source, folder, extension)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn web_optimization_preserves_dima_mm_by_adjusting_webp_dpi() {
+        use image::ImageDecoder;
+        let folder = tempfile::tempdir().unwrap();
+        let source = folder.path().join("source.png");
+        DynamicImage::new_rgb8(100, 50).save(&source).unwrap();
+        let settings = Settings {
+            dpi: 254.0,
+            template: Some(crate::template::Template {
+                layout: crate::template::Layout::Fixed,
+                width: 30.0,
+                height: 20.0,
+                margin: 2.0,
+                ..Default::default()
+            }),
+            web: Some(crate::web::Options {
+                format: crate::web::Format::Webp,
+                max_edge: 150,
+                ..Default::default()
+            }),
+            ..Default::default()
+        };
+        let encoded = encode_web(&source, &settings).unwrap();
+        let mut decoder = image::ImageReader::new(std::io::Cursor::new(&encoded.bytes))
+            .with_guessed_format()
+            .unwrap()
+            .into_decoder()
+            .unwrap();
+        assert_eq!(decoder.dimensions(), (150, 100));
+        let exif = decoder.exif_metadata().unwrap().unwrap();
+        assert_eq!(u32::from_le_bytes(exif[50..54].try_into().unwrap()), 127000);
+    }
+    #[test]
+    fn saving_three_color_changes_keeps_one_modified_image() {
+        let folder = tempfile::tempdir().unwrap();
+        let source = folder.path().join("gray.png");
+        DynamicImage::ImageRgba8(RgbaImage::from_pixel(
+            4,
+            4,
+            image::Rgba([128, 128, 128, 255]),
+        ))
+        .save(&source)
+        .unwrap();
+        let destination = folder.path().join("edited");
+        let mut paths = Vec::new();
+        for color in [[255, 255, 255], [200, 0, 0], [0, 0, 200]] {
+            let settings = Settings {
+                format: "webp".into(),
+                rules: vec![ColorRule {
+                    to: color,
+                    ..Default::default()
+                }],
+                ..Default::default()
+            };
+            paths.push(export(&source, &destination, &settings).unwrap());
+        }
+        assert!(paths.windows(2).all(|pair| pair[0] == pair[1]));
+        assert_eq!(
+            load(&paths[0]).unwrap().to_rgba8().get_pixel(1, 1).0,
+            [0, 0, 200, 255]
+        );
+        assert_eq!(
+            fs::read_dir(destination)
+                .unwrap()
+                .filter_map(Result::ok)
+                .filter(|entry| entry
+                    .path()
+                    .extension()
+                    .is_some_and(|extension| extension == "webp"))
+                .count(),
+            1
+        );
+        assert_eq!(
+            load(&source).unwrap().to_rgba8().get_pixel(1, 1).0,
+            [128, 128, 128, 255]
+        );
+    }
     #[test]
     fn dima_and_dpi_are_present_in_batch_exports() {
         let folder = tempfile::tempdir().unwrap();

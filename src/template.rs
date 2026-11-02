@@ -2,6 +2,15 @@ use anyhow::Result;
 use image::{DynamicImage, Rgba};
 use serde::{Deserialize, Serialize};
 
+pub fn parse_measurement(value: &str) -> Option<f64> {
+    value
+        .trim()
+        .replace(',', ".")
+        .parse::<f64>()
+        .ok()
+        .filter(|value| value.is_finite())
+}
+
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Layout {
     #[default]
@@ -54,6 +63,8 @@ impl Template {
                 ui.label(crate::i18n::text("Width"));
                 ui.add(
                     egui::DragValue::new(&mut self.width)
+                        .max_decimals(3)
+                        .custom_parser(parse_measurement)
                         .range(0.1..=f32::MAX)
                         .speed(0.5)
                         .suffix(" mm"),
@@ -63,6 +74,8 @@ impl Template {
                 ui.label(crate::i18n::text("Height"));
                 ui.add(
                     egui::DragValue::new(&mut self.height)
+                        .max_decimals(3)
+                        .custom_parser(parse_measurement)
                         .range(0.1..=f32::MAX)
                         .speed(0.5)
                         .suffix(" mm"),
@@ -73,6 +86,8 @@ impl Template {
             ui.label(crate::i18n::text("Margin around artwork"));
             ui.add(
                 egui::DragValue::new(&mut self.margin)
+                    .max_decimals(3)
+                    .custom_parser(parse_measurement)
                     .range(0.0..=f32::MAX)
                     .speed(0.1)
                     .suffix(" mm"),
@@ -82,6 +97,8 @@ impl Template {
             ui.label(crate::i18n::text("Corner radius"));
             ui.add(
                 egui::DragValue::new(&mut self.radius)
+                    .max_decimals(3)
+                    .custom_parser(parse_measurement)
                     .range(0.0..=f32::MAX)
                     .speed(0.1)
                     .suffix(" mm"),
@@ -97,6 +114,8 @@ impl Template {
             ui.label(crate::i18n::text("Width"));
             ui.add(
                 egui::DragValue::new(&mut self.stroke_width)
+                    .max_decimals(3)
+                    .custom_parser(parse_measurement)
                     .range(0.0..=f32::MAX)
                     .speed(0.1)
                     .suffix(" mm"),
@@ -104,6 +123,8 @@ impl Template {
         });
         ui.add(
             egui::DragValue::new(dpi)
+                .max_decimals(3)
+                .custom_parser(parse_measurement)
                 .range(1.0..=65535.0)
                 .suffix(" DPI"),
         );
@@ -411,6 +432,13 @@ pub fn svg_size(bytes: &[u8], width: u32, height: u32, dpi: f32) -> Result<Vec<u
 mod tests {
     use super::*;
     use image::GenericImageView;
+    #[test]
+    fn measurements_accept_comma_and_dot_without_losing_precision() {
+        assert_eq!(parse_measurement("246,944"), Some(246.944));
+        assert_eq!(parse_measurement("246.944"), Some(246.944));
+        assert_eq!(parse_measurement("0,125"), Some(0.125));
+        assert_eq!(parse_measurement("NaN"), None);
+    }
     #[test]
     fn margin_adds_mm_and_fixed_size_fits_without_cropping() {
         let source = DynamicImage::ImageRgba8(image::RgbaImage::from_pixel(
